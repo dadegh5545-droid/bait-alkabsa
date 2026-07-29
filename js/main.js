@@ -313,6 +313,7 @@
 
   function visibleDishes() {
     return DISHES.filter(function (dish) {
+      if (dish.hidden) return false;
       if (activeCat === 'fav' && !isFav(dish.id)) return false;
       if (activeCat !== 'all' && activeCat !== 'fav' && dish.cat !== activeCat) return false;
       return matchesQuery(dish);
@@ -659,12 +660,14 @@
     });
   }
 
-  /* تعبئة قائمة الفروع */
-  if (branchSelect && CFG.branches) {
+  /* تعبئة قائمة الفروع — تُعاد عند تحديث البيانات من لوحة التحكّم */
+  function renderBranches() {
+    if (!branchSelect || !CFG.branches) return;
     branchSelect.innerHTML = CFG.branches.map(function (b) {
       return '<option value="' + b.id + '">' + escapeHtml(b.name + ' — ' + b.area) + '</option>';
     }).join('');
   }
+  renderBranches();
 
   /* ======================================================================
      10. إرسال الطلب
@@ -1253,6 +1256,96 @@
 
   /* صور ثابتة في الصفحة */
   watchPhotos(document);
+
+  /* ======================================================================
+     21. بيانات الموقع القابلة للتعديل — data/site.json
+     تكتبها لوحة التحكّم، وتغلب على ما في js/menu-data.js: الأسعار،
+     الأطباق، أرقام التواصل، العنوان، أوقات العمل، الفروع، رسوم التوصيل.
+     غيابها يعني أن الموقع يعمل بالقيم الافتراضية في ملفات الكود.
+     ====================================================================== */
+  function formatPhone(intl) {
+    var digits = String(intl || '').replace(/\D/g, '');
+    if (!digits) return '';
+    if (digits.indexOf('974') === 0 && digits.length === 11) {
+      return '+974 ' + digits.slice(3, 7) + ' ' + digits.slice(7);
+    }
+    return '+' + digits;
+  }
+
+  function localPhone(intl) {
+    var digits = String(intl || '').replace(/\D/g, '');
+    return digits.indexOf('974') === 0 ? digits.slice(3) : digits;
+  }
+
+  function renderContact() {
+    var phone = String(CFG.phone || CFG.whatsapp || '').replace(/\D/g, '');
+    var wa    = String(CFG.whatsapp || '').replace(/\D/g, '');
+
+    $$('[data-tel]').forEach(function (el) {
+      if (phone) el.setAttribute('href', 'tel:+' + phone);
+
+      var mode = el.getAttribute('data-tel');
+      if (mode === 'label') el.textContent = formatPhone(phone);
+      if (mode === 'call')  el.textContent = 'أو اتصل: ' + toArabicDigits(localPhone(phone));
+    });
+
+    $$('[data-wa]').forEach(function (el) {
+      if (wa) el.setAttribute('href', 'https://wa.me/' + wa);
+      if (el.getAttribute('data-wa') === 'label') el.textContent = formatPhone(wa);
+    });
+
+    if (CFG.address) $$('[data-address]').forEach(function (el) { el.textContent = CFG.address; });
+    if (CFG.hours)   $$('[data-hours]').forEach(function (el) { el.textContent = CFG.hours; });
+  }
+
+  function refreshMenuCount() {
+    var live = DISHES.filter(function (d) { return !d.hidden; }).length;
+    $$('[data-count-source="menu"]').forEach(function (el) {
+      el.setAttribute('data-count', String(live));
+      el.textContent = toArabicDigits(live);
+    });
+  }
+
+  function applySiteData(data) {
+    if (!data) return;
+
+    if (data.config) {
+      Object.keys(data.config).forEach(function (key) { CFG[key] = data.config[key]; });
+    }
+
+    if (Array.isArray(data.categories) && data.categories.length) {
+      CATS.length = 0;
+      data.categories.forEach(function (c) { CATS.push(c); });
+    }
+
+    if (Array.isArray(data.dishes) && data.dishes.length) {
+      DISHES.length = 0;
+      data.dishes.forEach(function (d) { DISHES.push(d); });
+    }
+
+    refreshMenuCount();
+    renderFilters();
+    renderMenu();
+    renderBranches();
+    renderContact();
+    if (cartDrawer && !cartDrawer.hidden) renderCart();
+    renderCartBadge();
+  }
+
+  function loadSiteData() {
+    if (typeof fetch !== 'function') return;
+
+    fetch('data/site.json', { cache: 'no-cache' })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) { if (data) applySiteData(data); })
+      .catch(function () { /* لا بيانات محدّثة — نُبقي الافتراضي */ });
+  }
+
+  /* لوحة التحكّم تُحدّث الواجهة فوراً بعد الحفظ */
+  window.BAK_REFRESH_SITE = applySiteData;
+
+  renderContact();
+  loadSiteData();
 
   /* ======================================================================
      20. مدخل لوحة إضافة الصور

@@ -48,11 +48,22 @@ customHeaders:
     headers:
       - key: 'Cache-Control'
         value: 'public, max-age=86400, stale-while-revalidate=2592000'
-  # فهرس الصور يتغيّر مع كل صورة تُنشر من اللوحة — لا يُخزَّن أبداً
+  # فهرس الصور وبيانات الموقع يتغيّران مع كل نشر من اللوحة — لا يُخزَّنان
   - pattern: '/images/manifest.json'
     headers:
       - key: 'Cache-Control'
         value: 'no-cache, must-revalidate'
+  - pattern: '/data/*'
+    headers:
+      - key: 'Cache-Control'
+        value: 'no-cache, must-revalidate'
+  # صفحة لوحة التحكّم: لا فهرسة ولا تخزين
+  - pattern: '/admin.html'
+    headers:
+      - key: 'Cache-Control'
+        value: 'no-cache, must-revalidate'
+      - key: 'X-Robots-Tag'
+        value: 'noindex, nofollow'
   # الأيقونات لا تتغيّر بعد الإطلاق
   - pattern: '/icons/**'
     headers:

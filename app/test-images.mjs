@@ -143,6 +143,9 @@ function githubStub(overrides = {}) {
     if (/\/contents\/images\/manifest\.json/.test(url)) {
       return routes.manifest === null ? reply(null, 404) : reply(routes.manifest);
     }
+    if (/\/contents\/data\/site\.json/.test(url)) {
+      return !routes.site ? reply(null, 404) : reply(routes.site);
+    }
     if (/\/git\/blobs$/.test(url)) return reply(routes.blob);
     if (/\/git\/ref\/heads\//.test(url)) return reply(routes.ref);
     if (/\/git\/commits\/[^/]+$/.test(url) && method === 'GET') return reply(routes.commitRead);
@@ -294,6 +297,219 @@ const firstResult = await wFresh.BAK_ADMIN.commitImage('images/about.jpg',
   new wFresh.Blob(['y'], { type: 'image/jpeg' }), 'أول صورة');
 check('أول صورة تُنشئ الفهرس', firstResult.files.length === 1 &&
   firstResult.files[0] === 'images/about.jpg');
+
+/* ==========================================================================
+   ٣. بيانات الموقع من لوحة التحكّم — data/site.json
+   ========================================================================== */
+console.log('\n— بيانات الموقع (data/site.json) —');
+
+const SITE = {
+  config: {
+    whatsapp: '97433334444',
+    phone: '97455556666',
+    currency: 'ر.ق',
+    address: 'الدوحة — شارع الريان',
+    hours: 'يومياً ١٠ ص — ١٢ م',
+    deliveryFee: 20,
+    freeDeliveryOver: 0,
+    minOrder: 40,
+    branches: [{ id: 'b1', name: 'فرع الريان', area: 'الريان' }]
+  },
+  dishes: [
+    { id: 'kabsa-lamb', name: 'كبسة حاشي', cat: 'rice', price: 99, emoji: '🍛', desc: 'وصف' },
+    { id: 'new-dish',   name: 'مجبوس روبيان', cat: 'rice', price: 70, emoji: '🍤', desc: 'وصف' },
+    { id: 'tea-x',      name: 'شاي', cat: 'drink', price: 8, emoji: '🫖', desc: 'وصف' },
+    { id: 'kunafa',     name: 'كنافة', cat: 'dessert', price: 30, emoji: '🍰', desc: 'وصف', hidden: true }
+  ]
+};
+
+const siteFetch = (url) => {
+  if (String(url).includes('data/site.json')) {
+    return Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(SITE) });
+  }
+  return Promise.resolve({ ok: false, status: 404, json: () => Promise.resolve(null) });
+};
+
+const w3 = makeWindow({ fetchStub: siteFetch });
+w3.eval(readFileSync(`${ROOT}/js/main.js`, 'utf8'));
+await tick();
+
+const doc3 = w3.document;
+check('الأطباق المنشورة تُحلّ محلّ الافتراضية',
+  doc3.querySelectorAll('#menuGrid .dish').length === 3,
+  `(ظهر ${doc3.querySelectorAll('#menuGrid .dish').length})`);
+check('الطبق المخفي لا يظهر', doc3.querySelector('#menuGrid .dish[data-id="kunafa"]') === null);
+check('السعر الجديد ظهر في البطاقة',
+  doc3.querySelector('#menuGrid .dish[data-id="kabsa-lamb"] .price').textContent === '٩٩');
+check('الطبق المضاف ظهر', !!doc3.querySelector('#menuGrid .dish[data-id="new-dish"]'));
+check('عدّاد الأطباق يستثني المخفي',
+  doc3.querySelector('[data-count-source="menu"]').getAttribute('data-count') === '3');
+
+check('رقم الهاتف طُبّق على روابط الاتصال',
+  doc3.querySelector('[data-tel="label"]').getAttribute('href') === 'tel:+97455556666');
+check('نصّ رقم الهاتف منسّق',
+  doc3.querySelector('[data-tel="label"]').textContent === '+974 5555 6666',
+  `(${doc3.querySelector('[data-tel="label"]').textContent})`);
+check('رقم واتساب طُبّق على كل أزراره',
+  Array.from(doc3.querySelectorAll('[data-wa]'))
+    .every((a) => a.getAttribute('href') === 'https://wa.me/97433334444'));
+check('رابط «أو اتصل» يعرض الرقم المحلي',
+  doc3.querySelector('[data-tel="call"]').textContent === 'أو اتصل: ٥٥٥٥٦٦٦٦',
+  `(${doc3.querySelector('[data-tel="call"]').textContent})`);
+check('العنوان طُبّق', doc3.querySelector('[data-address]').textContent === 'الدوحة — شارع الريان');
+check('أوقات العمل طُبّقت', doc3.querySelector('[data-hours]').textContent === 'يومياً ١٠ ص — ١٢ م');
+check('الفروع طُبّقت في قائمة الاستلام',
+  doc3.querySelector('#cartBranch').textContent.includes('فرع الريان'));
+
+/* السلة بالإعدادات الجديدة: شاي ٨ + توصيل ٢٠، وأقل مبلغ للطلب ٤٠ */
+const click3 = (el) => el.dispatchEvent(new w3.MouseEvent('click', { bubbles: true }));
+click3(doc3.querySelector('#menuGrid [data-add="tea-x"]'));
+click3(doc3.querySelector('#dmAdd'));
+click3(doc3.querySelector('#cartBtn'));
+click3(doc3.querySelector('.mode-btn[data-mode="delivery"]'));
+check('رسوم التوصيل الجديدة مطبَّقة',
+  doc3.querySelector('#sumDelivery').textContent === '٢٠ ر.ق',
+  `(${doc3.querySelector('#sumDelivery').textContent})`);
+check('تنبيه أقل مبلغ للطلب بالقيمة الجديدة',
+  doc3.querySelector('#cartWarn').textContent.includes('٤٠'));
+
+console.log('\n— اللوحة: حفظ الأسعار والتواصل —');
+const siteStub = githubStub({ manifest: null });
+const wSite = makeAdmin(siteStub);
+wSite.BAK_ADMIN.state.token = 'tok-1';
+wSite.BAK_ADMIN.state.repo = REPO;
+
+const payload = {
+  config: { whatsapp: '97411112222', currency: 'ر.ق', deliveryFee: 25, branches: [] },
+  dishes: [{ id: 'x', name: 'طبق', cat: 'rice', price: 12 }]
+};
+await wSite.BAK_ADMIN.commitSiteData(payload, 'تحديث القائمة والأسعار من لوحة التحكّم');
+
+const siteTree = siteStub.calls.find((c) => /\/git\/trees$/.test(c.url));
+check('الحفظ يكتب data/site.json فقط',
+  siteTree.body.tree.length === 1 && siteTree.body.tree[0].path === 'data/site.json');
+const written = JSON.parse(siteTree.body.tree[0].content);
+check('الملف يحفظ الإعدادات والأطباق',
+  written.config.whatsapp === '97411112222' && written.dishes[0].price === 12);
+check('الملف يحمل وقت التحديث', !!written.updated);
+check('الحفظ لا يلمس فهرس الصور',
+  !siteStub.calls.some((c) => /manifest/.test(JSON.stringify(c.body || ''))));
+
+const siteCommit = siteStub.calls.find((c) => /\/git\/commits$/.test(c.url) && c.method === 'POST');
+check('commit واحد للحفظ', !!siteCommit && siteCommit.body.message.includes('لوحة التحكّم'));
+
+/* غياب الملف = لا تخصيص، والموقع يعمل بالقيم الافتراضية */
+const noneW = makeAdmin(githubStub({ site: null }));
+noneW.BAK_ADMIN.state.token = 'tok-1';
+noneW.BAK_ADMIN.state.repo = REPO;
+check('قراءة بيانات غير موجودة ترجع null', (await noneW.BAK_ADMIN.readSiteData()) === null);
+
+/* القراءة تفكّ ترميز base64 العربي كما هو */
+const arabicPayload = { config: { address: 'الدوحة — الوعب' }, dishes: [{ id: 'a', name: 'مجبوس' }] };
+const readW = makeAdmin(githubStub({
+  site: { content: Buffer.from(JSON.stringify(arabicPayload), 'utf8').toString('base64') }
+}));
+readW.BAK_ADMIN.state.token = 'tok-1';
+readW.BAK_ADMIN.state.repo = REPO;
+const readBack = await readW.BAK_ADMIN.readSiteData();
+check('قراءة data/site.json تفكّ الترميز العربي سليماً',
+  readBack.config.address === 'الدوحة — الوعب' && readBack.dishes[0].name === 'مجبوس',
+  `(${readBack && readBack.config && readBack.config.address})`);
+
+/* ==========================================================================
+   ٤. صفحة اللوحة الخاصة admin.html
+   ========================================================================== */
+console.log('\n— صفحة اللوحة الخاصة —');
+
+const adminHtml = readFileSync(`${ROOT}/admin.html`, 'utf8');
+check('الصفحة مستثناة من محركات البحث', adminHtml.includes('noindex'));
+check('robots.txt يمنع فهرستها',
+  readFileSync(`${ROOT}/robots.txt`, 'utf8').includes('Disallow: /admin.html'));
+
+function makeAdminPage(stub, token) {
+  const dom = new JSDOM(adminHtml, {
+    runScripts: 'outside-only', pretendToBeVisual: true, url: 'http://localhost/admin.html'
+  });
+  const { window } = dom;
+
+  window.matchMedia = () => ({ matches: false, addListener() {}, removeListener() {} });
+  window.requestAnimationFrame = (cb) => setTimeout(() => cb(0), 0);
+  window.fetch = stub.fetchStub;
+  window.BAK_ADMIN_PAGE = true;
+
+  if (token) {
+    window.localStorage.setItem('bak_admin_token', JSON.stringify(token));
+    window.localStorage.setItem('bak_admin_repo', JSON.stringify(REPO));
+  }
+
+  window.eval(readFileSync(`${ROOT}/js/menu-data.js`, 'utf8'));
+  window.eval(readFileSync(`${ROOT}/js/gallery-data.js`, 'utf8'));
+  window.eval(readFileSync(`${ROOT}/js/admin.js`, 'utf8'));
+  return window;
+}
+
+/* بلا رمز: تظهر شاشة الاتصال فقط */
+const guest = makeAdminPage(githubStub());
+await tick();
+check('اللوحة تُبنى تلقائياً في الصفحة الخاصة', !!guest.document.querySelector('#bakAdmin'));
+check('بلا رمز: تظهر شاشة الاتصال', guest.document.querySelector('#adLogin').hidden === false);
+check('بلا رمز: لا تظهر أدوات التعديل', guest.document.querySelector('#adWork').hidden === true);
+check('لا يمكن الحفظ بلا رمز', guest.BAK_ADMIN.state.token === '');
+
+/* مع رمز محفوظ: تظهر التبويبات */
+const pageStub = githubStub();
+const owner = makeAdminPage(pageStub, 'tok-1');
+await tick(30);
+
+const pdoc = owner.document;
+check('مع رمز: تظهر أدوات التعديل', pdoc.querySelector('#adWork').hidden === false);
+check('ثلاثة تبويبات: الصور والأسعار والتواصل',
+  Array.from(pdoc.querySelectorAll('.ad-tab')).map((t) => t.textContent).join('|') === 'الصور|الأسعار|التواصل');
+check('تبويب الصور هو الافتراضي',
+  pdoc.querySelector('.ad-pane[data-pane="images"]').hidden === false);
+
+/* تبويب الأسعار: صفّ لكل طبق */
+const clickP = (el) => el.dispatchEvent(new owner.MouseEvent('click', { bubbles: true }));
+clickP(pdoc.querySelector('.ad-tab[data-tab="menu"]'));
+check('تبويب الأسعار يعرض صفّاً لكل طبق',
+  pdoc.querySelectorAll('#adDishes .ad-row').length === owner.MENU.length,
+  `(${pdoc.querySelectorAll('#adDishes .ad-row').length})`);
+check('السعر الحالي معروض في الصفّ',
+  Number(pdoc.querySelector('#adDishes .ad-row .ad-in-price').value) === owner.MENU[0].price);
+
+/* تعديل سعر وإخفاء طبق ثم حفظ */
+pdoc.querySelector('#adDishes .ad-row .ad-in-price').value = '123';
+pdoc.querySelectorAll('#adDishes .ad-row')[1].querySelector('.ad-hide').checked = true;
+pageStub.calls.length = 0;
+clickP(pdoc.querySelector('#adSaveMenu'));
+await tick(40);
+
+const savedTree = pageStub.calls.find((c) => /\/git\/trees$/.test(c.url));
+check('الحفظ يرسل الملف إلى GitHub', !!savedTree);
+const savedData = JSON.parse(savedTree.body.tree[0].content);
+check('السعر المعدّل محفوظ', savedData.dishes[0].price === 123);
+check('الطبق المخفي محفوظ بعلامته', savedData.dishes[1].hidden === true);
+check('باقي الأطباق سليمة', savedData.dishes.length === owner.MENU.length);
+check('الإعدادات محفوظة مع القائمة', savedData.config.whatsapp === owner.ORDER_CONFIG.whatsapp);
+
+/* تبويب التواصل: تعديل رقم واتساب */
+clickP(pdoc.querySelector('.ad-tab[data-tab="contact"]'));
+check('حقول التواصل معبّأة من الإعدادات',
+  pdoc.querySelector('#cfWhatsapp').value === owner.ORDER_CONFIG.whatsapp);
+check('الفروع تظهر كصفوف قابلة للتعديل',
+  pdoc.querySelectorAll('#adBranches .ad-row').length === owner.ORDER_CONFIG.branches.length);
+
+pdoc.querySelector('#cfWhatsapp').value = '974 7777 8888';
+pdoc.querySelector('#cfMin').value = '55';
+pageStub.calls.length = 0;
+clickP(pdoc.querySelector('#adSaveContact'));
+await tick(40);
+
+const contactTree = pageStub.calls.find((c) => /\/git\/trees$/.test(c.url));
+const contactData = JSON.parse(contactTree.body.tree[0].content);
+check('رقم واتساب يُنظّف من المسافات', contactData.config.whatsapp === '97477778888');
+check('أقل مبلغ للطلب محفوظ رقماً', contactData.config.minOrder === 55);
+check('تعديل التواصل يحفظ القائمة كما هي', contactData.dishes.length === owner.MENU.length);
 
 console.log(`\n${'='.repeat(46)}`);
 console.log(`النتيجة:  ✓ ${pass} ناجح   ✗ ${fail} فاشل`);

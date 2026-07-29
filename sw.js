@@ -4,7 +4,7 @@
    ملاحظة: عند أي تعديل على ملفات الموقع، ارفع رقم CACHE_VERSION.
    ========================================================================== */
 
-var CACHE_VERSION = 'bak-v4';
+var CACHE_VERSION = 'bak-v5';
 var PRECACHE = [
   './',
   './index.html',
@@ -58,8 +58,10 @@ self.addEventListener('fetch', function (event) {
     return;
   }
 
-  /* فهرس الصور: الشبكة أولاً دائماً، حتى تظهر الصور المنشورة فوراً */
-  if (url.pathname.indexOf('images/manifest.json') !== -1) {
+  /* فهرس الصور وبيانات الموقع: الشبكة أولاً دائماً،
+     حتى تظهر الصور والأسعار المنشورة من لوحة التحكّم فوراً */
+  if (url.pathname.indexOf('images/manifest.json') !== -1 ||
+      url.pathname.indexOf('data/site.json') !== -1) {
     event.respondWith(
       fetch(req)
         .then(function (res) {

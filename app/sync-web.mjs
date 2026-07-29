@@ -16,12 +16,14 @@ const www  = join(here, 'www');
 /* الملفات والمجلدات التي تُنسخ إلى التطبيق */
 const ASSETS = [
   'index.html',
+  'admin.html',
   'offline.html',
   'manifest.webmanifest',
   'css',
   'js',
   'icons',
-  'images'
+  'images',
+  'data'
 ];
 
 /* عامل الخدمة لا لزوم له داخل التطبيق — المحتوى مضمّن أصلاً */
