@@ -1,0 +1,56 @@
+# مجلد الصور
+
+ضع صور المطعم هنا بالأسماء المذكورة أدناه، وسيستعملها الموقع تلقائياً.
+
+**كل صورة اختيارية.** ما لم يوجد ملفها يظهر الإطار النائب (بنّي + رمز تعبيري) بدل مساحة فارغة — فيمكنك النشر الآن وإضافة الصور تدريجياً.
+
+## ١. صورة «عن المطعم»
+
+| الملف | المقاس المقترح |
+|---|---|
+| `about.jpg` | ٩٠٠ × ١٢٠٠ (طولية) |
+
+## ٢. صور المعرض — مجلد `gallery/`
+
+الأسماء مأخوذة من [js/gallery-data.js](../js/gallery-data.js) — إن أردت أسماء أخرى عدّل حقل `img` هناك.
+
+| الملف | الوصف | المقاس المقترح |
+|---|---|---|
+| `gallery/kabsa-plate.jpg` | صحن الكبسة | ١٤٠٠ × ١٤٠٠ (مربّعة) |
+| `gallery/tannour.jpg` | التنّور | ١٦٠٠ × ٩٠٠ (عريضة) |
+| `gallery/majlis.jpg` | صالة الضيوف | ٩٠٠ × ٩٠٠ |
+| `gallery/coffee.jpg` | القهوة العربية | ٩٠٠ × ٩٠٠ |
+| `gallery/grills.jpg` | المشاوي | ١٩٢٠ × ٧٠٠ (شريط) |
+
+## ٣. صور الأطباق — مجلد `dishes/`
+
+اسم كل ملف = **معرّف الطبق** في [js/menu-data.js](../js/menu-data.js). المقاس المقترح ٨٠٠ × ٦٠٠.
+
+بعد وضع الصور، افتح [js/gallery-data.js](../js/gallery-data.js) واجعل:
+
+```js
+autoDishImages: true
+```
+
+ولا حاجة لتعديل أي شيء آخر. الأطباق التي لا صورة لها تبقى بالرمز التعبيري.
+
+| الأرز واللحوم | المشاوي | المقبلات | الحلويات | المشروبات |
+|---|---|---|---|---|
+| `dishes/kabsa-lamb.jpg` | `dishes/mixed-grill.jpg` | `dishes/sambosa.jpg` | `dishes/luqaimat.jpg` | `dishes/arabic-coffee.jpg` |
+| `dishes/mandi-chicken.jpg` | `dishes/lamb-chops.jpg` | `dishes/fattoush.jpg` | `dishes/kunafa.jpg` | `dishes/red-tea.jpg` |
+| `dishes/haneeth.jpg` | `dishes/maqalqal.jpg` | `dishes/hummus.jpg` | `dishes/om-ali.jpg` | `dishes/laban.jpg` |
+| `dishes/madhbi.jpg` | `dishes/shish-tawook.jpg` | `dishes/tabbouleh.jpg` | | `dishes/fresh-juice.jpg` |
+| `dishes/madghout.jpg` | | | | |
+| `dishes/jareesh.jpg` | | | | |
+
+## نصائح قبل الرفع
+
+- **الصيغة:** JPEG بجودة ٧٥–٨٢٪. لو استعملت WebP (أخف بـ٣٠٪ تقريباً) غيّر `dishExt` في `js/gallery-data.js` إلى `'.webp'` وعدّل مسارات المعرض.
+- **الحجم:** لا تتجاوز ٢٥٠ كيلوبايت للصورة. الصور الضخمة تُبطئ الموقع على شبكة الجوال أكثر مما تُجمّله.
+- **الاقتصاص:** صور الأطباق تُقتصّ من المنتصف (`object-fit: cover`) — اجعل الطبق في وسط الكادر.
+- **شاشات عالية الدقة (اختياري):** أضف ملفاً بضعف المقاس ثم أشِر إليه بحقل `img2x` في `js/gallery-data.js`. لا تضع `img2x` إلا إذا كان الملف موجوداً فعلاً، لأن غيابه يُفقد الصورة على تلك الشاشات.
+- **التسمية:** بالإنجليزية وبأحرف صغيرة وبدون مسافات — الاستضافة تفرّق بين الحروف الكبيرة والصغيرة.
+
+## بعد إضافة الصور
+
+ارفع رقم `CACHE_VERSION` في [sw.js](../sw.js) حتى يرى الزوار السابقون النسخة الجديدة، وإن كنت تبني تطبيق أندرويد شغّل `cd app && npm run sync-web`.

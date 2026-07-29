@@ -129,9 +129,11 @@
     <section class="section about" id="about">
       <div class="container about-grid">
         <div class="about-media reveal">
-          <!-- استبدل الـ div بصورة حقيقية: <img src="images/about.jpg" alt="مطبخ بيت الكبسة"> -->
+          <!-- ضع الصورة في images/about.jpg — وإن لم توجد يبقى الإطار النائب ظاهراً -->
           <div class="photo photo-tall" data-label="مطبخ المطعم">
             <span class="photo-emoji" aria-hidden="true">🍲</span>
+            <img class="photo-img" src="images/about.jpg"
+                 alt="مطبخ بيت الكبسة والقدور على النار" loading="lazy" decoding="async" />
           </div>
           <div class="about-badge">
             <strong>٢٧</strong>
@@ -220,13 +222,10 @@
           <h2>من داخل بيت الكبسة</h2>
         </header>
 
-        <div class="gallery-grid reveal">
-          <div class="photo g-1" data-label="صحن الكبسة"><span class="photo-emoji" aria-hidden="true">🍛</span></div>
-          <div class="photo g-2" data-label="التنّور"><span class="photo-emoji" aria-hidden="true">🔥</span></div>
-          <div class="photo g-3" data-label="صالة الضيوف"><span class="photo-emoji" aria-hidden="true">🪑</span></div>
-          <div class="photo g-4" data-label="القهوة العربية"><span class="photo-emoji" aria-hidden="true">☕</span></div>
-          <div class="photo g-5" data-label="المشاوي"><span class="photo-emoji" aria-hidden="true">🍢</span></div>
-        </div>
+        <p class="gallery-hint reveal">اضغط أي صورة لتكبيرها</p>
+
+        <!-- يُرسم من js/gallery-data.js -->
+        <div class="gallery-grid reveal" id="galleryGrid"></div>
       </div>
     </section>
 
@@ -506,6 +505,26 @@
     </div>
   </div>
 
+  <!-- ===== العرض المكبّر للصور ===== -->
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="معرض الصور" hidden>
+    <div class="modal-backdrop" data-lb-close></div>
+
+    <div class="lb-panel">
+      <button class="modal-close lb-close" data-lb-close aria-label="إغلاق">×</button>
+
+      <div class="lb-stage" id="lbStage"></div>
+
+      <div class="lb-bar">
+        <button type="button" class="lb-nav" data-lb="prev" aria-label="الصورة السابقة">›</button>
+        <div class="lb-meta">
+          <p class="lb-caption" id="lbCaption"></p>
+          <p class="lb-counter" id="lbCounter" aria-live="polite"></p>
+        </div>
+        <button type="button" class="lb-nav" data-lb="next" aria-label="الصورة التالية">‹</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ===== سلة الطلب ===== -->
   <aside class="cart" id="cartDrawer" role="dialog" aria-modal="true" aria-labelledby="cartTitle" hidden>
     <div class="modal-backdrop" data-cart-close></div>
@@ -564,6 +583,7 @@
   <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
 
   <script src="js/menu-data.js"></script>
+  <script src="js/gallery-data.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

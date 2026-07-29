@@ -396,8 +396,27 @@ p  { margin: 0 0 1rem; }
   padding: 2px 10px;
   border-radius: 999px;
   backdrop-filter: blur(4px);
+  z-index: 3;
 }
 .photo-emoji { font-size: 2.6rem; position: relative; z-index: 1; opacity: .85; }
+
+/* الصورة الحقيقية تُرسم فوق الإطار النائب وتتلاشى للظهور عند التحميل.
+   لو فُقد الملف تُخفى الصورة ويبقى الإطار النائب — لا مساحة فارغة. */
+.photo-img {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity .45s var(--ease);
+}
+.photo-img.is-loaded { opacity: 1; }
+.photo-img.is-failed { display: none; }
+
+/* بطاقة الاسم كانت للإطار النائب — تُخفى بعد ظهور الصورة الحقيقية */
+.photo:has(.photo-img.is-loaded)::after { content: none; }
 
 /* ---------- 9. عن المطعم ---------- */
 .about { background: var(--bg); }
@@ -594,6 +613,11 @@ p  { margin: 0 0 1rem; }
 
 /* ---------- 12. المعرض ---------- */
 .gallery { background: var(--bg); }
+.gallery-hint {
+  font-size: .84rem;
+  color: var(--ink-faint);
+  margin: -1rem 0 1.1rem;
+}
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -602,6 +626,17 @@ p  { margin: 0 0 1rem; }
 }
 .gallery-grid .photo { transition: transform .4s var(--ease); cursor: pointer; }
 .gallery-grid .photo:hover { transform: scale(1.02); }
+
+/* خلايا المعرض أزرار — لتعمل بلوحة المفاتيح وقارئ الشاشة */
+.gal-item {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  font: inherit;
+  color: inherit;
+  appearance: none;
+}
+.gal-item::before, .gal-item::after { pointer-events: none; }
 .g-1 { grid-column: span 2; grid-row: span 2; }
 .g-2 { grid-column: span 2; }
 .g-3 { grid-column: span 1; }
@@ -969,10 +1004,10 @@ body.is-app .to-top { inset-block-end: 86px; }
 
 /* ---------- 22. بطاقة الطبق (إضافات) ---------- */
 .dish-media-wrap { position: relative; }
-img.dish-media { width: 100%; height: 172px; object-fit: cover; }
 
 .fav-btn {
   position: absolute;
+  z-index: 4;
   inset-block-start: 10px;
   inset-inline-end: 10px;
   width: 36px; height: 36px;
@@ -1450,7 +1485,89 @@ html[dir="rtl"] .cart-panel { transform: translateX(100%); }
   .install-banner .ib-text { flex-basis: 60%; }
 }
 
-/* ---------- 29. تفضيلات المستخدم ---------- */
+/* ---------- 29. العرض المكبّر للصور ---------- */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+}
+.lightbox .modal-backdrop { background: rgba(20, 11, 6, .86); }
+.lightbox.is-open .modal-backdrop { opacity: 1; }
+
+.lb-panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.1rem;
+  padding: clamp(3.4rem, 7vw, 4.5rem) clamp(1rem, 4vw, 3rem) clamp(1.4rem, 4vw, 2.5rem);
+  opacity: 0;
+  transform: scale(.97);
+  transition: opacity .3s var(--ease), transform .3s var(--ease);
+}
+.lightbox.is-open .lb-panel { opacity: 1; transform: none; }
+
+.lb-close {
+  position: absolute;
+  inset-block-start: clamp(1rem, 3vw, 1.8rem);
+  inset-inline-end: clamp(1rem, 3vw, 1.8rem);
+  background: rgba(255, 255, 255, .92);
+}
+
+.lb-stage {
+  width: min(100%, 1020px);
+  display: flex;
+  flex: 0 1 auto;
+  min-height: 0;
+}
+.lb-photo {
+  flex: 1;
+  min-height: min(70svh, 64vw);
+  max-height: 70svh;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+.lb-photo .photo-emoji { font-size: clamp(3rem, 9vw, 5rem); }
+.lb-photo .photo-img { object-fit: contain; background: rgba(0, 0, 0, .3); }
+
+.lb-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(1rem, 4vw, 2.4rem);
+}
+.lb-nav {
+  flex-shrink: 0;
+  width: 46px; height: 46px;
+  display: grid; place-items: center;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, .3);
+  background: rgba(255, 255, 255, .1);
+  color: #fff;
+  font-size: 1.7rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background .25s, color .25s, transform .25s var(--ease);
+}
+.lb-nav:hover { background: var(--gold); color: var(--brown-deep); transform: scale(1.08); }
+.lightbox.is-single .lb-nav { display: none; }
+
+.lb-meta { text-align: center; color: #fff; min-width: min(46vw, 22ch); }
+.lb-caption {
+  margin: 0;
+  font-size: .95rem;
+  font-weight: 500;
+  line-height: 1.6;
+}
+.lb-counter {
+  margin: .2rem 0 0;
+  font-size: .8rem;
+  color: rgba(255, 255, 255, .68);
+}
+
+/* ---------- 30. تفضيلات المستخدم ---------- */
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after {
@@ -1458,10 +1575,12 @@ html[dir="rtl"] .cart-panel { transform: translateX(100%); }
     transition-duration: .01ms !important;
   }
   .reveal { opacity: 1; transform: none; }
+  .photo-img { transition: none; }
+  .gallery-grid .photo:hover, .lb-nav:hover { transform: none; }
 }
 
 @media print {
-  .site-header, .to-top, .app-tabbar, .install-banner, .scroll-cue, .hero-actions { display: none !important; }
+  .site-header, .to-top, .app-tabbar, .install-banner, .scroll-cue, .hero-actions, .lightbox { display: none !important; }
   body { color: #000; background: #fff; }
   .reveal { opacity: 1; transform: none; }
 }

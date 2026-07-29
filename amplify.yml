@@ -33,10 +33,22 @@ customHeaders:
         value: 'application/manifest+json; charset=utf-8'
       - key: 'Cache-Control'
         value: 'no-cache'
+  # الأنماط والسكربتات تتغيّر باسمها نفسه (لا خطوة بناء تضيف بصمة)،
+  # فلا تُوسم immutable وإلا بقي الزائر على نسخة قديمة سنة كاملة.
   - pattern: '/css/**'
     headers:
       - key: 'Cache-Control'
-        value: 'public, max-age=31536000, immutable'
+        value: 'public, max-age=3600, stale-while-revalidate=86400'
+  - pattern: '/js/**'
+    headers:
+      - key: 'Cache-Control'
+        value: 'public, max-age=3600, stale-while-revalidate=86400'
+  # الصور: تخزين يوم كامل، ثم تحديث في الخلفية عند استبدال أي صورة
+  - pattern: '/images/**'
+    headers:
+      - key: 'Cache-Control'
+        value: 'public, max-age=86400, stale-while-revalidate=2592000'
+  # الأيقونات لا تتغيّر بعد الإطلاق
   - pattern: '/icons/**'
     headers:
       - key: 'Cache-Control'

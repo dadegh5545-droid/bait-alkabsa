@@ -7,6 +7,7 @@
      6-9   القائمة: العرض، البحث، التصفية، المفضّلة
      10-12 نافذة الطبق والسلة والطلب
      13-17 الحجز، وضع التطبيق، عامل الخدمة، التثبيت، الاتصال
+     18    معرض الصور والعرض المكبّر
    ========================================================================== */
 (function () {
   'use strict';
@@ -14,6 +15,8 @@
   var CFG = typeof ORDER_CONFIG !== 'undefined' ? ORDER_CONFIG : { whatsapp: '966500000000', deliveryFee: 15, freeDeliveryOver: 0, minOrder: 0, branches: [] };
   var DISHES = typeof MENU !== 'undefined' ? MENU : [];
   var CATS = typeof MENU_CATEGORIES !== 'undefined' ? MENU_CATEGORIES : [];
+  var IMG_CFG = typeof IMAGE_CONFIG !== 'undefined' ? IMAGE_CONFIG : {};
+  var SHOTS = typeof GALLERY !== 'undefined' ? GALLERY : [];
 
   var $  = function (s, c) { return (c || document).querySelector(s); };
   var $$ = function (s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); };
@@ -41,6 +44,50 @@
       if (DISHES[i].id === id) return DISHES[i];
     }
     return null;
+  }
+
+  /* ---------- الصور ----------
+     كل صورة تُرسم فوق إطار نائب فيه رمز تعبيري. لو لم يوجد الملف أو تعذّر
+     تحميله يبقى الإطار النائب ظاهراً بدل مساحة بيضاء، فلا تتعطّل الواجهة. */
+
+  /* مسار صورة الطبق: الحقل img أولاً، ثم التسمية التلقائية بمعرّف الطبق */
+  function dishImage(dish) {
+    if (dish.img) return dish.img;
+    if (IMG_CFG.autoDishImages) {
+      return (IMG_CFG.dishDir || 'images/dishes/') + dish.id + (IMG_CFG.dishExt || '.jpg');
+    }
+    return '';
+  }
+
+  function photoImg(src, src2x, alt, eager) {
+    if (!src) return '';
+    return '<img class="photo-img" src="' + escapeHtml(src) + '"' +
+      (src2x ? ' srcset="' + escapeHtml(src) + ' 1x, ' + escapeHtml(src2x) + ' 2x"' : '') +
+      ' alt="' + escapeHtml(alt || '') + '"' +
+      ' loading="' + (eager ? 'eager' : 'lazy') + '" decoding="async" />';
+  }
+
+  /* إطار نائب + صورة اختيارية فوقه */
+  function photoBox(opts) {
+    return '<div class="photo ' + (opts.cls || '') + '" data-label="' + escapeHtml(opts.label || '') + '">' +
+             '<span class="photo-emoji" aria-hidden="true">' + (opts.emoji || '🍽️') + '</span>' +
+             photoImg(opts.img, opts.img2x, opts.alt || opts.label, opts.eager) +
+           '</div>';
+  }
+
+  /* التلاشي عند التحميل، والاختفاء عند فقدان الملف */
+  function watchPhotos(scope) {
+    $$('.photo-img', scope).forEach(function (img) {
+      if (img.getAttribute('data-watched')) return;
+      img.setAttribute('data-watched', '1');
+
+      if (img.complete) {
+        img.classList.add(img.naturalWidth > 0 ? 'is-loaded' : 'is-failed');
+        return;
+      }
+      img.addEventListener('load',  function () { img.classList.add('is-loaded'); });
+      img.addEventListener('error', function () { img.classList.add('is-failed'); });
+    });
   }
 
   /* تخزين محلي آمن — قد يكون معطّلاً في التصفح الخاص */
@@ -262,10 +309,13 @@
   }
 
   function dishCard(dish) {
-    var media = dish.img
-      ? '<img class="dish-media" src="' + escapeHtml(dish.img) + '" alt="' + escapeHtml(dish.name) + '" loading="lazy" />'
-      : '<div class="dish-media photo" data-label="' + escapeHtml(dish.name) + '">' +
-        '<span class="photo-emoji" aria-hidden="true">' + (dish.emoji || '🍽️') + '</span></div>';
+    var media = photoBox({
+      cls: 'dish-media',
+      label: dish.name,
+      emoji: dish.emoji,
+      img: dishImage(dish),
+      img2x: dish.img2x
+    });
 
     var tag = dish.tag
       ? '<span class="tag' + (dish.hot ? ' tag-hot' : '') + '">' + escapeHtml(dish.tag) + '</span>'
@@ -304,6 +354,7 @@
     var list = visibleDishes();
     menuGrid.innerHTML = list.map(dishCard).join('');
     $$('.dish', menuGrid).forEach(observeReveal);
+    watchPhotos(menuGrid);
 
     if (menuEmpty) {
       menuEmpty.hidden = list.length !== 0;
@@ -716,7 +767,17 @@
     $('#dmDesc').textContent  = dish.desc;
     $('#dmBasePrice').textContent = toArabicDigits(dish.price);
     $('#dmEmoji').textContent = dish.emoji || '🍽️';
-    $('#dmPhoto').setAttribute('data-label', dish.name);
+
+    /* صورة الطبق داخل النافذة — تُستبدل مع كل فتح، والإطار النائب بديلها */
+    var dmPhoto = $('#dmPhoto');
+    dmPhoto.setAttribute('data-label', dish.name);
+    $$('.photo-img', dmPhoto).forEach(function (old) { dmPhoto.removeChild(old); });
+
+    var dmSrc = dishImage(dish);
+    if (dmSrc) {
+      dmPhoto.insertAdjacentHTML('beforeend', photoImg(dmSrc, dish.img2x, dish.name, true));
+      watchPhotos(dmPhoto);
+    }
 
     var prep = $('#dmPrep');
     if (prep) {
@@ -797,6 +858,7 @@
 
   document.addEventListener('keydown', function (e) {
     if (e.key !== 'Escape') return;
+    if (lightbox && !lightbox.hidden) { closeLightbox(); return; }
     if (modal && !modal.hidden) { closeDish(); return; }
     if (cartDrawer && !cartDrawer.hidden) { closeCart(); return; }
     closeNav();
@@ -969,5 +1031,131 @@
   window.addEventListener('online',  syncOnlineState);
   window.addEventListener('offline', syncOnlineState);
   syncOnlineState();
+
+  /* ======================================================================
+     18. معرض الصور والعرض المكبّر
+     يُرسم من js/gallery-data.js. الصور اختيارية — بدونها تظهر الأطر النائبة.
+     ====================================================================== */
+  var galleryGrid = $('#galleryGrid');
+  var lightbox    = $('#lightbox');
+  var lbStage     = $('#lbStage');
+  var lbIndex     = 0;
+  var lbFocus     = null;
+
+  function renderGallery() {
+    if (!galleryGrid) return;
+
+    galleryGrid.innerHTML = SHOTS.map(function (shot, i) {
+      return '<button type="button" class="photo gal-item ' + (shot.span || '') + '"' +
+               ' data-gal="' + i + '" data-label="' + escapeHtml(shot.label) + '"' +
+               ' aria-label="تكبير الصورة: ' + escapeHtml(shot.label) + '">' +
+               '<span class="photo-emoji" aria-hidden="true">' + (shot.emoji || '📷') + '</span>' +
+               photoImg(shot.img, shot.img2x, shot.alt || shot.label) +
+             '</button>';
+    }).join('');
+
+    watchPhotos(galleryGrid);
+  }
+
+  function showShot(index) {
+    if (!lbStage || !SHOTS.length) return;
+
+    lbIndex = (index + SHOTS.length) % SHOTS.length;
+    var shot = SHOTS[lbIndex];
+
+    lbStage.innerHTML = photoBox({
+      cls: 'lb-photo',
+      label: shot.label,
+      emoji: shot.emoji || '📷',
+      img: shot.img,
+      img2x: shot.img2x,
+      alt: shot.alt || shot.label,
+      eager: true
+    });
+    watchPhotos(lbStage);
+
+    var caption = $('#lbCaption');
+    var counter = $('#lbCounter');
+    if (caption) caption.textContent = shot.caption || shot.label;
+    if (counter) {
+      counter.textContent = toArabicDigits(lbIndex + 1) + ' / ' + toArabicDigits(SHOTS.length);
+    }
+
+    /* تحميل مسبق للصورة المجاورة حتى يكون التنقّل فورياً */
+    var nextShot = SHOTS[(lbIndex + 1) % SHOTS.length];
+    if (nextShot && nextShot.img && typeof Image === 'function') {
+      try { new Image().src = nextShot.img; } catch (e) {}
+    }
+  }
+
+  function openLightbox(index) {
+    if (!lightbox || !SHOTS.length) return;
+
+    lbFocus = document.activeElement;
+    showShot(index);
+
+    lightbox.classList.toggle('is-single', SHOTS.length < 2);
+    lightbox.hidden = false;
+    document.body.classList.add('modal-open');
+
+    requestAnimationFrame(function () {
+      lightbox.classList.add('is-open');
+      var closeBtn = $('.lb-close', lightbox);
+      if (closeBtn) closeBtn.focus();
+    });
+  }
+
+  function closeLightbox() {
+    if (!lightbox) return;
+
+    lightbox.classList.remove('is-open');
+    if (!modal || modal.hidden) document.body.classList.remove('modal-open');
+    setTimeout(function () { lightbox.hidden = true; }, 300);
+    if (lbFocus && lbFocus.focus) lbFocus.focus();
+  }
+
+  if (galleryGrid) {
+    renderGallery();
+
+    galleryGrid.addEventListener('click', function (e) {
+      var cell = e.target.closest('[data-gal]');
+      if (!cell) return;
+      openLightbox(parseInt(cell.getAttribute('data-gal'), 10) || 0);
+    });
+  }
+
+  if (lightbox) {
+    lightbox.addEventListener('click', function (e) {
+      if (e.target.closest('[data-lb-close]')) { closeLightbox(); return; }
+
+      var nav = e.target.closest('[data-lb]');
+      if (nav) showShot(lbIndex + (nav.getAttribute('data-lb') === 'next' ? 1 : -1));
+    });
+
+    /* الأسهم بمنطق الاتجاه العربي: التالي على اليسار والسابق على اليمين */
+    document.addEventListener('keydown', function (e) {
+      if (lightbox.hidden) return;
+      if (e.key === 'ArrowLeft')  { showShot(lbIndex + 1); return; }
+      if (e.key === 'ArrowRight') { showShot(lbIndex - 1); }
+    });
+
+    /* السحب باللمس — سحب لليمين يعرض التالي (اتجاه العرض من اليمين لليسار) */
+    var touchX = null;
+
+    lightbox.addEventListener('touchstart', function (e) {
+      touchX = e.changedTouches[0].clientX;
+    }, { passive: true });
+
+    lightbox.addEventListener('touchend', function (e) {
+      if (touchX === null) return;
+      var dx = e.changedTouches[0].clientX - touchX;
+      touchX = null;
+      if (Math.abs(dx) < 45) return;
+      showShot(lbIndex + (dx > 0 ? 1 : -1));
+    }, { passive: true });
+  }
+
+  /* صور ثابتة في الصفحة (مثل صورة «عن المطعم») */
+  watchPhotos(document);
 
 })();
