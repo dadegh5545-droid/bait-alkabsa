@@ -4,6 +4,8 @@ frontend:
     build:
       commands:
         - echo "موقع ثابت — لا يحتاج خطوة بناء"
+        # مجلد تطبيق الجوال لا يُنشر مع الموقع
+        - rm -rf app
   artifacts:
     baseDirectory: /
     files:

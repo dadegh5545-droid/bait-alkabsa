@@ -254,15 +254,19 @@
   var yearEl = $('#year');
   if (yearEl) yearEl.textContent = toArabicDigits(new Date().getFullYear());
 
-  /* ---------- 9. وضع التطبيق المثبَّت ---------- */
+  /* ---------- 9. وضع التطبيق ---------- */
+  /* isNative: يعمل داخل تغليف Capacitor — isStandalone: مثبَّت كـ PWA */
+  var isNative = window.__NATIVE_APP__ === true;
   var isStandalone =
+    isNative ||
     window.matchMedia('(display-mode: standalone)').matches ||
     window.navigator.standalone === true;
 
   if (isStandalone) document.body.classList.add('is-app');
 
   /* ---------- 10. تسجيل عامل الخدمة ---------- */
-  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+  /* غير مطلوب داخل التطبيق الأصلي — الملفات مضمّنة فيه */
+  if (!isNative && 'serviceWorker' in navigator && location.protocol !== 'file:') {
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('sw.js').catch(function (err) {
         console.warn('تعذّر تسجيل عامل الخدمة:', err);
@@ -278,6 +282,7 @@
   var DISMISS_KEY = 'bak_install_dismissed';
 
   window.addEventListener('beforeinstallprompt', function (e) {
+    if (isNative) return;
     e.preventDefault();
     deferredPrompt = e;
     if (banner && !localStorage.getItem(DISMISS_KEY) && !isStandalone) {
