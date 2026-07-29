@@ -7,7 +7,9 @@
     "backgroundColor": "#3b2415"
   },
   "server": {
-    "androidScheme": "https"
+    "androidScheme": "https",
+    "url": "https://main.d3drl0t6lf9a48.amplifyapp.com/?app=1",
+    "cleartext": false
   },
   "plugins": {
     "SplashScreen": {
