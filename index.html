@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>بيت الكبسة | أصالة المطبخ السعودي</title>
+  <meta name="description" content="مطعم بيت الكبسة — كبسة ومندي وحنيذ ومظبي على الطريقة السعودية الأصيلة. طلبات، حجوزات، وولائم المناسبات." />
+  <meta name="theme-color" content="#3b2415" />
+
+  <meta property="og:title" content="بيت الكبسة | أصالة المطبخ السعودي" />
+  <meta property="og:description" content="كبسة ومندي وحنيذ ومظبي على الطريقة السعودية الأصيلة." />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ar_SA" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+  <!-- إعدادات تطبيق الجوال (PWA) -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="بيت الكبسة" />
+</head>
+<body>
+
+  <!-- ===== الهيدر ===== -->
+  <header class="site-header" id="siteHeader">
+    <div class="container header-inner">
+      <a href="#home" class="brand" aria-label="بيت الكبسة — الصفحة الرئيسية">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <path d="M8 28h32c0 8-7 13-16 13S8 36 8 28z" />
+            <path d="M24 8c4 3 6 6 6 9s-2 5-6 7c-4-2-6-4-6-7s2-6 6-9z" />
+            <path d="M6 41h36" />
+          </svg>
+        </span>
+        <span class="brand-text">
+          <strong>بيت الكبسة</strong>
+          <small>أصالة المطبخ السعودي</small>
+        </span>
+      </a>
+
+      <nav class="nav" id="mainNav" aria-label="التنقل الرئيسي">
+        <ul>
+          <li><a href="#home" class="nav-link is-active">الرئيسية</a></li>
+          <li><a href="#about" class="nav-link">عن المطعم</a></li>
+          <li><a href="#menu" class="nav-link">قائمة الطعام</a></li>
+          <li><a href="#gallery" class="nav-link">معرض الصور</a></li>
+          <li><a href="#reviews" class="nav-link">آراء الضيوف</a></li>
+          <li><a href="#contact" class="nav-link">تواصل معنا</a></li>
+        </ul>
+        <a href="#reserve" class="btn btn-primary nav-cta">احجز طاولة</a>
+      </nav>
+
+      <button class="nav-toggle" id="navToggle" aria-label="فتح القائمة" aria-expanded="false" aria-controls="mainNav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ===== الواجهة الرئيسية ===== -->
+    <section class="hero" id="home">
+      <div class="hero-bg" aria-hidden="true"></div>
+      <div class="container hero-inner">
+        <p class="eyebrow reveal">منذ ١٩٩٨ · الرياض</p>
+        <h1 class="hero-title reveal">
+          طعم الكبسة<br />
+          كما تُطبخ في <span class="gold">بيت الجدّة</span>
+        </h1>
+        <p class="hero-lead reveal">
+          أرزٌ يُطهى على نار هادئة، ولحمٌ بلديّ يُدفن في الحنيذ ساعاتٍ طويلة،
+          وبهاراتٌ تُطحن كل صباح في مطبخنا. لا اختصارات — فقط الطريقة الأصيلة.
+        </p>
+        <div class="hero-actions reveal">
+          <a href="#menu" class="btn btn-primary btn-lg">تصفّح القائمة</a>
+          <a href="#reserve" class="btn btn-ghost btn-lg">احجز طاولتك</a>
+        </div>
+
+        <ul class="hero-stats reveal" role="list">
+          <li><strong data-count="27">0</strong><span>سنة من الخبرة</span></li>
+          <li><strong data-count="42">0</strong><span>طبقاً في القائمة</span></li>
+          <li><strong data-count="15">0</strong><span>ألف ضيف سنوياً</span></li>
+        </ul>
+      </div>
+      <a href="#about" class="scroll-cue" aria-label="انزل للأسفل"><span></span></a>
+    </section>
+
+    <!-- ===== شريط المزايا ===== -->
+    <section class="features">
+      <div class="container features-grid">
+        <article class="feature reveal">
+          <div class="feature-icon" aria-hidden="true">🔥</div>
+          <h3>طهيٌ على الحطب</h3>
+          <p>تنّور طينيّ تقليدي يمنح اللحم نكهة الدخان التي لا تُقلَّد.</p>
+        </article>
+        <article class="feature reveal">
+          <div class="feature-icon" aria-hidden="true">🌾</div>
+          <h3>أرز بسمتي معتّق</h3>
+          <p>حبّة طويلة مفلفلة، معتّقة سنتين لتتحمّل المرق دون أن تتكسّر.</p>
+        </article>
+        <article class="feature reveal">
+          <div class="feature-icon" aria-hidden="true">🥩</div>
+          <h3>لحم بلديّ طازج</h3>
+          <p>ذبيحة يومية من مزارع نجد، بلا تجميد ولا مواد حافظة.</p>
+        </article>
+        <article class="feature reveal">
+          <div class="feature-icon" aria-hidden="true">👨‍👩‍👧‍👦</div>
+          <h3>ولائم المناسبات</h3>
+          <p>نُجهّز ذبائح كاملة للأعراس والعزائم مع التوصيل والتقديم.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===== عن المطعم ===== -->
+    <section class="section about" id="about">
+      <div class="container about-grid">
+        <div class="about-media reveal">
+          <!-- استبدل الـ div بصورة حقيقية: <img src="images/about.jpg" alt="مطبخ بيت الكبسة"> -->
+          <div class="photo photo-tall" data-label="مطبخ المطعم">
+            <span class="photo-emoji" aria-hidden="true">🍲</span>
+          </div>
+          <div class="about-badge">
+            <strong>٢٧</strong>
+            <span>عاماً من النار الهادئة</span>
+          </div>
+        </div>
+
+        <div class="about-text reveal">
+          <p class="eyebrow">عن بيت الكبسة</p>
+          <h2>حكايتنا بدأت من قِدر واحد</h2>
+          <p>
+            في عام ١٩٩٨ فتح الوالد أبو سعد دكّاناً صغيراً في حيّ الملز، لا يزيد عن
+            أربع طاولات وقِدر كبسة واحد. لم يكن يملك سوى وصفة أمّه المكتوبة بخط اليد،
+            وقاعدة واحدة لا يحيد عنها: <strong>ما تُقدَّم للضيف إلا ما يُقدَّم للأهل</strong>.
+          </p>
+          <p>
+            اليوم، وبعد ثلاثة فروع، ما زلنا نطحن البهارات بأنفسنا كل فجر، وما زال
+            القِدر النحاسيّ الأول معلّقاً على جدار المطبخ — تذكيراً بأن الأصالة
+            لا تُشترى، بل تُورَّث.
+          </p>
+
+          <ul class="check-list" role="list">
+            <li>بهارات تُحمَّص وتُطحن يومياً في المطعم</li>
+            <li>مرق يُغلى ست ساعات قبل أن يلامس الأرز</li>
+            <li>مطبخ مفتوح يراه الضيف بعينه</li>
+          </ul>
+
+          <a href="#menu" class="btn btn-outline">اكتشف أطباقنا</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== قائمة الطعام ===== -->
+    <section class="section menu" id="menu">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="eyebrow">قائمة الطعام</p>
+          <h2>أطباقٌ تُطبخ بالصبر</h2>
+          <p class="section-sub">جميع الأسعار بالريال السعودي وشاملة ضريبة القيمة المضافة</p>
+        </header>
+
+        <div class="menu-filters reveal" role="tablist" aria-label="تصنيفات القائمة">
+          <button class="chip is-active" role="tab" aria-selected="true" data-filter="all">الكل</button>
+          <button class="chip" role="tab" aria-selected="false" data-filter="rice">الأرز واللحوم</button>
+          <button class="chip" role="tab" aria-selected="false" data-filter="grill">المشاوي</button>
+          <button class="chip" role="tab" aria-selected="false" data-filter="starter">المقبلات</button>
+          <button class="chip" role="tab" aria-selected="false" data-filter="dessert">الحلويات</button>
+          <button class="chip" role="tab" aria-selected="false" data-filter="drink">المشروبات</button>
+        </div>
+
+        <div class="menu-grid" id="menuGrid">
+
+          <!-- الأرز واللحوم -->
+          <article class="dish reveal" data-cat="rice">
+            <div class="dish-media photo" data-label="كبسة لحم"><span class="photo-emoji" aria-hidden="true">🍛</span></div>
+            <div class="dish-body">
+              <div class="dish-head">
+                <h3>كبسة لحم حاشي</h3>
+                <span class="price">٨٥</span>
+              </div>
+              <p>أرز بسمتي بمرق الحاشي، مع قطع لحم طريّة وبهارات الكبسة البيتية.</p>
+              <span class="tag tag-hot">الأكثر طلباً</span>
+            </div>
+          </article>
+
+          <article class="dish reveal" data-cat="rice">
+            <div class="dish-media photo" data-label="مندي دجاج"><span class="photo-emoji" aria-hidden="true">🍗</span></div>
+            <div class="dish-body">
+              <div class="dish-head">
+                <h3>مندي دجاج</h3>
+                <span class="price">٤٥</span>
+              </div>
+              <p>دجاجة كاملة مدخّنة في التنّور الطيني، على فراش أرز مفلفل بالزعفران.</p>
+            </div>
+          </article>
+
+          <article class="dish reveal" data-cat="rice">
+            <div class="dish-media photo" data-label="حنيذ"><span class="photo-emoji" aria-hidden="true">🥘</span></div>
+            <div class="dish-body">
+              <div class="dish-head">
+                <h3>حنيذ خروف</h3>
+                <span class="price">٩٥</span>
+              </div>
+              <p>فخذ خروف مدفون في الحفرة ثماني ساعات حتى ينفصل اللحم عن العظم.</p>
+              <span class="tag">يُطلب قبل ساعتين</span>
+            </div>
+          </article>
+
+          <article class="dish reveal" data-cat="rice">
+            <div class="dish-media photo" data-label="مظبي"><span class="photo-emoji" aria-hidden="true">🍖</span></div>
+            <div class="dish-body">
+              <div class="dish-head">
+                <h3>مظبي دجاج</h3>
+                <span class="price">٥٠</span>
+              </div>
+              <p>مشويّ على الحجر الساخن بنكهة الفحم، مع صلصة المظبي الحارّة.</p>
+            </div>
+          </article>
+
+          <article class="dish reveal" data-cat="rice">
+            <div class="dish-media photo" data-label="مضغوط"><span class="photo-emoji" aria-hidden="true">🍚</span></div>
+            <div class="dish-body">
+              <div class="dish-head">
+                <h3>مضغوط لحم</h3>
+                <span class="price">٧٥</span>
+              </div>
+              <p>لحم مطبوخ تحت الضغط مع أرز الحمراء والبهارات الحجازية.</p>
+            </div>
+          </article>
+
+          <article class="dish reveal" data-cat="rice">
+            <div class="dish-media photo" data-label="جريش"><span class="photo-emoji" aria-hidden="true">🥣</span></div>
+            <div class="dish-body">
+              <div class="dish-head">
+                <h3>جريش نجدي</h3>
+                <span class="price">٤٠</span>
+              </div>
+              <p>قمح مجروش يُضرب باللبن والسمن البلدي، مع بصل مقلّى محمّر.</p>
+              <span class="tag">طبق شعبي</span>
+            </div>
+          </article>
+
+          <!-- المشاوي -->
+          <article class="dish reveal" data-cat="grill">
+            <div class="dish-media photo" data-label="مشاوي مشكّل"><span class="photo-emoji" aria-hidden="true">🍢</span></div>
+            <div class="dish-body">
+              <div class="dish-head">
+                <h3>مشكّل مشاوي</h3>
+                <span class="price">١١٠</span>
+              </div>
+              <p>كباب، شيش طاووق، وريش غنم على الفحم — يكفي شخصين.</p>
+              <span class="tag tag-hot">يكفي شخصين</span>
+            </div>
+          </article>
+
+          <article class="dish reveal" data-cat="grill">
+            <div class="dish-media photo" data-label="ريش غنم"><span class="photo-emoji" aria-hidden="true">🥩</span></div>
+            <div class="dish-body">
+              <div class="dish-head">
+                <h3>ريش غنم بلدي</h3>
+                <span class="price">٩٠</span>
+              </div>
+              <p>ثماني قطع متبّلة بالليمون والزعتر، مشويّة على فحم الغضا.</p>
+            </div>
+          </article>
+
+          <article class="dish reveal" data-cat="grill">
+            <div class="dish-media photo" data-label="مقلقل"><span class="photo-emoji" aria-hidden="true">🍳</span></div>
+            <div class="dish-body">
+              <div class="dish-head">
+                <h3>مقلقل حجازي</h3>
+                <span class="price">٦٥</span>
+              </div>
+              <p>شرائح لحم رفيعة تُقلقل على الصاج مع الفلفل والبصل.</p>
+            </div>
+          </article>
+
+          <!-- المقبلات -->
+          <article class="dish reveal" data-cat="starter">
+            <div class="dish-media photo" data-label="سمبوسة"><span class="photo-emoji" aria-hidden="true">🥟</span></div>
+            <div class="dish-body">
+              <div class="dish-head">
+                <h3>سمبوسة لحم</h3>
+                <span class="price">١٥</span>
+              </div>
+              <p>ستّ قطع مقرمشة محشوّة لحماً مفروماً بالبهارات.</p>
+            </div>
+          </article>
+
+          <article class="dish reveal" data-cat="starter">
+            <div class="dish-media photo" data-label="فتوش"><span class="photo-emoji" aria-hidden="true">🥗</span></div>
+            <div class="dish-body">
+              <div class="dish-head">
+                <h3>سلطة فتوش</h3>
+                <span class="price">٢٢</span>
+              </div>
+              <p>خضار طازجة مع خبز محمّص ودبس الرمان.</p>
+            </div>
+          </article>
+
+          <article class="dish reveal" data-cat="starter">
+            <div class="dish-media photo" data-label="حمص"><span class="photo-emoji" aria-hidden="true">🫓</span></div>
+            <div class="dish-body">
+              <div class="dish-head">
+                <h3>حمص بالصنوبر</h3>
+                <span class="price">١٨</span>
+              </div>
+              <p>حمص مخفوق بالطحينة، يُقدَّم بزيت الزيتون والصنوبر المحمّص.</p>
+            </div>
+          </article>
+
+          <!-- الحلويات -->
+          <article class="dish reveal" data-cat="dessert">
+            <div class="dish-media photo" data-label="لقيمات"><span class="photo-emoji" aria-hidden="true">🍯</span></div>
+            <div class="dish-body">
+              <div class="dish-head">
+                <h3>لقيمات بالدبس</h3>
+                <span class="price">٢٥</span>
+              </div>
+              <p>كرات مقرمشة من الخارج، هشّة من الداخل، غارقة بدبس التمر.</p>
+              <span class="tag tag-hot">مفضّلة الضيوف</span>
+            </div>
+          </article>
+
+          <article class="dish reveal" data-cat="dessert">
+            <div class="dish-media photo" data-label="كنافة"><span class="photo-emoji" aria-hidden="true">🍰</span></div>
+            <div class="dish-body">
+              <div class="dish-head">
+                <h3>كنافة بالقشطة</h3>
+                <span class="price">٣٠</span>
+              </div>
+              <p>شعيرات ذهبية بالسمن البلدي وقشطة طازجة وقطر بماء الورد.</p>
+            </div>
+          </article>
+
+          <article class="dish reveal" data-cat="dessert">
+            <div class="dish-media photo" data-label="أم علي"><span class="photo-emoji" aria-hidden="true">🥧</span></div>
+            <div class="dish-body">
+              <div class="dish-head">
+                <h3>أم علي</h3>
+                <span class="price">٢٨</span>
+              </div>
+              <p>عجين مورّق بالحليب والمكسرات، يُقدَّم ساخناً من الفرن.</p>
+            </div>
+          </article>
+
+          <!-- المشروبات -->
+          <article class="dish reveal" data-cat="drink">
+            <div class="dish-media photo" data-label="قهوة عربية"><span class="photo-emoji" aria-hidden="true">☕</span></div>
+            <div class="dish-body">
+              <div class="dish-head">
+                <h3>قهوة عربية وتمر</h3>
+                <span class="price">١٢</span>
+              </div>
+              <p>محمّصة على الهيل والزعفران، تُقدَّم بدلّة نحاسية مع تمر سكري.</p>
+            </div>
+          </article>
+
+          <article class="dish reveal" data-cat="drink">
+            <div class="dish-media photo" data-label="شاي أحمر"><span class="photo-emoji" aria-hidden="true">🫖</span></div>
+            <div class="dish-body">
+              <div class="dish-head">
+                <h3>شاي أحمر بالنعناع</h3>
+                <span class="price">٨</span>
+              </div>
+              <p>براد صغير يكفي كوبين، بنعناع طازج.</p>
+            </div>
+          </article>
+
+          <article class="dish reveal" data-cat="drink">
+            <div class="dish-media photo" data-label="لبن بلدي"><span class="photo-emoji" aria-hidden="true">🥛</span></div>
+            <div class="dish-body">
+              <div class="dish-head">
+                <h3>لبن بلدي بارد</h3>
+                <span class="price">١٠</span>
+              </div>
+              <p>لبن طازج مخضوض يومياً — رفيق الكبسة الأول.</p>
+            </div>
+          </article>
+
+        </div>
+
+        <p class="menu-empty" id="menuEmpty" hidden>لا توجد أطباق في هذا التصنيف حالياً.</p>
+      </div>
+    </section>
+
+    <!-- ===== عروض الولائم ===== -->
+    <section class="section banquet">
+      <div class="container banquet-inner reveal">
+        <div>
+          <p class="eyebrow">ولائم ومناسبات</p>
+          <h2>ذبيحة كاملة لعزيمتك</h2>
+          <p>
+            نُجهّز ذبيحة كاملة على الأرز مع المقبلات والحلويات والقهوة،
+            ونوصلها ساخنة إلى موقع المناسبة مع طاقم تقديم إن رغبت.
+          </p>
+          <ul class="check-list" role="list">
+            <li>تكفي من ١٥ إلى ٢٠ شخصاً</li>
+            <li>التوصيل مجاني داخل الرياض</li>
+            <li>الطلب قبل ٢٤ ساعة على الأقل</li>
+          </ul>
+        </div>
+        <div class="banquet-card">
+          <span class="banquet-label">تبدأ من</span>
+          <strong class="banquet-price">٧٥٠ <small>ريال</small></strong>
+          <a href="#reserve" class="btn btn-primary btn-block">اطلب الآن</a>
+          <a href="tel:+966500000000" class="banquet-call">أو اتصل: ٠٥٠ ٠٠٠ ٠٠٠٠</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== معرض الصور ===== -->
+    <section class="section gallery" id="gallery">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="eyebrow">معرض الصور</p>
+          <h2>من داخل بيت الكبسة</h2>
+        </header>
+
+        <div class="gallery-grid reveal">
+          <div class="photo g-1" data-label="صحن الكبسة"><span class="photo-emoji" aria-hidden="true">🍛</span></div>
+          <div class="photo g-2" data-label="التنّور"><span class="photo-emoji" aria-hidden="true">🔥</span></div>
+          <div class="photo g-3" data-label="صالة الضيوف"><span class="photo-emoji" aria-hidden="true">🪑</span></div>
+          <div class="photo g-4" data-label="القهوة العربية"><span class="photo-emoji" aria-hidden="true">☕</span></div>
+          <div class="photo g-5" data-label="المشاوي"><span class="photo-emoji" aria-hidden="true">🍢</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== آراء الضيوف ===== -->
+    <section class="section reviews" id="reviews">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="eyebrow">آراء الضيوف</p>
+          <h2>ما يقوله من جرّب</h2>
+        </header>
+
+        <div class="reviews-grid">
+          <figure class="review reveal">
+            <div class="stars" aria-label="خمسة من خمسة">★★★★★</div>
+            <blockquote>
+              جرّبت كبسات كثيرة في الرياض، لكن مرق الحاشي هنا شيء ثاني.
+              اللحم ينفصل عن العظم بمجرد لمسة الملعقة.
+            </blockquote>
+            <figcaption>
+              <span class="avatar" aria-hidden="true">ع</span>
+              <span><strong>عبدالله الشمري</strong><small>زائر دائم</small></span>
+            </figcaption>
+          </figure>
+
+          <figure class="review reveal">
+            <div class="stars" aria-label="خمسة من خمسة">★★★★★</div>
+            <blockquote>
+              طلبت ذبيحة كاملة لعزيمة العيد، وصلت في وقتها بالضبط وساخنة.
+              الأهل ما صدّقوا إنها من مطعم.
+            </blockquote>
+            <figcaption>
+              <span class="avatar" aria-hidden="true">ن</span>
+              <span><strong>نورة العتيبي</strong><small>طلب ولائم</small></span>
+            </figcaption>
+          </figure>
+
+          <figure class="review reveal">
+            <div class="stars" aria-label="أربعة من خمسة">★★★★<span class="star-dim">★</span></div>
+            <blockquote>
+              المكان مزدحم وقت الغداء، لكن الانتظار يستاهل.
+              واللقيمات بالدبس أفضل حلا جرّبته.
+            </blockquote>
+            <figcaption>
+              <span class="avatar" aria-hidden="true">م</span>
+              <span><strong>محمد القحطاني</strong><small>مدوّن طعام</small></span>
+            </figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== الحجز ===== -->
+    <section class="section reserve" id="reserve">
+      <div class="container reserve-grid">
+        <div class="reserve-intro reveal">
+          <p class="eyebrow">احجز طاولتك</p>
+          <h2>لا تنتظر على الباب</h2>
+          <p>
+            املأ النموذج وسنؤكّد حجزك عبر واتساب خلال دقائق.
+            للحجوزات العاجلة أو الولائم، الاتصال أسرع.
+          </p>
+
+          <ul class="info-list" role="list">
+            <li>
+              <span class="info-icon" aria-hidden="true">📍</span>
+              <span><strong>الفرع الرئيسي</strong>حي الملز، شارع جرير، الرياض</span>
+            </li>
+            <li>
+              <span class="info-icon" aria-hidden="true">🕒</span>
+              <span><strong>أوقات العمل</strong>يومياً من ١١:٣٠ صباحاً حتى ١٢:٠٠ منتصف الليل</span>
+            </li>
+            <li>
+              <span class="info-icon" aria-hidden="true">📞</span>
+              <span><strong>الهاتف</strong><a href="tel:+966500000000" dir="ltr">+966 50 000 0000</a></span>
+            </li>
+          </ul>
+        </div>
+
+        <form class="reserve-form reveal" id="reserveForm" novalidate>
+          <div class="field">
+            <label for="rName">الاسم الكامل</label>
+            <input type="text" id="rName" name="name" placeholder="مثال: سعد العنزي" required />
+            <span class="error" data-for="rName"></span>
+          </div>
+
+          <div class="field">
+            <label for="rPhone">رقم الجوال</label>
+            <input type="tel" id="rPhone" name="phone" placeholder="05XXXXXXXX" inputmode="numeric" required />
+            <span class="error" data-for="rPhone"></span>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="rDate">التاريخ</label>
+              <input type="date" id="rDate" name="date" required />
+              <span class="error" data-for="rDate"></span>
+            </div>
+            <div class="field">
+              <label for="rTime">الوقت</label>
+              <input type="time" id="rTime" name="time" value="20:00" required />
+              <span class="error" data-for="rTime"></span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="rGuests">عدد الأشخاص</label>
+            <select id="rGuests" name="guests">
+              <option value="2">شخصان</option>
+              <option value="4" selected>٤ أشخاص</option>
+              <option value="6">٦ أشخاص</option>
+              <option value="10">١٠ أشخاص</option>
+              <option value="20">وليمة (أكثر من ١٥)</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="rNote">ملاحظات <span class="optional">(اختياري)</span></label>
+            <textarea id="rNote" name="note" rows="3" placeholder="مثال: طاولة عائلية بعيدة عن المدخل"></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block btn-lg">تأكيد الحجز</button>
+          <p class="form-note">بالضغط على التأكيد ستُفتح محادثة واتساب بتفاصيل حجزك جاهزة للإرسال.</p>
+          <p class="form-success" id="formSuccess" hidden>تم تجهيز طلبك ✅ أكمل الإرسال عبر واتساب.</p>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===== الفروع والخريطة ===== -->
+    <section class="section contact" id="contact">
+      <div class="container">
+        <header class="section-head reveal">
+          <p class="eyebrow">فروعنا</p>
+          <h2>أقرب فرع إليك</h2>
+        </header>
+
+        <div class="branches reveal">
+          <article class="branch">
+            <h3>فرع الملز <span class="badge">الرئيسي</span></h3>
+            <p>شارع جرير، حي الملز، الرياض</p>
+            <p class="branch-hours">١١:٣٠ ص — ١٢:٠٠ م</p>
+            <a href="https://maps.google.com/?q=Riyadh+Malaz" target="_blank" rel="noopener">الاتجاهات على الخريطة ↗</a>
+          </article>
+          <article class="branch">
+            <h3>فرع العليا</h3>
+            <p>طريق الملك فهد، حي العليا، الرياض</p>
+            <p class="branch-hours">١٢:٠٠ ظ — ١١:٣٠ م</p>
+            <a href="https://maps.google.com/?q=Riyadh+Olaya" target="_blank" rel="noopener">الاتجاهات على الخريطة ↗</a>
+          </article>
+          <article class="branch">
+            <h3>فرع قرطبة</h3>
+            <p>طريق الشيخ جابر، حي قرطبة، الرياض</p>
+            <p class="branch-hours">١٢:٠٠ ظ — ١١:٣٠ م</p>
+            <a href="https://maps.google.com/?q=Riyadh+Qurtubah" target="_blank" rel="noopener">الاتجاهات على الخريطة ↗</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== الفوتر ===== -->
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div class="footer-brand">
+        <span class="brand-text">
+          <strong>بيت الكبسة</strong>
+          <small>أصالة المطبخ السعودي منذ ١٩٩٨</small>
+        </span>
+        <p>ما يُقدَّم للضيف هو ما يُقدَّم للأهل.</p>
+      </div>
+
+      <nav aria-label="روابط سريعة">
+        <h4>روابط سريعة</h4>
+        <ul>
+          <li><a href="#about">عن المطعم</a></li>
+          <li><a href="#menu">قائمة الطعام</a></li>
+          <li><a href="#reserve">الحجوزات</a></li>
+          <li><a href="#contact">الفروع</a></li>
+        </ul>
+      </nav>
+
+      <div>
+        <h4>تواصل معنا</h4>
+        <ul class="footer-contact">
+          <li><a href="tel:+966500000000" dir="ltr">+966 50 000 0000</a></li>
+          <li><a href="mailto:info@baitalkabsa.com">info@baitalkabsa.com</a></li>
+          <li>حي الملز، الرياض</li>
+        </ul>
+      </div>
+
+      <div>
+        <h4>تابعنا</h4>
+        <div class="socials">
+          <a href="#" aria-label="إنستقرام">📷</a>
+          <a href="#" aria-label="تويتر">🐦</a>
+          <a href="#" aria-label="سناب شات">👻</a>
+          <a href="#" aria-label="واتساب">💬</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="container footer-bottom">
+      <p>© <span id="year">٢٠٢٦</span> بيت الكبسة — جميع الحقوق محفوظة.</p>
+      <p>صُنع بحبّ في الرياض</p>
+    </div>
+  </footer>
+
+  <a href="#home" class="to-top" id="toTop" aria-label="العودة للأعلى">↑</a>
+
+  <!-- ===== شريط تنقّل التطبيق (يظهر عند التثبيت على الجوال) ===== -->
+  <nav class="app-tabbar" aria-label="تنقّل التطبيق">
+    <a href="#home"><i aria-hidden="true">🏠</i>الرئيسية</a>
+    <a href="#menu"><i aria-hidden="true">🍛</i>القائمة</a>
+    <a href="#reserve"><i aria-hidden="true">📅</i>حجز</a>
+    <a href="#gallery"><i aria-hidden="true">🖼️</i>الصور</a>
+    <a href="#contact"><i aria-hidden="true">📍</i>الفروع</a>
+  </nav>
+
+  <!-- ===== لافتة تثبيت التطبيق ===== -->
+  <div class="install-banner" id="installBanner" role="dialog" aria-label="تثبيت التطبيق">
+    <span class="ib-icon" aria-hidden="true">🍛</span>
+    <span class="ib-text">
+      <strong>ثبّت تطبيق بيت الكبسة</strong>
+      <small>اطلب واحجز أسرع — ويعمل بدون إنترنت</small>
+    </span>
+    <button class="btn btn-primary" id="installBtn">تثبيت</button>
+    <button class="ib-close" id="installClose" aria-label="إغلاق">×</button>
+  </div>
+
+  <!-- ===== شريط انقطاع الاتصال ===== -->
+  <div class="offline-bar" id="offlineBar" role="status">لا يوجد اتصال بالإنترنت — تتصفّح نسخة محفوظة</div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
