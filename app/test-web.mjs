@@ -91,7 +91,7 @@ check('فُتحت النافذة', $('#dishModal').hidden === false);
 check('العنوان صحيح', $('#dmTitle').textContent === 'كبسة لحم حاشي');
 check('ظهرت خيارات الحجم', $('#dmSizes').hidden === false);
 check('ظهرت الإضافات', $('#dmAddons').hidden === false);
-check('الإجمالي الابتدائي ٨٥ ر.س', $('#dmTotal').textContent === '٨٥ ر.س', `(${$('#dmTotal').textContent})`);
+check('الإجمالي الابتدائي ٨٥ ر.ق', $('#dmTotal').textContent === '٨٥ ر.ق', `(${$('#dmTotal').textContent})`);
 
 /* اختيار الحجم العائلي (+145) وإضافة لحم (+30) وكميّة ٢ → (85+145+30)*2 = 520 */
 const familyRadio = $('#dmSizesList input[value="family"]');
@@ -101,7 +101,7 @@ const meatBox = $('#dmAddonsList input[value="extra-meat"]');
 meatBox.checked = true;
 meatBox.dispatchEvent(new window.Event('change', { bubbles: true }));
 click($('#dmPlus'));
-check('حساب السعر مع الحجم والإضافة والكمية = ٥٢٠', $('#dmTotal').textContent === '٥٢٠ ر.س', `(${$('#dmTotal').textContent})`);
+check('حساب السعر مع الحجم والإضافة والكمية = ٥٢٠', $('#dmTotal').textContent === '٥٢٠ ر.ق', `(${$('#dmTotal').textContent})`);
 
 $('#dmNote').value = 'بدون بصل';
 click($('#dmAdd'));
@@ -114,14 +114,14 @@ check('حُفظت السلة محلياً', JSON.parse(window.localStorage.getIt
 click($('#cartBtn'));
 check('انفتحت السلة', $('#cartDrawer').hidden === false);
 check('السلة غير فارغة', $('#cartEmpty').hidden === true);
-check('المجموع الفرعي ٥٢٠', $('#sumSubtotal').textContent === '٥٢٠ ر.س', `(${$('#sumSubtotal').textContent})`);
+check('المجموع الفرعي ٥٢٠', $('#sumSubtotal').textContent === '٥٢٠ ر.ق', `(${$('#sumSubtotal').textContent})`);
 check('الملاحظة ظهرت في السطر', $('#cartItems').textContent.includes('بدون بصل'));
 
 /* وضع التوصيل — المجموع ٥٢٠ ≥ ٢٠٠ فالتوصيل مجاني */
 click($('.mode-btn[data-mode="delivery"]'));
 check('ظهر حقل العنوان', $('#addressField').hidden === false);
 check('التوصيل مجاني فوق ٢٠٠', $('#sumDelivery').textContent === 'مجاناً', `(${$('#sumDelivery').textContent})`);
-check('الإجمالي بقي ٥٢٠', $('#sumTotal').textContent === '٥٢٠ ر.س');
+check('الإجمالي بقي ٥٢٠', $('#sumTotal').textContent === '٥٢٠ ر.ق');
 
 /* إرسال بدون عنوان يجب أن يُرفض */
 click($('#cartSubmit'));
@@ -130,14 +130,14 @@ check('ظهر تنبيه خطأ', $('#toasts').textContent.includes('عنوان 
 
 $('#cartAddress').value = 'حي النرجس، شارع الأمير';
 click($('#cartSubmit'));
-check('فُتح رابط واتساب', opened.length === 1 && opened[0].startsWith('https://wa.me/966500000000?text='));
+check('فُتح رابط واتساب', opened.length === 1 && opened[0].startsWith('https://wa.me/97455921554?text='));
 const msg = decodeURIComponent(opened[0].split('text=')[1]);
 check('الرسالة تحوي الطبق والحجم والإضافة', msg.includes('كبسة لحم حاشي') && msg.includes('صحن عائلي') && msg.includes('زيادة لحم'));
 check('الرسالة تحوي العنوان', msg.includes('حي النرجس'));
 
 /* تقليل الكمية */
 click($('#cartItems [data-qty="0"][data-delta="-1"]'));
-check('إنقاص الكمية يحدّث المجموع', $('#sumSubtotal').textContent === '٢٦٠ ر.س', `(${$('#sumSubtotal').textContent})`);
+check('إنقاص الكمية يحدّث المجموع', $('#sumSubtotal').textContent === '٢٦٠ ر.ق', `(${$('#sumSubtotal').textContent})`);
 
 /* أقل مبلغ للطلب — نفرّغ ونضيف شاي بـ ٨ */
 click($('#cartClear'));
@@ -149,11 +149,11 @@ $('#rName').value = 'سع';
 $('#rPhone').value = '123';
 click($('#reserveForm button[type="submit"]'));
 check('رفض الاسم القصير', $('#rName').closest('.field').classList.contains('has-error'));
-check('رفض رقم الجوال الخاطئ', $('#rPhone').closest('.field').classList.contains('has-error'));
+check('رفض رقم الجوال الخاطئ (غير قطري)', $('#rPhone').closest('.field').classList.contains('has-error'));
 check('لم يُرسل شيء', opened.length === 0);
 
 $('#rName').value = 'سعد العنزي';
-$('#rPhone').value = '0551234567';
+$('#rPhone').value = '55921554';
 $('#rName').dispatchEvent(new window.Event('input', { bubbles: true }));
 $('#rPhone').dispatchEvent(new window.Event('input', { bubbles: true }));
 click($('#reserveForm button[type="submit"]'));

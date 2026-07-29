@@ -4,7 +4,7 @@
    ملاحظة: عند أي تعديل على ملفات الموقع، ارفع رقم CACHE_VERSION.
    ========================================================================== */
 
-var CACHE_VERSION = 'bak-v3';
+var CACHE_VERSION = 'bak-v4';
 var PRECACHE = [
   './',
   './index.html',
@@ -55,6 +55,22 @@ self.addEventListener('fetch', function (event) {
   /* لا نتدخّل في طلبات واتساب أو الخرائط */
   if (url.origin !== self.location.origin &&
       !/fonts\.(googleapis|gstatic)\.com/.test(url.hostname)) {
+    return;
+  }
+
+  /* فهرس الصور: الشبكة أولاً دائماً، حتى تظهر الصور المنشورة فوراً */
+  if (url.pathname.indexOf('images/manifest.json') !== -1) {
+    event.respondWith(
+      fetch(req)
+        .then(function (res) {
+          if (res && res.status === 200) {
+            var copy = res.clone();
+            caches.open(CACHE_VERSION).then(function (c) { c.put(req, copy); });
+          }
+          return res;
+        })
+        .catch(function () { return caches.match(req); })
+    );
     return;
   }
 

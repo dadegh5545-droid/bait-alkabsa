@@ -5,7 +5,8 @@
   "description": "تطبيق جوال لمطعم بيت الكبسة — تغليف الموقع بـ Capacitor",
   "type": "module",
   "scripts": {
-    "test": "node test-web.mjs",
+    "test": "node test-web.mjs && node test-images.mjs",
+    "live": "node set-live.mjs",
     "sync-web": "node sync-web.mjs",
     "add:android": "npm run sync-web && cap add android",
     "sync": "npm run sync-web && cap sync",

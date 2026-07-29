@@ -12,7 +12,7 @@
 (function () {
   'use strict';
 
-  var CFG = typeof ORDER_CONFIG !== 'undefined' ? ORDER_CONFIG : { whatsapp: '966500000000', deliveryFee: 15, freeDeliveryOver: 0, minOrder: 0, branches: [] };
+  var CFG = typeof ORDER_CONFIG !== 'undefined' ? ORDER_CONFIG : { whatsapp: '97455921554', currency: 'ر.ق', deliveryFee: 15, freeDeliveryOver: 0, minOrder: 0, branches: [] };
   var DISHES = typeof MENU !== 'undefined' ? MENU : [];
   var CATS = typeof MENU_CATEGORIES !== 'undefined' ? MENU_CATEGORIES : [];
   var IMG_CFG = typeof IMAGE_CONFIG !== 'undefined' ? IMAGE_CONFIG : {};
@@ -30,7 +30,7 @@
   function formatPrice(value) {
     var rounded = Math.round(value * 100) / 100;
     var text = rounded % 1 === 0 ? String(rounded) : rounded.toFixed(2);
-    return toArabicDigits(text) + ' ر.س';
+    return toArabicDigits(text) + ' ' + (CFG.currency || 'ر.ق');
   }
 
   function escapeHtml(str) {
@@ -50,17 +50,28 @@
      كل صورة تُرسم فوق إطار نائب فيه رمز تعبيري. لو لم يوجد الملف أو تعذّر
      تحميله يبقى الإطار النائب ظاهراً بدل مساحة بيضاء، فلا تتعطّل الواجهة. */
 
-  /* مسار صورة الطبق: الحقل img أولاً، ثم التسمية التلقائية بمعرّف الطبق */
+  /* فهرس الصور المرفوعة من لوحة الإدارة — images/manifest.json
+     null = لا فهرس (أُضيفت الصور يدوياً) فنطلب الصورة كما هي ونتّكل على الإطار النائب.
+     مصفوفة = نعرف تماماً أي الصور موجودة، فلا طلب فاشلاً واحداً. */
+  var IMAGE_INDEX = null;
+
+  function imageExists(path) {
+    if (!path) return false;
+    if (!IMAGE_INDEX) return true;
+    return IMAGE_INDEX.indexOf(path) !== -1;
+  }
+
+  /* مسار صورة الطبق: الحقل img أولاً، ثم الفهرس، ثم التسمية التلقائية */
   function dishImage(dish) {
     if (dish.img) return dish.img;
-    if (IMG_CFG.autoDishImages) {
-      return (IMG_CFG.dishDir || 'images/dishes/') + dish.id + (IMG_CFG.dishExt || '.jpg');
-    }
-    return '';
+
+    var auto = (IMG_CFG.dishDir || 'images/dishes/') + dish.id + (IMG_CFG.dishExt || '.jpg');
+    if (IMAGE_INDEX) return imageExists(auto) ? auto : '';
+    return IMG_CFG.autoDishImages ? auto : '';
   }
 
   function photoImg(src, src2x, alt, eager) {
-    if (!src) return '';
+    if (!src || !imageExists(src)) return '';
     return '<img class="photo-img" src="' + escapeHtml(src) + '"' +
       (src2x ? ' srcset="' + escapeHtml(src) + ' 1x, ' + escapeHtml(src2x) + ' 2x"' : '') +
       ' alt="' + escapeHtml(alt || '') + '"' +
@@ -888,10 +899,13 @@
         if (v.trim().length < 3) return 'الاسم قصير جداً';
         return '';
       },
+      /* أرقام قطر ثمانية أرقام تبدأ بـ 3 أو 5 أو 6 أو 7، مع أو بدون +974 */
       rPhone: function (v) {
-        var clean = v.replace(/[\s-]/g, '');
+        var clean = v.replace(/[\s\-()]/g, '');
         if (!clean) return 'رقم الجوال مطلوب';
-        if (!/^(?:\+?966|0)?5\d{8}$/.test(clean)) return 'أدخل رقم جوال سعودي صحيح (05XXXXXXXX)';
+        if (!/^(?:\+?974|00974)?[3567]\d{7}$/.test(clean)) {
+          return 'أدخل رقم جوال قطري صحيح (٨ أرقام يبدأ بـ ٣ أو ٥ أو ٦ أو ٧)';
+        }
         return '';
       },
       rDate: function (v) { return v ? '' : 'اختر تاريخ الحجز'; },
@@ -958,8 +972,20 @@
 
   /* ======================================================================
      14. وضع التطبيق
+     التطبيق الأصلي قد يحمّل الموقع الحيّ من الإنترنت، فلا تصله التعديلات
+     التي يضيفها app/sync-web.mjs للنسخة المضمّنة. لذلك نتعرّف عليه بثلاث طرق:
+       ١. العلامة ?app=1 في رابط التطبيق (تُضبط في capacitor.config.json)
+       ٢. جسر Capacitor المحقون في الواجهة
+       ٣. المتغيّر __NATIVE_APP__ في النسخة المضمّنة أوفلاين
      ====================================================================== */
-  var isNative = window.__NATIVE_APP__ === true;
+  var isBundled = window.__NATIVE_APP__ === true;
+
+  var hasBridge = !!(window.Capacitor && (window.Capacitor.isNativePlatform
+    ? window.Capacitor.isNativePlatform()
+    : window.Capacitor.isNative));
+
+  var isNative = isBundled || hasBridge || window.location.search.indexOf('app=1') !== -1;
+
   var isStandalone =
     isNative ||
     window.matchMedia('(display-mode: standalone)').matches ||
@@ -969,8 +995,10 @@
 
   /* ======================================================================
      15. عامل الخدمة
+     يُسجَّل حتى داخل التطبيق حين يحمّل الموقع من الإنترنت — فهو ما يجعل
+     التطبيق يعمل بعد ذلك بدون اتصال. ولا يُسجَّل للنسخة المضمّنة أصلاً.
      ====================================================================== */
-  if (!isNative && 'serviceWorker' in navigator && location.protocol !== 'file:') {
+  if (!isBundled && 'serviceWorker' in navigator && location.protocol !== 'file:') {
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('sw.js').catch(function (err) {
         console.warn('تعذّر تسجيل عامل الخدمة:', err);
@@ -1155,7 +1183,139 @@
     }, { passive: true });
   }
 
-  /* صور ثابتة في الصفحة (مثل صورة «عن المطعم») */
+  /* ======================================================================
+     19. صورة «عن المطعم» وفهرس الصور
+     ====================================================================== */
+  var aboutPhoto = $('#aboutPhoto');
+  var ABOUT_IMG  = 'images/about.jpg';
+  var LOGO_IMG   = 'images/logo.png';
+
+  /* الشعار: نستبدل رسمة SVG بالشعار الحقيقي فقط إذا أكّد الفهرس وجوده،
+     ونرجع للرسمة لو تعذّر تحميله — فلا تظهر صورة مكسورة في الهيدر. */
+  var brandMark = $('.brand-mark');
+  var brandSvg  = brandMark ? brandMark.innerHTML : '';
+
+  function renderLogo() {
+    if (!brandMark) return;
+
+    var known = !!IMAGE_INDEX && IMAGE_INDEX.indexOf(LOGO_IMG) !== -1;
+    if (!known) {
+      if (!$('svg', brandMark)) brandMark.innerHTML = brandSvg;
+      return;
+    }
+    if ($('img', brandMark)) return;
+
+    var img = document.createElement('img');
+    img.className = 'brand-logo';
+    img.src = LOGO_IMG;
+    img.alt = '';
+    img.onerror = function () { brandMark.innerHTML = brandSvg; };
+
+    brandMark.innerHTML = '';
+    brandMark.appendChild(img);
+  }
+
+  function renderAbout() {
+    if (!aboutPhoto) return;
+
+    $$('.photo-img', aboutPhoto).forEach(function (old) { aboutPhoto.removeChild(old); });
+    if (!imageExists(ABOUT_IMG)) return;
+
+    aboutPhoto.insertAdjacentHTML('beforeend',
+      photoImg(ABOUT_IMG, null, 'مطبخ بيت الكبسة والقدور على النار'));
+    watchPhotos(aboutPhoto);
+  }
+
+  /* يُستدعى بعد وصول الفهرس، أو من لوحة الإدارة بعد نشر صورة */
+  function applyImageIndex(files) {
+    IMAGE_INDEX = files || [];
+
+    renderMenu();
+    renderGallery();
+    renderAbout();
+    renderLogo();
+  }
+
+  function loadImageIndex() {
+    if (typeof fetch !== 'function') return;
+
+    fetch('images/manifest.json', { cache: 'no-cache' })
+      .then(function (res) { return res.ok ? res.json() : null; })
+      .then(function (data) {
+        if (!data || !Array.isArray(data.files)) return;
+        applyImageIndex(data.files);
+      })
+      .catch(function () { /* لا فهرس — نُبقي السلوك اليدوي */ });
+  }
+
+  renderAbout();
+  loadImageIndex();
+
+  /* صور ثابتة في الصفحة */
   watchPhotos(document);
+
+  /* ======================================================================
+     20. مدخل لوحة إضافة الصور
+     تُفتح بـ #admin في الرابط، أو بضغطة مطوّلة على الشعار (المدخل الوحيد
+     داخل التطبيق الأصلي حيث لا شريط عنوان). لوحة الإدارة نفسها في js/admin.js
+     ولا تُحمَّل إلا عند طلبها، فلا تُثقل الزوار.
+     ====================================================================== */
+  var adminLoading = false;
+
+  function openAdmin() {
+    if (window.BAK_ADMIN) { window.BAK_ADMIN.open(); return; }
+    if (adminLoading) return;
+
+    adminLoading = true;
+    var s = document.createElement('script');
+    s.src = 'js/admin.js';
+    s.onload = function () {
+      adminLoading = false;
+      if (window.BAK_ADMIN) window.BAK_ADMIN.open();
+    };
+    s.onerror = function () {
+      adminLoading = false;
+      toast('تعذّر تحميل لوحة الصور', 'error');
+    };
+    document.head.appendChild(s);
+  }
+
+  /* اللوحة تُخبرنا بالفهرس الجديد فوراً بلا انتظار إعادة تحميل */
+  window.BAK_REFRESH_IMAGES = applyImageIndex;
+
+  if (window.location.hash === '#admin') openAdmin();
+  window.addEventListener('hashchange', function () {
+    if (window.location.hash === '#admin') openAdmin();
+  });
+
+  var brand = $('.brand');
+  if (brand) {
+    var holdTimer = null;
+    var held = false;
+
+    var startHold = function () {
+      held = false;
+      clearTimeout(holdTimer);
+      holdTimer = setTimeout(function () {
+        held = true;
+        openAdmin();
+      }, 1500);
+    };
+    var cancelHold = function () { clearTimeout(holdTimer); };
+
+    brand.addEventListener('touchstart', startHold, { passive: true });
+    brand.addEventListener('touchend', cancelHold);
+    brand.addEventListener('touchmove', cancelHold, { passive: true });
+    brand.addEventListener('mousedown', startHold);
+    brand.addEventListener('mouseup', cancelHold);
+    brand.addEventListener('mouseleave', cancelHold);
+
+    /* الضغطة المطوّلة تفتح اللوحة ولا تنقل للصفحة الرئيسية */
+    brand.addEventListener('click', function (e) {
+      if (!held) return;
+      held = false;
+      e.preventDefault();
+    });
+  }
 
 })();

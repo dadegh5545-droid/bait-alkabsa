@@ -48,6 +48,11 @@ customHeaders:
     headers:
       - key: 'Cache-Control'
         value: 'public, max-age=86400, stale-while-revalidate=2592000'
+  # فهرس الصور يتغيّر مع كل صورة تُنشر من اللوحة — لا يُخزَّن أبداً
+  - pattern: '/images/manifest.json'
+    headers:
+      - key: 'Cache-Control'
+        value: 'no-cache, must-revalidate'
   # الأيقونات لا تتغيّر بعد الإطلاق
   - pattern: '/icons/**'
     headers:
