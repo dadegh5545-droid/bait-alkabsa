@@ -20,6 +20,15 @@
 [Environment]::SetEnvironmentVariable("ANDROID_HOME", "$env:LOCALAPPDATA\Android\Sdk", "User")
 ```
 
+## الاختبارات
+
+```powershell
+cd app
+npm test
+```
+
+يشغّل ٣٩ اختباراً على ملفات الموقع في الجذر (القائمة، البحث، السلة، الحجز) داخل jsdom — لا يحتاج متصفحاً ولا أدوات أندرويد.
+
 ## البناء خطوة بخطوة
 
 ```powershell

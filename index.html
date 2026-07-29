@@ -57,9 +57,16 @@
         <a href="#reserve" class="btn btn-primary nav-cta">احجز طاولة</a>
       </nav>
 
-      <button class="nav-toggle" id="navToggle" aria-label="فتح القائمة" aria-expanded="false" aria-controls="mainNav">
-        <span></span><span></span><span></span>
-      </button>
+      <div class="header-actions">
+        <button class="cart-btn" id="cartBtn" aria-label="سلة الطلب">
+          <span class="cart-btn-icon" aria-hidden="true">🛒</span>
+          <span class="cart-count" id="cartCount" hidden>٠</span>
+        </button>
+
+        <button class="nav-toggle" id="navToggle" aria-label="فتح القائمة" aria-expanded="false" aria-controls="mainNav">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
     </div>
   </header>
 
@@ -85,7 +92,7 @@
 
         <ul class="hero-stats reveal" role="list">
           <li><strong data-count="27">0</strong><span>سنة من الخبرة</span></li>
-          <li><strong data-count="42">0</strong><span>طبقاً في القائمة</span></li>
+          <li><strong data-count="42" data-count-source="menu">0</strong><span>طبقاً في القائمة</span></li>
           <li><strong data-count="15">0</strong><span>ألف ضيف سنوياً</span></li>
         </ul>
       </div>
@@ -166,226 +173,15 @@
           <p class="section-sub">جميع الأسعار بالريال السعودي وشاملة ضريبة القيمة المضافة</p>
         </header>
 
-        <div class="menu-filters reveal" role="tablist" aria-label="تصنيفات القائمة">
-          <button class="chip is-active" role="tab" aria-selected="true" data-filter="all">الكل</button>
-          <button class="chip" role="tab" aria-selected="false" data-filter="rice">الأرز واللحوم</button>
-          <button class="chip" role="tab" aria-selected="false" data-filter="grill">المشاوي</button>
-          <button class="chip" role="tab" aria-selected="false" data-filter="starter">المقبلات</button>
-          <button class="chip" role="tab" aria-selected="false" data-filter="dessert">الحلويات</button>
-          <button class="chip" role="tab" aria-selected="false" data-filter="drink">المشروبات</button>
+        <div class="menu-search reveal">
+          <span class="ms-icon" aria-hidden="true">🔍</span>
+          <input type="search" id="menuSearch" placeholder="ابحث عن طبق… مثلاً: كبسة، مندي، لقيمات" aria-label="بحث في القائمة" />
+          <button type="button" class="ms-clear" id="menuSearchClear" aria-label="مسح البحث" hidden>×</button>
         </div>
 
-        <div class="menu-grid" id="menuGrid">
+        <div class="menu-filters reveal" id="menuFilters" role="tablist" aria-label="تصنيفات القائمة"></div>
 
-          <!-- الأرز واللحوم -->
-          <article class="dish reveal" data-cat="rice">
-            <div class="dish-media photo" data-label="كبسة لحم"><span class="photo-emoji" aria-hidden="true">🍛</span></div>
-            <div class="dish-body">
-              <div class="dish-head">
-                <h3>كبسة لحم حاشي</h3>
-                <span class="price">٨٥</span>
-              </div>
-              <p>أرز بسمتي بمرق الحاشي، مع قطع لحم طريّة وبهارات الكبسة البيتية.</p>
-              <span class="tag tag-hot">الأكثر طلباً</span>
-            </div>
-          </article>
-
-          <article class="dish reveal" data-cat="rice">
-            <div class="dish-media photo" data-label="مندي دجاج"><span class="photo-emoji" aria-hidden="true">🍗</span></div>
-            <div class="dish-body">
-              <div class="dish-head">
-                <h3>مندي دجاج</h3>
-                <span class="price">٤٥</span>
-              </div>
-              <p>دجاجة كاملة مدخّنة في التنّور الطيني، على فراش أرز مفلفل بالزعفران.</p>
-            </div>
-          </article>
-
-          <article class="dish reveal" data-cat="rice">
-            <div class="dish-media photo" data-label="حنيذ"><span class="photo-emoji" aria-hidden="true">🥘</span></div>
-            <div class="dish-body">
-              <div class="dish-head">
-                <h3>حنيذ خروف</h3>
-                <span class="price">٩٥</span>
-              </div>
-              <p>فخذ خروف مدفون في الحفرة ثماني ساعات حتى ينفصل اللحم عن العظم.</p>
-              <span class="tag">يُطلب قبل ساعتين</span>
-            </div>
-          </article>
-
-          <article class="dish reveal" data-cat="rice">
-            <div class="dish-media photo" data-label="مظبي"><span class="photo-emoji" aria-hidden="true">🍖</span></div>
-            <div class="dish-body">
-              <div class="dish-head">
-                <h3>مظبي دجاج</h3>
-                <span class="price">٥٠</span>
-              </div>
-              <p>مشويّ على الحجر الساخن بنكهة الفحم، مع صلصة المظبي الحارّة.</p>
-            </div>
-          </article>
-
-          <article class="dish reveal" data-cat="rice">
-            <div class="dish-media photo" data-label="مضغوط"><span class="photo-emoji" aria-hidden="true">🍚</span></div>
-            <div class="dish-body">
-              <div class="dish-head">
-                <h3>مضغوط لحم</h3>
-                <span class="price">٧٥</span>
-              </div>
-              <p>لحم مطبوخ تحت الضغط مع أرز الحمراء والبهارات الحجازية.</p>
-            </div>
-          </article>
-
-          <article class="dish reveal" data-cat="rice">
-            <div class="dish-media photo" data-label="جريش"><span class="photo-emoji" aria-hidden="true">🥣</span></div>
-            <div class="dish-body">
-              <div class="dish-head">
-                <h3>جريش نجدي</h3>
-                <span class="price">٤٠</span>
-              </div>
-              <p>قمح مجروش يُضرب باللبن والسمن البلدي، مع بصل مقلّى محمّر.</p>
-              <span class="tag">طبق شعبي</span>
-            </div>
-          </article>
-
-          <!-- المشاوي -->
-          <article class="dish reveal" data-cat="grill">
-            <div class="dish-media photo" data-label="مشاوي مشكّل"><span class="photo-emoji" aria-hidden="true">🍢</span></div>
-            <div class="dish-body">
-              <div class="dish-head">
-                <h3>مشكّل مشاوي</h3>
-                <span class="price">١١٠</span>
-              </div>
-              <p>كباب، شيش طاووق، وريش غنم على الفحم — يكفي شخصين.</p>
-              <span class="tag tag-hot">يكفي شخصين</span>
-            </div>
-          </article>
-
-          <article class="dish reveal" data-cat="grill">
-            <div class="dish-media photo" data-label="ريش غنم"><span class="photo-emoji" aria-hidden="true">🥩</span></div>
-            <div class="dish-body">
-              <div class="dish-head">
-                <h3>ريش غنم بلدي</h3>
-                <span class="price">٩٠</span>
-              </div>
-              <p>ثماني قطع متبّلة بالليمون والزعتر، مشويّة على فحم الغضا.</p>
-            </div>
-          </article>
-
-          <article class="dish reveal" data-cat="grill">
-            <div class="dish-media photo" data-label="مقلقل"><span class="photo-emoji" aria-hidden="true">🍳</span></div>
-            <div class="dish-body">
-              <div class="dish-head">
-                <h3>مقلقل حجازي</h3>
-                <span class="price">٦٥</span>
-              </div>
-              <p>شرائح لحم رفيعة تُقلقل على الصاج مع الفلفل والبصل.</p>
-            </div>
-          </article>
-
-          <!-- المقبلات -->
-          <article class="dish reveal" data-cat="starter">
-            <div class="dish-media photo" data-label="سمبوسة"><span class="photo-emoji" aria-hidden="true">🥟</span></div>
-            <div class="dish-body">
-              <div class="dish-head">
-                <h3>سمبوسة لحم</h3>
-                <span class="price">١٥</span>
-              </div>
-              <p>ستّ قطع مقرمشة محشوّة لحماً مفروماً بالبهارات.</p>
-            </div>
-          </article>
-
-          <article class="dish reveal" data-cat="starter">
-            <div class="dish-media photo" data-label="فتوش"><span class="photo-emoji" aria-hidden="true">🥗</span></div>
-            <div class="dish-body">
-              <div class="dish-head">
-                <h3>سلطة فتوش</h3>
-                <span class="price">٢٢</span>
-              </div>
-              <p>خضار طازجة مع خبز محمّص ودبس الرمان.</p>
-            </div>
-          </article>
-
-          <article class="dish reveal" data-cat="starter">
-            <div class="dish-media photo" data-label="حمص"><span class="photo-emoji" aria-hidden="true">🫓</span></div>
-            <div class="dish-body">
-              <div class="dish-head">
-                <h3>حمص بالصنوبر</h3>
-                <span class="price">١٨</span>
-              </div>
-              <p>حمص مخفوق بالطحينة، يُقدَّم بزيت الزيتون والصنوبر المحمّص.</p>
-            </div>
-          </article>
-
-          <!-- الحلويات -->
-          <article class="dish reveal" data-cat="dessert">
-            <div class="dish-media photo" data-label="لقيمات"><span class="photo-emoji" aria-hidden="true">🍯</span></div>
-            <div class="dish-body">
-              <div class="dish-head">
-                <h3>لقيمات بالدبس</h3>
-                <span class="price">٢٥</span>
-              </div>
-              <p>كرات مقرمشة من الخارج، هشّة من الداخل، غارقة بدبس التمر.</p>
-              <span class="tag tag-hot">مفضّلة الضيوف</span>
-            </div>
-          </article>
-
-          <article class="dish reveal" data-cat="dessert">
-            <div class="dish-media photo" data-label="كنافة"><span class="photo-emoji" aria-hidden="true">🍰</span></div>
-            <div class="dish-body">
-              <div class="dish-head">
-                <h3>كنافة بالقشطة</h3>
-                <span class="price">٣٠</span>
-              </div>
-              <p>شعيرات ذهبية بالسمن البلدي وقشطة طازجة وقطر بماء الورد.</p>
-            </div>
-          </article>
-
-          <article class="dish reveal" data-cat="dessert">
-            <div class="dish-media photo" data-label="أم علي"><span class="photo-emoji" aria-hidden="true">🥧</span></div>
-            <div class="dish-body">
-              <div class="dish-head">
-                <h3>أم علي</h3>
-                <span class="price">٢٨</span>
-              </div>
-              <p>عجين مورّق بالحليب والمكسرات، يُقدَّم ساخناً من الفرن.</p>
-            </div>
-          </article>
-
-          <!-- المشروبات -->
-          <article class="dish reveal" data-cat="drink">
-            <div class="dish-media photo" data-label="قهوة عربية"><span class="photo-emoji" aria-hidden="true">☕</span></div>
-            <div class="dish-body">
-              <div class="dish-head">
-                <h3>قهوة عربية وتمر</h3>
-                <span class="price">١٢</span>
-              </div>
-              <p>محمّصة على الهيل والزعفران، تُقدَّم بدلّة نحاسية مع تمر سكري.</p>
-            </div>
-          </article>
-
-          <article class="dish reveal" data-cat="drink">
-            <div class="dish-media photo" data-label="شاي أحمر"><span class="photo-emoji" aria-hidden="true">🫖</span></div>
-            <div class="dish-body">
-              <div class="dish-head">
-                <h3>شاي أحمر بالنعناع</h3>
-                <span class="price">٨</span>
-              </div>
-              <p>براد صغير يكفي كوبين، بنعناع طازج.</p>
-            </div>
-          </article>
-
-          <article class="dish reveal" data-cat="drink">
-            <div class="dish-media photo" data-label="لبن بلدي"><span class="photo-emoji" aria-hidden="true">🥛</span></div>
-            <div class="dish-body">
-              <div class="dish-head">
-                <h3>لبن بلدي بارد</h3>
-                <span class="price">١٠</span>
-              </div>
-              <p>لبن طازج مخضوض يومياً — رفيق الكبسة الأول.</p>
-            </div>
-          </article>
-
-        </div>
+        <div class="menu-grid" id="menuGrid"></div>
 
         <p class="menu-empty" id="menuEmpty" hidden>لا توجد أطباق في هذا التصنيف حالياً.</p>
       </div>
@@ -644,8 +440,8 @@
   <nav class="app-tabbar" aria-label="تنقّل التطبيق">
     <a href="#home"><i aria-hidden="true">🏠</i>الرئيسية</a>
     <a href="#menu"><i aria-hidden="true">🍛</i>القائمة</a>
+    <button type="button" id="tabCart"><i aria-hidden="true">🛒</i>السلة<span class="tab-badge" id="tabCartCount" hidden>٠</span></button>
     <a href="#reserve"><i aria-hidden="true">📅</i>حجز</a>
-    <a href="#gallery"><i aria-hidden="true">🖼️</i>الصور</a>
     <a href="#contact"><i aria-hidden="true">📍</i>الفروع</a>
   </nav>
 
@@ -663,6 +459,111 @@
   <!-- ===== شريط انقطاع الاتصال ===== -->
   <div class="offline-bar" id="offlineBar" role="status">لا يوجد اتصال بالإنترنت — تتصفّح نسخة محفوظة</div>
 
+  <!-- ===== نافذة تفاصيل الطبق ===== -->
+  <div class="modal" id="dishModal" role="dialog" aria-modal="true" aria-labelledby="dmTitle" hidden>
+    <div class="modal-backdrop" data-close></div>
+    <div class="modal-panel">
+      <button class="modal-close" data-close aria-label="إغلاق">×</button>
+
+      <div class="photo modal-photo" id="dmPhoto" data-label="">
+        <span class="photo-emoji" id="dmEmoji" aria-hidden="true"></span>
+      </div>
+
+      <div class="modal-body">
+        <div class="dish-head">
+          <h3 id="dmTitle"></h3>
+          <span class="price" id="dmBasePrice"></span>
+        </div>
+        <p class="modal-desc" id="dmDesc"></p>
+        <p class="modal-prep" id="dmPrep" hidden></p>
+
+        <div class="opt-group" id="dmSizes" hidden>
+          <h4>اختر الحجم</h4>
+          <div class="opt-list" id="dmSizesList" role="radiogroup"></div>
+        </div>
+
+        <div class="opt-group" id="dmAddons" hidden>
+          <h4>إضافات <span class="optional">(اختياري)</span></h4>
+          <div class="opt-list" id="dmAddonsList"></div>
+        </div>
+
+        <div class="opt-group">
+          <h4>ملاحظات للمطبخ <span class="optional">(اختياري)</span></h4>
+          <textarea id="dmNote" rows="2" placeholder="مثال: بدون بصل، حار زيادة"></textarea>
+        </div>
+      </div>
+
+      <div class="modal-foot">
+        <div class="qty" role="group" aria-label="الكمية">
+          <button type="button" id="dmMinus" aria-label="إنقاص">−</button>
+          <span id="dmQty">١</span>
+          <button type="button" id="dmPlus" aria-label="زيادة">+</button>
+        </div>
+        <button class="btn btn-primary btn-lg" id="dmAdd">
+          أضف للسلة · <span id="dmTotal"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== سلة الطلب ===== -->
+  <aside class="cart" id="cartDrawer" role="dialog" aria-modal="true" aria-labelledby="cartTitle" hidden>
+    <div class="modal-backdrop" data-cart-close></div>
+
+    <div class="cart-panel">
+      <header class="cart-head">
+        <h3 id="cartTitle">سلة الطلب</h3>
+        <button class="modal-close" data-cart-close aria-label="إغلاق السلة">×</button>
+      </header>
+
+      <div class="cart-empty" id="cartEmpty">
+        <span aria-hidden="true">🛒</span>
+        <p>سلتك فارغة</p>
+        <small>تصفّح القائمة وأضف ما يعجبك</small>
+        <button class="btn btn-outline" data-cart-close>تصفّح القائمة</button>
+      </div>
+
+      <div class="cart-content" id="cartContent" hidden>
+        <ul class="cart-items" id="cartItems"></ul>
+
+        <div class="cart-mode" role="radiogroup" aria-label="طريقة الاستلام">
+          <button type="button" class="mode-btn is-active" data-mode="pickup">
+            <span aria-hidden="true">🏠</span>استلام من الفرع
+          </button>
+          <button type="button" class="mode-btn" data-mode="delivery">
+            <span aria-hidden="true">🛵</span>توصيل
+          </button>
+        </div>
+
+        <div class="cart-field" id="branchField">
+          <label for="cartBranch">اختر الفرع</label>
+          <select id="cartBranch"></select>
+        </div>
+
+        <div class="cart-field" id="addressField" hidden>
+          <label for="cartAddress">عنوان التوصيل</label>
+          <textarea id="cartAddress" rows="2" placeholder="الحي، الشارع، رقم المبنى، وأي علامة مميزة"></textarea>
+        </div>
+
+        <div class="cart-summary">
+          <div class="row"><span>المجموع الفرعي</span><strong id="sumSubtotal"></strong></div>
+          <div class="row" id="deliveryRow" hidden><span>رسوم التوصيل</span><strong id="sumDelivery"></strong></div>
+          <div class="row total"><span>الإجمالي</span><strong id="sumTotal"></strong></div>
+          <p class="vat-note">الأسعار شاملة ضريبة القيمة المضافة</p>
+        </div>
+
+        <p class="cart-warn" id="cartWarn" hidden></p>
+
+        <button class="btn btn-primary btn-block btn-lg" id="cartSubmit">إرسال الطلب عبر واتساب</button>
+        <button class="cart-clear" id="cartClear">تفريغ السلة</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ===== تنبيهات ===== -->
+  <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+  <script src="js/menu-data.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

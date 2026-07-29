@@ -4,12 +4,13 @@
    ملاحظة: عند أي تعديل على ملفات الموقع، ارفع رقم CACHE_VERSION.
    ========================================================================== */
 
-var CACHE_VERSION = 'bak-v1';
+var CACHE_VERSION = 'bak-v2';
 var PRECACHE = [
   './',
   './index.html',
   './offline.html',
   './css/styles.css',
+  './js/menu-data.js',
   './js/main.js',
   './manifest.webmanifest',
   './icons/icon.svg',

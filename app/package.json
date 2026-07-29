@@ -5,6 +5,7 @@
   "description": "تطبيق جوال لمطعم بيت الكبسة — تغليف الموقع بـ Capacitor",
   "type": "module",
   "scripts": {
+    "test": "node test-web.mjs",
     "sync-web": "node sync-web.mjs",
     "add:android": "npm run sync-web && cap add android",
     "sync": "npm run sync-web && cap sync",
@@ -19,6 +20,7 @@
     "@capacitor/status-bar": "^6.0.1"
   },
   "devDependencies": {
-    "@capacitor/cli": "^6.1.2"
+    "@capacitor/cli": "^6.1.2",
+    "jsdom": "^30.0.1"
   }
 }
