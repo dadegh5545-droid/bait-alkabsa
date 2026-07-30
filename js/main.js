@@ -428,7 +428,30 @@
      ====================================================================== */
   var CART_KEY = 'bak_cart';
   var cart = store.get(CART_KEY, []);
-  var orderMode = store.get('bak_mode', 'pickup');
+  /* الفروع والمناطق تُقرأ من الإعدادات الحيّة، فتتبع أي تحديث من data/site.json */
+  function hasBranches() {
+    return !!(CFG.branches && CFG.branches.length);
+  }
+
+  function zones() {
+    return (CFG.deliveryZones && CFG.deliveryZones.length) ? CFG.deliveryZones : null;
+  }
+
+  /* لا فروع ⇒ لا خيار استلام، فالوضع الافتراضي توصيل */
+  var orderMode = store.get('bak_mode', hasBranches() ? 'pickup' : 'delivery');
+  if (!hasBranches()) orderMode = 'delivery';
+
+  /* منطقة التوصيل المختارة */
+  var zoneId = store.get('bak_zone', null);
+
+  function currentZone() {
+    var list = zones();
+    if (!list) return null;
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === zoneId) return list[i];
+    }
+    return list[0];
+  }
 
   /* مفتاح السطر: نفس الطبق بنفس الحجم ونفس الإضافات = سطر واحد */
   function lineKey(dishId, sizeId, addonIds) {
@@ -464,15 +487,25 @@
     return cart.reduce(function (sum, item) { return sum + linePrice(item); }, 0);
   }
 
+  /* حدّ التوصيل المجاني للمنطقة الحالية — freeOver في المنطقة يغلب الإعداد العام */
+  function freeOverNow() {
+    var z = currentZone();
+    if (z && z.freeOver != null) return z.freeOver;
+    return CFG.freeDeliveryOver || 0;
+  }
+
   function deliveryFee() {
     if (orderMode !== 'delivery') return 0;
-    if (CFG.freeDeliveryOver && cartSubtotal() >= CFG.freeDeliveryOver) return 0;
-    return CFG.deliveryFee;
+    var free = freeOverNow();
+    if (free && cartSubtotal() >= free) return 0;
+    var z = currentZone();
+    return z ? z.fee : CFG.deliveryFee;
   }
 
   function saveCart() {
     store.set(CART_KEY, cart);
     store.set('bak_mode', orderMode);
+    if (zoneId) store.set('bak_zone', zoneId);
     renderCartBadge();
   }
 
@@ -516,6 +549,8 @@
   var cartContent  = $('#cartContent');
   var branchSelect = $('#cartBranch');
   var branchField  = $('#branchField');
+  var zoneSelect   = $('#cartZone');
+  var zoneField    = $('#zoneField');
   var addressField = $('#addressField');
   var cartWarn     = $('#cartWarn');
 
@@ -589,8 +624,15 @@
       $('#sumDelivery').textContent = fee === 0 ? 'مجاناً' : formatPrice(fee);
     }
 
-    if (branchField)  branchField.hidden  = orderMode !== 'pickup';
+    /* لا فروع ⇒ لا استلام: نخفي شريط الطريقة ونُثبّت التوصيل */
+    if (!hasBranches() && orderMode !== 'delivery') orderMode = 'delivery';
+
+    if (branchField)  branchField.hidden  = !hasBranches() || orderMode !== 'pickup';
+    if (zoneField)    zoneField.hidden    = !zones() || orderMode !== 'delivery';
     if (addressField) addressField.hidden = orderMode !== 'delivery';
+
+    var modeBar = $('.cart-mode');
+    if (modeBar) modeBar.hidden = !hasBranches();
 
     $$('.mode-btn').forEach(function (b) {
       b.classList.toggle('is-active', b.getAttribute('data-mode') === orderMode);
@@ -602,8 +644,9 @@
       if (CFG.minOrder && subtotal < CFG.minOrder) {
         messages.push('أقل مبلغ للطلب ' + formatPrice(CFG.minOrder) + ' — ينقصك ' + formatPrice(CFG.minOrder - subtotal));
       }
-      if (orderMode === 'delivery' && CFG.freeDeliveryOver && subtotal < CFG.freeDeliveryOver) {
-        messages.push('أضف ' + formatPrice(CFG.freeDeliveryOver - subtotal) + ' ليصبح التوصيل مجاناً');
+      var free = freeOverNow();
+      if (orderMode === 'delivery' && free && subtotal < free) {
+        messages.push('أضف ' + formatPrice(free - subtotal) + ' ليصبح التوصيل مجاناً');
       }
       cartWarn.innerHTML = messages.join('<br>');
       cartWarn.hidden = messages.length === 0;
@@ -669,6 +712,27 @@
   }
   renderBranches();
 
+  /* تعبئة مناطق التوصيل مع رسم كل منطقة */
+  function renderZones() {
+    var list = zones();
+    if (!zoneSelect || !list) return;
+    var active = currentZone();
+    zoneSelect.innerHTML = list.map(function (z) {
+      var sel = active && z.id === active.id ? ' selected' : '';
+      return '<option value="' + z.id + '"' + sel + '>' +
+             escapeHtml(z.label) + ' — ' + formatPrice(z.fee) + '</option>';
+    }).join('');
+  }
+  renderZones();
+
+  if (zoneSelect) {
+    zoneSelect.addEventListener('change', function () {
+      zoneId = zoneSelect.value;
+      saveCart();
+      renderCart();
+    });
+  }
+
   /* ======================================================================
      10. إرسال الطلب
      ====================================================================== */
@@ -712,6 +776,8 @@
         lines.push('الإجمالي: ' + formatPrice(subtotal + fee));
         lines.push('');
         lines.push('طريقة الاستلام: توصيل');
+        var z = currentZone();
+        if (z) lines.push('المنطقة: ' + z.label);
         lines.push('العنوان: ' + address.value.trim());
       } else {
         lines.push('الإجمالي: ' + formatPrice(subtotal));
@@ -1310,6 +1376,11 @@
     if (!data) return;
 
     if (data.config) {
+      /* إعدادات تحمل رسماً واحداً بلا مناطق (لوحة قديمة) تُسقط المناطق،
+         وإلا بقيت المناطق القديمة تغلب الرسم الجديد */
+      if (data.config.deliveryFee != null && data.config.deliveryZones == null) {
+        delete CFG.deliveryZones;
+      }
       Object.keys(data.config).forEach(function (key) { CFG[key] = data.config[key]; });
     }
 
@@ -1327,6 +1398,7 @@
     renderFilters();
     renderMenu();
     renderBranches();
+    renderZones();
     renderContact();
     if (cartDrawer && !cartDrawer.hidden) renderCart();
     renderCartBadge();

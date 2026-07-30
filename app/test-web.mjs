@@ -48,6 +48,18 @@ function check(name, cond, extra = '') {
   else { fail++; console.log(`  ✗ ${name} ${extra}`); }
 }
 
+/* القيم المتوقّعة تُحسب من البيانات نفسها، فلا ينكسر الاختبار
+   كلّما تغيّر اسم طبق أو سعره في js/menu-data.js */
+const ar = (n) => String(n).replace(/\d/g, (d) => '٠١٢٣٤٥٦٧٨٩'[+d]);
+const qr = (n) => `${ar(n)} ر.ق`;
+
+const KABSA        = window.MENU.find((d) => d.id === 'kabsa-lamb');
+const KABSA_FAMILY = KABSA.sizes.find((s) => s.id === 'family').delta;
+const KABSA_MEAT   = KABSA.addons.find((a) => a.id === 'extra-meat').price;
+const KABSA_FULL   = KABSA.price + KABSA_FAMILY + KABSA_MEAT;
+
+const ZONES = window.ORDER_CONFIG.deliveryZones;
+
 console.log('\n— عرض القائمة —');
 const cards = $$('#menuGrid .dish');
 check(`رُسمت ${cards.length} بطاقة طبق`, cards.length === window.MENU.length, `(المتوقع ${window.MENU.length})`);
@@ -88,12 +100,12 @@ click($('#menuFilters [data-filter="all"]'));
 console.log('\n— نافذة الطبق —');
 click($('#menuGrid [data-add="kabsa-lamb"]'));
 check('فُتحت النافذة', $('#dishModal').hidden === false);
-check('العنوان صحيح', $('#dmTitle').textContent === 'كبسة لحم حاشي');
+check('العنوان صحيح', $('#dmTitle').textContent === KABSA.name);
 check('ظهرت خيارات الحجم', $('#dmSizes').hidden === false);
 check('ظهرت الإضافات', $('#dmAddons').hidden === false);
-check('الإجمالي الابتدائي ٨٥ ر.ق', $('#dmTotal').textContent === '٨٥ ر.ق', `(${$('#dmTotal').textContent})`);
+check(`الإجمالي الابتدائي ${qr(KABSA.price)}`, $('#dmTotal').textContent === qr(KABSA.price), `(${$('#dmTotal').textContent})`);
 
-/* اختيار الحجم العائلي (+145) وإضافة لحم (+30) وكميّة ٢ → (85+145+30)*2 = 520 */
+/* اختيار الحجم العائلي وإضافة لحم وكميّة ٢ → (السعر + الحجم + الإضافة) × ٢ */
 const familyRadio = $('#dmSizesList input[value="family"]');
 familyRadio.checked = true;
 familyRadio.dispatchEvent(new window.Event('change', { bubbles: true }));
@@ -101,7 +113,8 @@ const meatBox = $('#dmAddonsList input[value="extra-meat"]');
 meatBox.checked = true;
 meatBox.dispatchEvent(new window.Event('change', { bubbles: true }));
 click($('#dmPlus'));
-check('حساب السعر مع الحجم والإضافة والكمية = ٥٢٠', $('#dmTotal').textContent === '٥٢٠ ر.ق', `(${$('#dmTotal').textContent})`);
+check(`حساب السعر مع الحجم والإضافة والكمية = ${ar(KABSA_FULL * 2)}`,
+  $('#dmTotal').textContent === qr(KABSA_FULL * 2), `(${$('#dmTotal').textContent})`);
 
 $('#dmNote').value = 'بدون بصل';
 click($('#dmAdd'));
@@ -114,14 +127,33 @@ check('حُفظت السلة محلياً', JSON.parse(window.localStorage.getIt
 click($('#cartBtn'));
 check('انفتحت السلة', $('#cartDrawer').hidden === false);
 check('السلة غير فارغة', $('#cartEmpty').hidden === true);
-check('المجموع الفرعي ٥٢٠', $('#sumSubtotal').textContent === '٥٢٠ ر.ق', `(${$('#sumSubtotal').textContent})`);
+check(`المجموع الفرعي ${ar(KABSA_FULL * 2)}`, $('#sumSubtotal').textContent === qr(KABSA_FULL * 2), `(${$('#sumSubtotal').textContent})`);
 check('الملاحظة ظهرت في السطر', $('#cartItems').textContent.includes('بدون بصل'));
 
-/* وضع التوصيل — المجموع ٥٢٠ ≥ ٢٠٠ فالتوصيل مجاني */
+/* وضع التوصيل — المجموع فوق حدّ المجانية داخل الدوحة */
 click($('.mode-btn[data-mode="delivery"]'));
 check('ظهر حقل العنوان', $('#addressField').hidden === false);
 check('التوصيل مجاني فوق ٢٠٠', $('#sumDelivery').textContent === 'مجاناً', `(${$('#sumDelivery').textContent})`);
-check('الإجمالي بقي ٥٢٠', $('#sumTotal').textContent === '٥٢٠ ر.ق');
+check(`الإجمالي بقي ${ar(KABSA_FULL * 2)}`, $('#sumTotal').textContent === qr(KABSA_FULL * 2));
+
+/* مناطق التوصيل — لا فروع فالاستلام مخفيّ، والمنطقة تحدّد الرسم */
+console.log('\n— مناطق التوصيل —');
+check('شريط طريقة الاستلام مخفيّ بلا فروع', $('.cart-mode').hidden === true);
+check('ظهر حقل المنطقة', $('#zoneField').hidden === false);
+check(`رُسمت ${ZONES.length} منطقة`, $$('#cartZone option').length === ZONES.length);
+check('المنطقة الأولى تعرض رسمها', $$('#cartZone option')[0].textContent.includes(ar(ZONES[0].fee)));
+
+const zoneSel = $('#cartZone');
+zoneSel.value = 'outside';
+zoneSel.dispatchEvent(new window.Event('change', { bubbles: true }));
+check(`خارج الدوحة ${qr(ZONES[1].fee)} ولا مجانية`,
+  $('#sumDelivery').textContent === qr(ZONES[1].fee), `(${$('#sumDelivery').textContent})`);
+check('الإجمالي يضمّ رسم خارج الدوحة',
+  $('#sumTotal').textContent === qr(KABSA_FULL * 2 + ZONES[1].fee), `(${$('#sumTotal').textContent})`);
+
+zoneSel.value = 'doha';
+zoneSel.dispatchEvent(new window.Event('change', { bubbles: true }));
+check('الرجوع لداخل الدوحة يعيد المجانية', $('#sumDelivery').textContent === 'مجاناً');
 
 /* إرسال بدون عنوان يجب أن يُرفض */
 click($('#cartSubmit'));
@@ -132,12 +164,13 @@ $('#cartAddress').value = 'حي النرجس، شارع الأمير';
 click($('#cartSubmit'));
 check('فُتح رابط واتساب', opened.length === 1 && opened[0].startsWith('https://wa.me/97455921554?text='));
 const msg = decodeURIComponent(opened[0].split('text=')[1]);
-check('الرسالة تحوي الطبق والحجم والإضافة', msg.includes('كبسة لحم حاشي') && msg.includes('صحن عائلي') && msg.includes('زيادة لحم'));
+check('الرسالة تحوي الطبق والحجم والإضافة', msg.includes(KABSA.name) && msg.includes('صحن عائلي') && msg.includes('زيادة لحم'));
 check('الرسالة تحوي العنوان', msg.includes('حي النرجس'));
+check('الرسالة تحوي منطقة التوصيل', msg.includes(ZONES[0].label));
 
 /* تقليل الكمية */
 click($('#cartItems [data-qty="0"][data-delta="-1"]'));
-check('إنقاص الكمية يحدّث المجموع', $('#sumSubtotal').textContent === '٢٦٠ ر.ق', `(${$('#sumSubtotal').textContent})`);
+check('إنقاص الكمية يحدّث المجموع', $('#sumSubtotal').textContent === qr(KABSA_FULL), `(${$('#sumSubtotal').textContent})`);
 
 /* أقل مبلغ للطلب — نفرّغ ونضيف شاي بـ ٨ */
 click($('#cartClear'));
@@ -217,7 +250,7 @@ search.dispatchEvent(new window.Event('input', { bubbles: true }));
 const shot = $('#menuGrid .dish[data-id="kabsa-lamb"] .photo-img');
 check('حقل img يرسم صورة في البطاقة', !!shot && shot.getAttribute('src') === 'images/dishes/kabsa-lamb.jpg');
 check('حقل img2x يبني srcset', !!shot && shot.getAttribute('srcset').includes('@2x.jpg 2x'));
-check('البديل النصّي هو اسم الطبق', !!shot && shot.getAttribute('alt') === 'كبسة لحم حاشي');
+check('البديل النصّي هو اسم الطبق', !!shot && shot.getAttribute('alt') === KABSA.name);
 check('الإطار النائب باقٍ تحت الصورة',
   !!$('#menuGrid .dish[data-id="kabsa-lamb"] .photo-emoji'));
 

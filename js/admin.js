@@ -530,6 +530,14 @@
     }).join('');
   }
 
+  /* مناطق التوصيل — تُستكمل لمنطقتين دائماً حتى لو كان الإعداد قديماً */
+  function zoneList(c) {
+    var z = (c.deliveryZones || []).slice();
+    if (!z[0]) z[0] = { id: 'doha',    label: 'داخل الدوحة', fee: c.deliveryFee || 0, freeOver: c.freeDeliveryOver || 0 };
+    if (!z[1]) z[1] = { id: 'outside', label: 'خارج الدوحة', fee: 0, freeOver: 0 };
+    return z;
+  }
+
   function fillContactForm() {
     var c = state.draft.config;
 
@@ -538,7 +546,9 @@
     $('#cfAddress', panel).value  = c.address || '';
     $('#cfHours', panel).value    = c.hours || '';
     $('#cfCurrency', panel).value = c.currency || '';
-    $('#cfDelivery', panel).value = c.deliveryFee != null ? c.deliveryFee : '';
+    var zones = zoneList(c);
+    $('#cfDelivery', panel).value    = zones[0].fee;
+    $('#cfDeliveryOut', panel).value = zones[1].fee;
     $('#cfFree', panel).value     = c.freeDeliveryOver != null ? c.freeDeliveryOver : '';
     $('#cfMin', panel).value      = c.minOrder != null ? c.minOrder : '';
 
@@ -554,9 +564,17 @@
     c.address  = $('#cfAddress', panel).value.trim();
     c.hours    = $('#cfHours', panel).value.trim();
     c.currency = $('#cfCurrency', panel).value.trim() || 'ر.ق';
-    c.deliveryFee      = Number($('#cfDelivery', panel).value) || 0;
     c.freeDeliveryOver = Number($('#cfFree', panel).value) || 0;
     c.minOrder         = Number($('#cfMin', panel).value) || 0;
+
+    /* رسم كل منطقة — والتوصيل المجاني يسري داخل الدوحة فقط */
+    var zones = zoneList(c);
+    zones[0].fee = Number($('#cfDelivery', panel).value) || 0;
+    zones[1].fee = Number($('#cfDeliveryOut', panel).value) || 0;
+    zones[0].freeOver = c.freeDeliveryOver;
+    zones[1].freeOver = 0;
+    c.deliveryZones = zones;
+    c.deliveryFee   = zones[0].fee;
 
     c.branches = $$('#adBranches .ad-row', panel).map(function (row, i) {
       var old = (state.draft.config.branches || [])[+row.getAttribute('data-b')] || {};
@@ -696,8 +714,10 @@
                 '<input id="cfHours" type="text" /></div>' +
               '<div class="ad-field"><label for="cfCurrency">رمز العملة</label>' +
                 '<input id="cfCurrency" type="text" placeholder="ر.ق" /></div>' +
-              '<div class="ad-field"><label for="cfDelivery">رسوم التوصيل</label>' +
+              '<div class="ad-field"><label for="cfDelivery">رسوم التوصيل داخل الدوحة</label>' +
                 '<input id="cfDelivery" type="number" inputmode="numeric" min="0" /></div>' +
+              '<div class="ad-field"><label for="cfDeliveryOut">رسوم التوصيل خارج الدوحة</label>' +
+                '<input id="cfDeliveryOut" type="number" inputmode="numeric" min="0" /></div>' +
               '<div class="ad-field"><label for="cfFree">التوصيل مجاني فوق (٠ = معطّل)</label>' +
                 '<input id="cfFree" type="number" inputmode="numeric" min="0" /></div>' +
               '<div class="ad-field"><label for="cfMin">أقل مبلغ للطلب</label>' +

@@ -334,18 +334,20 @@
     <section class="section contact" id="contact">
       <div class="container">
         <header class="section-head reveal">
-          <p class="eyebrow">فروعنا</p>
-          <h2>أقرب فرع إليك</h2>
+          <p class="eyebrow">التوصيل</p>
+          <h2>نوصل إليك</h2>
         </header>
 
-        <!-- بطاقة لكل فرع. انسخ الكتلة وعدّل الاسم والعنوان ورابط الخريطة،
+        <!-- لا فروع للاستلام حالياً: الطلب عبر التوصيل فقط.
+             عند فتح فرع، انسخ كتلة .branch وعدّل الاسم والعنوان،
              وأضف الفرع نفسه في ORDER_CONFIG.branches داخل js/menu-data.js -->
         <div class="branches reveal">
           <article class="branch">
-            <h3>الفرع الرئيسي</h3>
-            <p data-address>قطر</p>
+            <h3>مناطق التوصيل</h3>
+            <p>داخل الدوحة — ٥٠ ر.ق</p>
+            <p>خارج الدوحة — ١٥٠ ر.ق</p>
             <p class="branch-hours" data-hours>١١:٣٠ ص — ١٢:٠٠ م</p>
-            <a href="https://wa.me/97455921554" target="_blank" rel="noopener" data-wa>اسأل عن الموقع في واتساب ↗</a>
+            <a href="https://wa.me/97455921554" target="_blank" rel="noopener" data-wa>اسأل عن التوصيل في واتساب ↗</a>
           </article>
           <article class="branch">
             <h3>الطلب والتوصيل</h3>
@@ -376,7 +378,7 @@
           <li><a href="#about">عن المطعم</a></li>
           <li><a href="#menu">قائمة الطعام</a></li>
           <li><a href="#reserve">الحجوزات</a></li>
-          <li><a href="#contact">الفروع</a></li>
+          <li><a href="#contact">التوصيل والتواصل</a></li>
         </ul>
       </nav>
 
@@ -415,7 +417,7 @@
     <a href="#menu"><i aria-hidden="true">🍛</i>القائمة</a>
     <button type="button" id="tabCart"><i aria-hidden="true">🛒</i>السلة<span class="tab-badge" id="tabCartCount" hidden>٠</span></button>
     <a href="#reserve"><i aria-hidden="true">📅</i>حجز</a>
-    <a href="#contact"><i aria-hidden="true">📍</i>الفروع</a>
+    <a href="#contact"><i aria-hidden="true">📍</i>تواصل</a>
   </nav>
 
   <!-- ===== لافتة تثبيت التطبيق ===== -->
@@ -531,6 +533,11 @@
         <div class="cart-field" id="branchField">
           <label for="cartBranch">اختر الفرع</label>
           <select id="cartBranch"></select>
+        </div>
+
+        <div class="cart-field" id="zoneField" hidden>
+          <label for="cartZone">منطقة التوصيل</label>
+          <select id="cartZone"></select>
         </div>
 
         <div class="cart-field" id="addressField" hidden>
