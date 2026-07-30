@@ -810,7 +810,7 @@
       cart.forEach(function (item) {
         var dish = getDish(item.dishId);
         if (!dish) return;
-        lines.push('• ' + dish.name + ' ×' + item.qty + ' — ' + formatPrice(linePrice(item)));
+        lines.push('• ' + dish.name + ' ×' + toArabicDigits(item.qty) + ' — ' + formatPrice(linePrice(item)));
         var sub = itemLabel(item);
         if (sub)       lines.push('   ' + sub);
         if (item.note) lines.push('   ملاحظة: ' + item.note);
