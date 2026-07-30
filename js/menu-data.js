@@ -80,16 +80,31 @@ var RICE_PICKS = {
 var FISH_INCLUDED = 'مع كل طلب لخمسة أشخاص أو أكثر: سلطة + صالونة كنعد مجاناً';
 var INCLUDED_SALONA = 'kanad';
 
-/* الإضافات على اللقن: بقيّة الصوالين بسعرها، وصالونة المشمول
-   تُسمّى «إضافية» حتى لا يظنّ الزبون أنه يدفع ثمن المجانية. */
+/* ---------------- السلطات ----------------
+   إضافات مدفوعة على اللقن، مرتّبة بالسعر تصاعدياً */
+var SALAD_TYPES = [
+  { id: 'rob-khiyar', label: 'روب خيار',   price: 15 },
+  { id: 'hamra',      label: 'سلطة حمرة',  price: 15 },
+  { id: 'fattoush',   label: 'فتوش',       price: 20 },
+  { id: 'rob-rumman', label: 'روب رمان',   price: 20 },
+  { id: 'jarjeer',    label: 'سلطة جرجير', price: 20 }
+];
+
+/* الإضافات على اللقن: الصوالين ثم السلطات ثم الدقوس. حقل group
+   يجمع كل طائفة تحت عنوانها في النافذة، فلا تصير قائمةً طويلة
+   بلا ترتيب. وصالونة المشمول تُسمّى «إضافية» حتى لا يظنّ الزبون
+   أنه يدفع ثمن المجانية. */
 var LAQAN_ADDONS = SALONA_TYPES.map(function (t) {
   return {
     id: 'salona-' + t.id,
+    group: 'صوالين',
     label: 'صالونة ' + t.label + (t.id === INCLUDED_SALONA ? ' إضافية' : ''),
     price: t.price
   };
-}).concat([
-  { id: 'daqoos', label: 'دقوس', price: 10 }
+}).concat(SALAD_TYPES.map(function (s) {
+  return { id: 'salad-' + s.id, group: 'سلطات', label: s.label, price: s.price };
+})).concat([
+  { id: 'daqoos', group: 'أخرى', label: 'دقوس', price: 10 }
 ]);
 
 var MENU = [

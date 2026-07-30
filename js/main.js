@@ -999,12 +999,23 @@
     var addonsList = $('#dmAddonsList');
     if (dish.addons && dish.addons.length) {
       addonsBox.hidden = false;
+      /* الإضافات المجمّعة بـ group تُعرض تحت عنوان كل طائفة،
+         فقائمة الأحد عشر خياراً تبقى مقروءة */
+      var lastGroup = null;
       addonsList.innerHTML = dish.addons.map(function (a) {
+        var head = '';
+        if (a.group && a.group !== lastGroup) {
+          head = '<p class="opt-subhead">' + escapeHtml(a.group) + '</p>';
+          lastGroup = a.group;
+        }
+
         /* إضافة بسعر صفر تُقدَّم مع الطبق، فنقولها بدل «+ ٠» */
         var price = a.price
           ? '+ ' + formatPrice(a.price)
           : 'مجاناً';
-        return '<label class="opt">' +
+
+        return head +
+               '<label class="opt">' +
                  '<input type="checkbox" value="' + a.id + '" />' +
                  '<span class="opt-label">' + escapeHtml(a.label) + '</span>' +
                  '<span class="opt-price">' + price + '</span>' +

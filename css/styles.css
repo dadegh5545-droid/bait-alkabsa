@@ -1187,6 +1187,16 @@ body.modal-open { overflow: hidden; }
 .opt-group { margin-bottom: 1.3rem; }
 .opt-group h4 { font-size: .92rem; margin-bottom: .6rem; }
 
+/* عنوان طائفة داخل قائمة الإضافات — صوالين، سلطات، أخرى */
+.opt-subhead {
+  font-size: .74rem;
+  font-weight: 800;
+  color: var(--gold);
+  letter-spacing: .02em;
+  margin: .7rem 0 .3rem;
+}
+.opt-list > .opt-subhead:first-child { margin-top: 0; }
+
 /* تنبيه حدّ الاختيار — نوع الأرز ونحوه */
 .opt-note {
   font-size: .76rem;
