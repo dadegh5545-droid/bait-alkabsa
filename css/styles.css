@@ -591,6 +591,42 @@ p.included span { font-size: 1rem; }
 }
 .tag-hot { background: #fbe3de; color: var(--red); }
 
+/* طبق محجوب عن الزوّار — يظهر في المعاينة وحدها */
+.tag-draft {
+  background: #e6e2dc;
+  color: #6b5c4a;
+  border: 1px dashed #b3a695;
+}
+
+/* ===== وضع المعاينة ===== */
+.preview-bar {
+  position: fixed;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 90;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: .3rem .9rem;
+  padding: .7rem 1.1rem;
+  background: #3b2415;
+  color: #f3e9dc;
+  font-size: .84rem;
+  text-align: center;
+  box-shadow: 0 -6px 22px rgba(0, 0, 0, .28);
+}
+.preview-bar strong { color: var(--gold-soft); }
+.preview-bar a {
+  color: #fff;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+body.has-preview-bar { padding-bottom: 4.5rem; }
+
+/* الطبق المحجوب يبدو مختلفاً في المعاينة، فلا يُخلط بالمنشور */
+.dish:has(.tag-draft) { opacity: .82; outline: 1px dashed #c3b6a3; }
+
 .menu-empty { text-align: center; color: var(--ink-soft); padding-top: 2rem; }
 
 /* ---------- 11. الولائم ---------- */

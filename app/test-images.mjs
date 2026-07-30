@@ -21,8 +21,8 @@ function check(name, cond, extra = '') {
 const tick = (ms = 10) => new Promise((r) => setTimeout(r, ms));
 
 /* بيئة jsdom بنفس شِمّات اختبار الواجهة */
-function makeWindow({ fetchStub } = {}) {
-  const dom = new JSDOM(html, { runScripts: 'outside-only', pretendToBeVisual: true, url: 'http://localhost/' });
+function makeWindow({ fetchStub, url = 'http://localhost/' } = {}) {
+  const dom = new JSDOM(html, { runScripts: 'outside-only', pretendToBeVisual: true, url });
   const { window } = dom;
 
   window.IntersectionObserver = class {
@@ -406,6 +406,47 @@ check('الحفظ لا يلمس فهرس الصور',
 
 const siteCommit = siteStub.calls.find((c) => /\/git\/commits$/.test(c.url) && c.method === 'POST');
 check('commit واحد للحفظ', !!siteCommit && siteCommit.body.message.includes('لوحة التحكّم'));
+
+/* ==========================================================================
+   وضع المعاينة — يجب ألّا يتسرّب طبق محجوب إلى الزبون أبداً
+   ========================================================================== */
+console.log('\n— وضع المعاينة —');
+
+const noFetch = () => Promise.resolve({ ok: false, status: 404, json: () => Promise.resolve(null) });
+
+const wNormal = makeWindow({ fetchStub: noFetch });
+wNormal.eval(readFileSync(`${ROOT}/js/main.js`, 'utf8'));
+await tick();
+
+const wPrev = makeWindow({ fetchStub: noFetch, url: 'http://localhost/?preview=1' });
+wPrev.eval(readFileSync(`${ROOT}/js/main.js`, 'utf8'));
+await tick();
+
+const allDishes    = wNormal.MENU.length;
+const liveDishes   = wNormal.MENU.filter((d) => !d.hidden).length;
+const hiddenDishes = allDishes - liveDishes;
+
+check('العرض العادي يُظهر غير المحجوب فقط',
+  wNormal.document.querySelectorAll('#menuGrid .dish').length === liveDishes,
+  `(ظهر ${wNormal.document.querySelectorAll('#menuGrid .dish').length} والمتوقع ${liveDishes})`);
+check('العرض العادي بلا شريط معاينة', wNormal.document.getElementById('previewBar') === null);
+check('العرض العادي بلا شارة «محجوب»',
+  wNormal.document.querySelectorAll('#menuGrid .tag-draft').length === 0);
+
+check('المعاينة تُظهر كل الأطباق',
+  wPrev.document.querySelectorAll('#menuGrid .dish').length === allDishes,
+  `(ظهر ${wPrev.document.querySelectorAll('#menuGrid .dish').length} والمتوقع ${allDishes})`);
+check('المعاينة تُعلّم المحجوب وحده',
+  wPrev.document.querySelectorAll('#menuGrid .tag-draft').length === hiddenDishes,
+  `(${wPrev.document.querySelectorAll('#menuGrid .tag-draft').length} من ${hiddenDishes})`);
+check('شريط المعاينة ظاهر ويذكر العدد',
+  !!wPrev.document.getElementById('previewBar') &&
+  wPrev.document.getElementById('previewBar').textContent.includes('المعاينة'));
+check('المعاينة تُظهر تصنيفات الأطباق المحجوبة',
+  wPrev.document.querySelectorAll('#menuFilters .chip').length >
+  wNormal.document.querySelectorAll('#menuFilters .chip').length);
+check('طبق بلا سعر محجوب تلقائياً',
+  wNormal.MENU.filter((d) => !d.price).every((d) => d.hidden));
 
 /* غياب الملف = لا تخصيص، والموقع يعمل بالقيم الافتراضية */
 const noneW = makeAdmin(githubStub({ site: null }));

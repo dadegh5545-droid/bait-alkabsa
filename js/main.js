@@ -303,7 +303,9 @@
   /* التصنيف الفارغ لا يُعرض — لا يضغط الزائر زرّاً يؤدّي لصفحة خالية */
   function catHasDishes(id) {
     if (id === 'all' || id === 'fav') return true;
-    return DISHES.some(function (d) { return !d.hidden && d.cat === id; });
+    return DISHES.some(function (d) {
+      return (!d.hidden || PREVIEW) && d.cat === id;
+    });
   }
 
   function renderFilters() {
@@ -324,9 +326,14 @@
     return haystack.indexOf(query) !== -1;
   }
 
+  /* وضع المعاينة — الرابط ?preview=1
+     يُظهر للمالك الأطباق المحجوبة (التي لم يصل سعرها) ليرى شكلها
+     قبل النشر. الزائر العادي لا يراها إطلاقاً. */
+  var PREVIEW = /[?&]preview=1/.test(window.location.search);
+
   function visibleDishes() {
     return DISHES.filter(function (dish) {
-      if (dish.hidden) return false;
+      if (dish.hidden && !PREVIEW) return false;
       if (activeCat === 'fav' && !isFav(dish.id)) return false;
       if (activeCat !== 'all' && activeCat !== 'fav' && dish.cat !== activeCat) return false;
       return matchesQuery(dish);
@@ -342,9 +349,15 @@
       img2x: dish.img2x
     });
 
-    var tag = dish.tag
-      ? '<span class="tag' + (dish.hot ? ' tag-hot' : '') + '">' + escapeHtml(dish.tag) + '</span>'
-      : '';
+    /* في المعاينة نُعلّم كل طبق محجوب بسبب حجبه، فلا يلتبس
+       المعروض للمالك بالمعروض للزبون */
+    var tag = dish.hidden
+      ? '<span class="tag tag-draft">' +
+          (dish.price ? 'محجوب عن الزوّار' : 'بانتظار السعر') +
+        '</span>'
+      : (dish.tag
+          ? '<span class="tag' + (dish.hot ? ' tag-hot' : '') + '">' + escapeHtml(dish.tag) + '</span>'
+          : '');
 
     var hasOptions = (dish.sizes && dish.sizes.length) ||
                      (dish.addons && dish.addons.length) ||
@@ -388,6 +401,24 @@
         '</div>' +
       '</article>';
   }
+
+  /* شريط ثابت يذكّر المالك أنه في المعاينة، فلا يظنّ أن ما يراه منشور */
+  function mountPreviewBar() {
+    if (!PREVIEW || document.getElementById('previewBar')) return;
+
+    var hiddenCount = DISHES.filter(function (d) { return d.hidden; }).length;
+    var bar = document.createElement('div');
+    bar.id = 'previewBar';
+    bar.className = 'preview-bar';
+    bar.innerHTML =
+      '<strong>وضع المعاينة</strong>' +
+      '<span>تُعرض هنا ' + toArabicDigits(hiddenCount) + ' طبقاً محجوباً لا يراها الزبائن. ' +
+      'أدخل السعر لينشر الطبق نفسه.</span>' +
+      '<a href="' + window.location.pathname + '">اخرج للعرض العادي</a>';
+    document.body.appendChild(bar);
+    document.body.classList.add('has-preview-bar');
+  }
+  mountPreviewBar();
 
   function renderMenu() {
     if (!menuGrid) return;
