@@ -32,50 +32,52 @@ var IMAGE_CONFIG = {
   dishExt: '.jpg'
 };
 
+/* المعرض يعرض ما نبيعه فعلاً. لا تصف صورةً بما ليس فيها،
+   ولا تذكر شيئاً لا يحدث في المطبخ. */
 var GALLERY = [
   {
-    id: 'kabsa-plate',
-    label: 'صحن الكبسة',
-    emoji: '🍛',
-    img: 'images/gallery/kabsa-plate.jpg',
-    alt: 'صحن كبسة لحم حاشي على أرز بسمتي مع المكسرات',
-    caption: 'كبسة الحاشي كما تُقدَّم على السفرة — أرز مفلفل ولحم يذوب.',
+    id: 'laqan',
+    label: 'اللقن البحري',
+    emoji: '🐟',
+    img: 'images/gallery/laqan.jpg',
+    alt: 'لقن بحري مشكّل على الأرز',
+    caption: 'اللقن المشكّل — أصناف السمك على أرز من اختيارك.',
     span: 'g-1'
   },
   {
-    id: 'tannour',
-    label: 'التنّور',
-    emoji: '🔥',
-    img: 'images/gallery/tannour.jpg',
-    alt: 'تنّور طيني مشتعل بداخله دجاج مندي',
-    caption: 'تنّورنا الطيني لا يُطفأ من الفجر — سرّ نكهة المندي.',
+    id: 'lamb',
+    label: 'الخروف',
+    emoji: '🍖',
+    img: 'images/gallery/lamb.jpg',
+    alt: 'صحن خروف على الأرز',
+    caption: 'الخروف على الأرز — صحن واحد أو موزّعاً على صحنين.',
     span: 'g-2'
   },
   {
-    id: 'majlis',
-    label: 'صالة الضيوف',
-    emoji: '🪑',
-    img: 'images/gallery/majlis.jpg',
-    alt: 'صالة جلوس عربية بمجالس أرضية وسجاد',
-    caption: 'مجلس أرضي على الطريقة الخليجية، وطاولات للعائلات.',
+    id: 'chicken',
+    label: 'الدجاج',
+    emoji: '🍗',
+    img: 'images/gallery/chicken.jpg',
+    alt: 'صحن دجاج على الأرز',
+    caption: 'الدجاج على الأرز — بداوي أو برياني أو كيسة.',
     span: 'g-3'
   },
   {
-    id: 'coffee',
-    label: 'القهوة العربية',
-    emoji: '☕',
-    img: 'images/gallery/coffee.jpg',
-    alt: 'دلّة نحاسية وفناجين قهوة عربية مع تمر',
-    caption: 'دلّة نحاس وفنجان هيل — ضيافة قبل الطلب وبعده.',
+    id: 'sides',
+    label: 'الصوالين والسلطات',
+    emoji: '🥘',
+    img: 'images/gallery/sides.jpg',
+    alt: 'صحون صالونة وسلطات جانبية',
+    caption: 'الصوالين والسلطات — تُطلب مع الصحن الرئيسي.',
     span: 'g-4'
   },
   {
-    id: 'grills',
-    label: 'المشاوي',
-    emoji: '🍢',
-    img: 'images/gallery/grills.jpg',
-    alt: 'أسياخ كباب وشيش طاووق على فحم متوهّج',
-    caption: 'أسياخ على فحم الغضا — تُشوى عند الطلب لا قبله.',
+    id: 'spread',
+    label: 'السفرة',
+    emoji: '🍽️',
+    img: 'images/gallery/spread.jpg',
+    alt: 'سفرة كاملة بصحونها',
+    caption: 'السفرة كما تصلكم — جاهزة لاجتماع الأهل.',
     span: 'g-5'
   }
 ];

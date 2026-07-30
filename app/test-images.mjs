@@ -53,9 +53,13 @@ const VISIBLE_IDS = probeWindow.MENU.filter((d) => !d.hidden).map((d) => d.id);
 const INDEXED_DISH = VISIBLE_IDS[0];
 const VISIBLE_COUNT = VISIBLE_IDS.length;
 
+/* خلية المعرض المُفهرسة تُشتقّ كذلك، فلا ينكسر الاختبار حين
+   يتغيّر المعرض */
+const INDEXED_GAL = probeWindow.GALLERY[1];
+
 const INDEXED = [
   `images/dishes/${INDEXED_DISH}.jpg`,
-  'images/gallery/tannour.jpg',
+  INDEXED_GAL.img,
   'images/about.jpg'
 ];
 

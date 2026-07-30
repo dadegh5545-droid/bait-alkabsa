@@ -305,7 +305,7 @@ var MENU = [
     cat: 'rice',
     price: 45,
     emoji: '🍗',
-    desc: 'دجاجة كاملة مدخّنة في التنّور الطيني، على فراش أرز مفلفل بالزعفران.',
+    desc: 'دجاجة كاملة على فراش أرز مفلفل بالزعفران.',
     prep: 20,
     sizes: [
       { id: 'half',  label: 'نصف دجاجة', delta: 0 },
@@ -322,7 +322,7 @@ var MENU = [
     cat: 'rice',
     price: 95,
     emoji: '🥘',
-    desc: 'فخذ خروف مدفون في الحفرة ثماني ساعات حتى ينفصل اللحم عن العظم.',
+    desc: 'فخذ خروف يُطبخ ساعات طويلة حتى ينفصل اللحم عن العظم.',
     tag: 'يُطلب قبل ساعتين',
     prep: 120,
     addons: [
@@ -336,11 +336,11 @@ var MENU = [
     cat: 'rice',
     price: 50,
     emoji: '🍖',
-    desc: 'مشويّ على الحجر الساخن بنكهة الفحم، مع صلصة المظبي الحارّة.',
+    desc: 'دجاج مظبي مع صلصة المظبي الحارّة.',
     prep: 25,
     addons: [
       { id: 'sauce', label: 'صلصة مظبي إضافية', price: 6 },
-      { id: 'bread', label: 'خبز تنّور', price: 5 }
+      { id: 'bread', label: 'خبز', price: 5 }
     ]
   },
   {
@@ -377,12 +377,12 @@ var MENU = [
     cat: 'grill',
     price: 110,
     emoji: '🍢',
-    desc: 'كباب، شيش طاووق، وريش غنم على الفحم — يكفي شخصين.',
+    desc: 'كباب، شيش طاووق، وريش غنم — يكفي شخصين.',
     tag: 'يكفي شخصين',
     hot: true,
     prep: 30,
     addons: [
-      { id: 'bread', label: 'خبز تنّور', price: 5 },
+      { id: 'bread', label: 'خبز', price: 5 },
       { id: 'hummus', label: 'حمص بالصنوبر', price: 18 }
     ]
   },
@@ -392,10 +392,10 @@ var MENU = [
     cat: 'grill',
     price: 90,
     emoji: '🥩',
-    desc: 'ثماني قطع متبّلة بالليمون والزعتر، مشويّة على فحم الغضا.',
+    desc: 'ثماني قطع متبّلة بالليمون والزعتر.',
     prep: 30,
     addons: [
-      { id: 'bread', label: 'خبز تنّور', price: 5 }
+      { id: 'bread', label: 'خبز', price: 5 }
     ]
   },
   {
@@ -404,10 +404,10 @@ var MENU = [
     cat: 'grill',
     price: 65,
     emoji: '🍳',
-    desc: 'شرائح لحم رفيعة تُقلقل على الصاج مع الفلفل والبصل.',
+    desc: 'شرائح لحم رفيعة مع الفلفل والبصل.',
     prep: 20,
     addons: [
-      { id: 'bread', label: 'خبز تنّور', price: 5 }
+      { id: 'bread', label: 'خبز', price: 5 }
     ]
   },
   {
@@ -416,11 +416,11 @@ var MENU = [
     cat: 'grill',
     price: 55,
     emoji: '🍡',
-    desc: 'قطع دجاج متبّلة بالزبادي والثوم، مشويّة على الفحم.',
+    desc: 'قطع دجاج متبّلة بالزبادي والثوم.',
     prep: 22,
     addons: [
       { id: 'garlic', label: 'ثومية', price: 6 },
-      { id: 'bread',  label: 'خبز تنّور', price: 5 }
+      { id: 'bread',  label: 'خبز', price: 5 }
     ]
   },
 
