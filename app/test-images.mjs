@@ -593,12 +593,17 @@ check('علَم «طبق رئيسي» ينجو من الحفظ',
 console.log('\n— اللوحة: السعر ينشر الطبق —');
 clickP(pdoc.querySelector('.ad-tab[data-tab="menu"]'));
 
-/* الحالة تُقرأ من المسوّدة الحيّة لا من MENU الأصلي، فالاختبار
-   السابق عدّل الطبق الأول بالفعل */
+/* الحالة تُهيّأ صراحةً: نصفّر سعر طبق له أحجام في المسوّدة ثم
+   نعيد الرسم، فلا يعتمد الاختبار على وجود طبق بلا سعر في المنيو */
 const draftNow = owner.BAK_ADMIN.state.draft.dishes;
-const rows     = Array.from(pdoc.querySelectorAll('#adDishes .ad-row'));
-const noPrice  = draftNow.findIndex((d) => !d.price && d.sizes && d.sizes.length > 1);
-const target   = rows[noPrice];
+const noPrice  = draftNow.findIndex((d) => d.sizes && d.sizes.length > 1);
+draftNow[noPrice].price  = 0;
+draftNow[noPrice].hidden = true;
+if (draftNow[noPrice].sizes[0].price != null) draftNow[noPrice].sizes[0].price = 0;
+owner.BAK_ADMIN.renderDishRows();
+
+const rows   = Array.from(pdoc.querySelectorAll('#adDishes .ad-row'));
+const target = rows[noPrice];
 
 check('الطبق بلا سعر معروض في اللوحة بخانة إخفاء مؤشَّرة',
   !!target && target.querySelector('.ad-hide').checked === true,

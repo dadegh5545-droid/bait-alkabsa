@@ -64,11 +64,15 @@ const TEST_CAT = LIVE_CATS.find((c) =>
   c.id !== 'all' && c.id !== 'fav' && VISIBLE.filter((d) => d.cat === c.id).length > 1);
 const TEST_CAT_COUNT = VISIBLE.filter((d) => d.cat === TEST_CAT.id).length;
 
+/* سعر الحجم: price كامل مكتوب فيه، أو delta يُضاف للسعر الأساسي */
+const sizeFull = (d, s) => (s.price != null ? s.price : d.price + (s.delta || 0));
+
 /* طبق مرئي له أحجام وإضافات — تُختبر عليه النافذة وحساب السعر */
 const SUBJECT   = VISIBLE.find((d) => d.sizes && d.sizes.length && d.addons && d.addons.length);
-const SUB_SIZE  = SUBJECT.sizes.reduce((a, b) => ((b.delta || 0) > (a.delta || 0) ? b : a));
+const SUB_SIZE  = SUBJECT.sizes.reduce((a, b) =>
+  (sizeFull(SUBJECT, b) > sizeFull(SUBJECT, a) ? b : a));
 const SUB_ADDON = SUBJECT.addons.find((a) => a.price > 0);
-const SUB_FULL  = SUBJECT.price + (SUB_SIZE.delta || 0) + SUB_ADDON.price;
+const SUB_FULL  = sizeFull(SUBJECT, SUB_SIZE) + SUB_ADDON.price;
 
 /* طبق مرئي آخر — يُختبر عليه زرّ المفضّلة */
 const FAV_DISH = VISIBLE.find((d) => d.id !== SUBJECT.id);
@@ -141,20 +145,30 @@ if (SUBJECT.picks) {
   check('عنوان المجموعة من البيانات', $('#dmPicksLabel').textContent === PICKS.label);
   check('التنبيه يذكر الحدّ الأقصى', $('#dmPicksNote').textContent.includes(ar(PICKS.max)));
 
+  /* الاختبار يتكيّف مع أي حدّ: أرز اللقن نوعان، وأرز اللحم نوع واحد */
   const picks = $$('#dmPicksList input');
+  const fire  = (el) => el.dispatchEvent(new window.Event('change', { bubbles: true }));
+
   picks[0].checked = true;
-  picks[0].dispatchEvent(new window.Event('change', { bubbles: true }));
-  check('اختيار واحد لا يقفل البقيّة', picks.every((p) => !p.disabled));
+  fire(picks[0]);
+  if (PICKS.max > 1) {
+    check('قبل بلوغ الحدّ لا يُقفل خيار', picks.every((p) => !p.disabled));
+    for (let i = 1; i < PICKS.max; i++) { picks[i].checked = true; fire(picks[i]); }
+  }
 
-  picks[1].checked = true;
-  picks[1].dispatchEvent(new window.Event('change', { bubbles: true }));
   check('بلوغ الحدّ يقفل غير المختار',
-    picks.filter((p) => p.disabled).length === PICKS.options.length - PICKS.max);
-  check('المختار يبقى قابلاً للإلغاء', !picks[0].disabled && !picks[1].disabled);
+    picks.filter((p) => p.disabled).length === PICKS.options.length - PICKS.max,
+    `(مقفل ${picks.filter((p) => p.disabled).length} والمتوقع ${PICKS.options.length - PICKS.max})`);
+  check('المختار يبقى قابلاً للإلغاء',
+    picks.slice(0, PICKS.max).every((p) => !p.disabled));
 
-  picks[1].checked = false;
-  picks[1].dispatchEvent(new window.Event('change', { bubbles: true }));
+  const last = picks[PICKS.max - 1];
+  last.checked = false;
+  fire(last);
   check('إلغاء اختيار يفتح البقيّة', picks.every((p) => !p.disabled));
+
+  /* نعيد الاختيار: الأرز الإلزامي يمنع الإضافة للسلة بدونه */
+  if (!PICKS.optional) { last.checked = true; fire(last); }
 
   check('الاختيار لا يغيّر السعر', $('#dmTotal').textContent === qr(SUBJECT.price));
 }

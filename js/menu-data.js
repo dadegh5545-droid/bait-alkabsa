@@ -219,12 +219,12 @@ var MENU = [
 
   /* ---------------- الدجاج ----------------
                                           صحن    صحنين */
-  chickenDish('chicken-badawi',       'دجاج على بداوي',       0, 0),
-  chickenDish('chicken-biryani',      'دجاج على برياني',      0, 0),
-  chickenDish('chicken-malakiya',     'دجاج على كيسة ملكية',  0, 0),
-  chickenDish('chicken-barriya',      'دجاج على كيسة برية',   0, 0),
-  chickenDish('chicken-biryani-arabi','دجاج على برياني عربي', 0, 0),
-  chickenDish('chicken-mashwi',       'دجاج مشوي (محمر)',     0, 0, '🔥'),
+  chickenDish('chicken-badawi',       'دجاج على بداوي',       700, 1200),
+  chickenDish('chicken-biryani',      'دجاج على برياني',      700, 1200),
+  chickenDish('chicken-malakiya',     'دجاج على كيسة ملكية',  700, 1200),
+  chickenDish('chicken-barriya',      'دجاج على كيسة برية',   700, 1200),
+  chickenDish('chicken-biryani-arabi','دجاج على برياني عربي', 700, 1200),
+  chickenDish('chicken-mashwi',       'دجاج مشوي (محمر)',     700, 1200, '🔥'),
 
   /* ---------------- السمك البحري ---------------- */
   {

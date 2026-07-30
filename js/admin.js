@@ -1141,6 +1141,7 @@
     siteText: siteText,
     verify: verify,
     targets: targets,
+    renderDishRows: renderDishRows,
     state: state
   };
 
