@@ -73,8 +73,14 @@ const SUB_FULL  = SUBJECT.price + (SUB_SIZE.delta || 0) + SUB_ADDON.price;
 /* طبق مرئي آخر — يُختبر عليه زرّ المفضّلة */
 const FAV_DISH = VISIBLE.find((d) => d.id !== SUBJECT.id);
 
-/* كلمة موجودة في بعض الأطباق لا كلّها — يُختبر عليها البحث */
-const SEARCH_WORD = SUBJECT.name.split(' ')[0];
+/* كلمة من اسم الطبق لا ترد في اسم غيره ولا وصفه — يُختبر عليها البحث.
+   البحث يمسح الاسم والوصف والشارة معاً، فكلمة مثل «لقن» ترد في وصف
+   الصالونة أيضاً ولا تصلح للتمييز. */
+const searchHay = (d) => `${d.name} ${d.desc || ''} ${d.tag || ''}`.toLowerCase();
+const SEARCH_WORD =
+  SUBJECT.name.split(/\s+/).filter((w) => w.length > 2).find((w) =>
+    VISIBLE.filter((d) => searchHay(d).includes(w.toLowerCase())).length === 1
+  ) || SUBJECT.name.split(/\s+/)[0];
 
 const ZONES = window.ORDER_CONFIG.deliveryZones;
 
@@ -232,6 +238,48 @@ check('إنقاص الكمية يحدّث المجموع', $('#sumSubtotal').tex
 /* أقل مبلغ للطلب — نفرّغ ونضيف شاي بـ ٨ */
 click($('#cartClear'));
 check('تفريغ السلة يُظهر الحالة الفارغة', $('#cartEmpty').hidden === false);
+
+/* ===== الجانب لا يُطلب وحده ===== */
+const SIDE = VISIBLE.find((d) => d.needsMain);
+const MAIN = VISIBLE.find((d) => d.main);
+if (SIDE && MAIN) {
+  console.log('\n— الجوانب تحتاج طبقاً رئيسياً —');
+  const cartOf = () => JSON.parse(window.localStorage.getItem('bak_cart') || '[]');
+
+  click($(`#menuGrid [data-add="${SIDE.id}"]`));
+  click($('#dmAdd'));
+  check('الجانب وحده مرفوض', cartOf().length === 0, `(${cartOf().length} سطر)`);
+  check('سبب الرفض مكتوب للزبون', $('#toasts').textContent.includes('أضف الطبق الرئيسي'));
+  check('النافذة تبقى مفتوحة بعد الرفض', $('#dishModal').hidden === false);
+  click($('#dishModal .modal-close'));
+
+  /* الرئيسي أولاً ثم الجانب */
+  click($(`#menuGrid [data-add="${MAIN.id}"]`));
+  if (MAIN.picks && !MAIN.picks.optional) {
+    const p = $('#dmPicksList input');
+    p.checked = true;
+    p.dispatchEvent(new window.Event('change', { bubbles: true }));
+  }
+  click($('#dmAdd'));
+  check('الرئيسي يُقبل وحده', cartOf().length === 1, `(${cartOf().length} سطر)`);
+
+  click($(`#menuGrid [data-add="${SIDE.id}"]`));
+  click($('#dmAdd'));
+  check('الجانب يُقبل بعد الرئيسي', cartOf().length === 2, `(${cartOf().length} سطر)`);
+
+  /* حذف الرئيسي يترك سلة جوانب فقط — تُرفض عند الإرسال لا بالحذف الصامت */
+  click($('#cartBtn'));
+  const mainRow = cartOf().findIndex((it) => it.dishId === MAIN.id);
+  const before = opened.length;
+  click($(`#cartItems [data-qty="${mainRow}"][data-delta="-1"]`));
+  check('حذف الرئيسي يُبقي الجانب بلا حذف صامت', cartOf().length === 1);
+  $('#cartAddress').value = 'الوكرة، شارع المطاعم';
+  click($('#cartSubmit'));
+  check('الإرسال بجوانب فقط مرفوض', opened.length === before);
+  check('سبب رفض الإرسال مكتوب', $('#toasts').textContent.includes('الجوانب تُطلب'));
+
+  click($('#cartClear'));
+}
 
 console.log('\n— نموذج الحجز —');
 opened.length = 0;

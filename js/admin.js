@@ -491,27 +491,56 @@
     if (!box) return;
 
     box.innerHTML = state.draft.dishes.map(function (d, i) {
-      return '<div class="ad-row" data-i="' + i + '">' +
+      /* حقل سعر كامل لكل حجم بعد الأول — الأول سعره هو السعر الأساسي.
+         المالك يكتب السعر كما يقوله للزبون، واللوحة تحسب الفرق. */
+      var sizeFields = (d.sizes || []).slice(1).map(function (s, k) {
+        return '<label class="ad-size">' + escapeHtml(s.label) +
+          '<input class="ad-in ad-in-size" type="number" inputmode="decimal" min="0" step="0.5"' +
+          ' data-size="' + (k + 1) + '" value="' +
+          ((Number(d.price) || 0) + (Number(s.delta) || 0)) + '" /></label>';
+      }).join('');
+
+      return '<div class="ad-row" data-i="' + i + '" data-id="' + escapeHtml(d.id || '') + '">' +
         '<input class="ad-in ad-in-name" type="text" value="' + escapeHtml(d.name || '') + '" aria-label="اسم الطبق" />' +
         '<input class="ad-in ad-in-price" type="number" inputmode="decimal" min="0" step="0.5" value="' +
           (Number(d.price) || 0) + '" aria-label="السعر" />' +
         '<select class="ad-in ad-in-cat" aria-label="التصنيف">' + catOptions(d.cat) + '</select>' +
         '<label class="ad-check"><input type="checkbox" class="ad-hide"' + (d.hidden ? ' checked' : '') + ' />إخفاء</label>' +
         '<button type="button" class="ad-del" data-del="' + i + '" aria-label="حذف الطبق">🗑</button>' +
+        (sizeFields ? '<div class="ad-sizes">' + sizeFields + '</div>' : '') +
       '</div>';
     }).join('');
   }
 
   function collectDishes() {
     $$('#adDishes .ad-row', panel).forEach(function (row) {
-      var dish = state.draft.dishes[+row.getAttribute('data-i')];
+      /* الربط بالمعرّف لا بالفهرس: draft قد يُعاد بناؤه بين الرسم
+         والجمع، فيُكتب سعر طبق على طبق آخر */
+      var id = row.getAttribute('data-id');
+      var dish = null;
+      state.draft.dishes.forEach(function (d) { if (d.id === id) dish = d; });
+      if (!dish) dish = state.draft.dishes[+row.getAttribute('data-i')];
       if (!dish) return;
 
       var name = $('.ad-in-name', row).value.trim();
       if (name) dish.name = name;
+
+      var oldPrice = Number(dish.price) || 0;
       dish.price  = Number($('.ad-in-price', row).value) || 0;
       dish.cat    = $('.ad-in-cat', row).value;
       dish.hidden = $('.ad-hide', row).checked;
+
+      /* أسعار الأحجام: يُكتب السعر الكامل ويُحفظ الفرق */
+      $$('.ad-in-size', row).forEach(function (inp) {
+        var s = (dish.sizes || [])[+inp.getAttribute('data-size')];
+        if (s) s.delta = Math.max(0, (Number(inp.value) || 0) - dish.price);
+      });
+
+      /* نفس قاعدة menu-data.js: وصل السعر ⇒ يُنشر وحده،
+         وسعر صفر ⇒ لا يُنشر أبداً. بلا هذا يبقى الطبق محجوباً
+         بعد إدخال سعره لأن خانة «إخفاء» ظلّت مؤشَّرة. */
+      if (!oldPrice && dish.price > 0) dish.hidden = false;
+      if (!dish.price) dish.hidden = true;
     });
     return state.draft.dishes;
   }
@@ -900,7 +929,9 @@
         cat: 'rice',
         price: 0,
         emoji: '🍽️',
-        desc: ''
+        desc: '',
+        /* بلا سعر ⇒ محجوب، فلا يُنشر «٠ ر.ق» للزوّار */
+        hidden: true
       });
       renderDishRows();
 
@@ -958,6 +989,10 @@
 
     if (state.token) {
       renderItems();
+      /* تصفير المسوّدة قبل عرض التبويبات: لو ضغط المالك «الأسعار»
+         قبل وصول البيانات، رُسمت الصفوف من مسوّدة قديمة ثم كُتبت
+         قيمها على أطباق أخرى عند الحفظ */
+      state.draft = null;
       showTab('images');
       status('جارٍ قراءة البيانات المنشورة…');
 

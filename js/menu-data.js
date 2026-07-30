@@ -18,6 +18,8 @@
      sizeLabel: عنوان الخيارات لو لم تكن أحجاماً، مثل «اختر النوع» (اختياري)
      addons  : إضافات اختيارية بسعر لكل واحدة — السعر ٠ يُعرض «مجاناً»
      hidden  : true يخفي الطبق عن الزوّار دون حذفه
+     main    : true للطبق الذي يكفي خمسة أشخاص فأكثر (اللقن والخروف)
+     needsMain: true للصنف الذي لا يُطلب وحده — يحتاج طبقاً رئيسياً معه
    ========================================================================== */
 
 var MENU_CATEGORIES = [
@@ -137,15 +139,11 @@ var LAMB_PLATES = [
   { id: 'two', label: 'موزّع على صحنين', delta: 0 }
 ];
 
-/* إضافات اللحم: السلطات بأسعارها المعروفة، ثم الهريس والمضروبة.
-   سعر الهريس والمضروبة لم يصل، فيسقطان تلقائياً حتى يوضع (انظر
-   حماية الأسعار الناقصة في أسفل الملف). */
+/* إضافات اللحم: السلطات وحدها.
+   الهريس والمضروبة تخصّان قسم «الأكلات الشعبية» ولم يصل بعد. */
 var MEAT_ADDONS = SALAD_TYPES.map(function (s) {
   return { id: 'salad-' + s.id, group: 'سلطات', label: s.label, price: s.price };
-}).concat([
-  { id: 'hareis',    group: 'أطباق جانبية', label: 'هريس',   price: 0 },
-  { id: 'madhrouba', group: 'أطباق جانبية', label: 'مضروبة', price: 0 }
-]);
+});
 
 /* الأطباق التي يتغيّر فيها الأرز فقط — تُبنى مرة واحدة بدل تكرار
    الحقول ست مرات. price صفر حتى تصل الأسعار من المطعم. */
@@ -155,6 +153,7 @@ function lambDish(id, name, opts) {
     name: name,
     cat: 'lamb',
     price: 0,
+    main: true,
     emoji: (opts && opts.emoji) || '🍖',
     included: MEAT_INCLUDED,
     picks: MEAT_RICE_PICKS,
@@ -195,6 +194,7 @@ var MENU = [
     desc: 'ثمانية أصناف بحرية: هامور، كنعد، صافي، أم الربيان، روبيان، زبيدي، سيباس، وشعري.',
     tag: 'ثمانية أصناف',
     hot: true,
+    main: true,
     included: FISH_INCLUDED,
     picks: RICE_PICKS,
     sizes: [
@@ -212,6 +212,7 @@ var MENU = [
     emoji: '🐠',
     desc: 'خمسة أصناف: كنعد، صافي، روبيان، شعري، وقياقي.',
     tag: 'خمسة أصناف',
+    main: true,
     included: FISH_INCLUDED,
     picks: RICE_PICKS,
     sizes: [
@@ -227,7 +228,8 @@ var MENU = [
     cat: 'fish',
     price: SIDE_BASE,
     emoji: '🥘',
-    desc: 'صوالين الشعري والكنعد والقباقب والروبيان والهامور، ومعها قباقب بشاميل وقشيد.',
+    desc: 'صوالين الشعري والكنعد والقباقب والروبيان والهامور، ومعها قباقب بشاميل وقشيد — تُطلب مع اللقن أو الخروف.',
+    needsMain: true,
     sizeLabel: 'اختر الصنف',
     sizes: SIDE_SIZES
   },

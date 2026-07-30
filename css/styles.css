@@ -1861,6 +1861,24 @@ html[dir="rtl"] .cart-panel { transform: translateX(100%); }
 .ad-in-cat { flex: 0 1 7rem; }
 .ad-in-bname, .ad-in-barea { flex: 1 1 40%; min-width: 6.5rem; }
 
+/* أسعار الأحجام داخل صفّ الطبق — «موزّع على صحنين» ونحوه */
+.ad-sizes {
+  flex: 1 1 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .4rem .7rem;
+  padding-top: .35rem;
+  border-top: 1px dashed var(--line);
+}
+.ad-size {
+  display: flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .74rem;
+  color: var(--ink-faint);
+}
+.ad-size .ad-in { width: 5rem; text-align: center; }
+
 .ad-check {
   display: inline-flex;
   align-items: center;

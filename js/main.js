@@ -554,6 +554,24 @@
     return cart.reduce(function (sum, item) { return sum + linePrice(item); }, 0);
   }
 
+  /* الجوانب لا تُطلب وحدها — لا بدّ من لقن أو خروف معها.
+     الصفة تُقرأ من الطبق الحيّ لا من قائمة محسوبة سلفاً، فتبقى
+     صحيحة بعد أن يستبدل data/site.json الأطباق كلّها. */
+  function cartHasMain() {
+    return cart.some(function (it) {
+      var d = getDish(it.dishId);
+      return !!(d && d.main);
+    });
+  }
+
+  function cartSideOnly() {
+    if (cartHasMain()) return false;
+    return cart.some(function (it) {
+      var d = getDish(it.dishId);
+      return !!(d && d.needsMain);
+    });
+  }
+
   /* حدّ التوصيل المجاني للمنطقة الحالية — freeOver في المنطقة يغلب الإعداد العام */
   function freeOverNow() {
     var z = currentZone();
@@ -822,6 +840,14 @@
     cartSubmit.addEventListener('click', function () {
       if (!cart.length) return;
 
+      /* السلة تُستعاد من الجهاز، فقد تصل «جوانب فقط» من جلسة سابقة
+         دون أن تمرّ بنافذة الطبق قط. يسبق حارس أقل مبلغ ليظهر
+         السبب الحقيقي لا رسالة المبلغ. */
+      if (cartSideOnly()) {
+        toast('الجوانب تُطلب مع لقن أو خروف', 'error');
+        return;
+      }
+
       var subtotal = cartSubtotal();
 
       if (CFG.minOrder && subtotal < CFG.minOrder) {
@@ -1085,6 +1111,12 @@
       if (e.target.id === 'dmMinus') { if (dmQty > 1) dmQty--; refreshModalTotal(); return; }
 
       if (e.target.id === 'dmAdd') {
+        /* الجانب لا يُطلب وحده — النافذة تبقى مفتوحة ليرى الزبون مكانه */
+        if (dmDish.needsMain && !cartHasMain()) {
+          toast('تُطلب مع لقن أو خروف — أضف الطبق الرئيسي أولاً', 'error');
+          return;
+        }
+
         /* اختيار إلزامي لم يُحدَّد ⇒ لا نُرسل طلباً ناقصاً للمطبخ */
         if (dmDish.picks && !dmDish.picks.optional && !selectedPickIds().length) {
           toast(dmDish.picks.label || 'اختر أولاً', 'error');

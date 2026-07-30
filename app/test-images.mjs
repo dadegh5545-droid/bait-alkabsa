@@ -541,6 +541,60 @@ check('السعر المعدّل محفوظ', savedData.dishes[0].price === 123)
 check('الطبق المخفي محفوظ بعلامته', savedData.dishes[1].hidden === true);
 check('باقي الأطباق سليمة', savedData.dishes.length === owner.MENU.length);
 check('الإعدادات محفوظة مع القائمة', savedData.config.whatsapp === owner.ORDER_CONFIG.whatsapp);
+check('علَم «يحتاج طبقاً رئيسياً» ينجو من الحفظ',
+  savedData.dishes.filter((d) => d.needsMain).length ===
+  owner.MENU.filter((d) => d.needsMain).length);
+check('علَم «طبق رئيسي» ينجو من الحفظ',
+  savedData.dishes.filter((d) => d.main).length === owner.MENU.filter((d) => d.main).length);
+
+/* ===== إدخال سعر لطبق محجوب ينشره وحده ===== */
+console.log('\n— اللوحة: السعر ينشر الطبق —');
+clickP(pdoc.querySelector('.ad-tab[data-tab="menu"]'));
+
+/* الحالة تُقرأ من المسوّدة الحيّة لا من MENU الأصلي، فالاختبار
+   السابق عدّل الطبق الأول بالفعل */
+const draftNow = owner.BAK_ADMIN.state.draft.dishes;
+const rows     = Array.from(pdoc.querySelectorAll('#adDishes .ad-row'));
+const noPrice  = draftNow.findIndex((d) => !d.price && d.sizes && d.sizes.length > 1);
+const target   = rows[noPrice];
+
+check('الطبق بلا سعر معروض في اللوحة بخانة إخفاء مؤشَّرة',
+  !!target && target.querySelector('.ad-hide').checked === true,
+  `(فهرس ${noPrice})`);
+check('حقول أسعار الأحجام معروضة',
+  !!target && target.querySelectorAll('.ad-in-size').length ===
+  draftNow[noPrice].sizes.length - 1,
+  `(${target ? target.querySelectorAll('.ad-in-size').length : 0})`);
+
+/* المالك يكتب سعر الصحن وسعر الصحنين ولا يلمس خانة الإخفاء */
+target.querySelector('.ad-in-price').value = '2500';
+target.querySelector('.ad-in-size').value  = '4200';
+pageStub.calls.length = 0;
+clickP(pdoc.querySelector('#adSaveMenu'));
+await tick(40);
+
+const pricedTree = pageStub.calls.find((c) => /\/git\/trees$/.test(c.url));
+const pricedData = JSON.parse(pricedTree.body.tree[0].content);
+const pricedDish = pricedData.dishes[noPrice];
+
+check('السعر الأساسي محفوظ', pricedDish.price === 2500);
+check('إدخال السعر يرفع الحجب تلقائياً', pricedDish.hidden === false,
+  `(hidden = ${pricedDish.hidden})`);
+check('سعر الحجم الثاني محفوظ فرقاً صحيحاً', pricedDish.sizes[1].delta === 1700,
+  `(delta = ${pricedDish.sizes[1].delta})`);
+
+/* الطبق المنشور بهذين السعرين يعرضهما كاملين للزبون */
+const wPriced = makeWindow({
+  fetchStub: (url) => String(url).includes('site.json')
+    ? Promise.resolve({ ok: true, status: 200, json: () => Promise.resolve(pricedData) })
+    : Promise.resolve({ ok: false, status: 404, json: () => Promise.resolve(null) })
+});
+wPriced.eval(readFileSync(`${ROOT}/js/main.js`, 'utf8'));
+await tick(40);
+const pricedCard = wPriced.document.querySelector(`#menuGrid .dish[data-id="${pricedDish.id}"]`);
+check('الطبق المسعَّر ظهر للزبون', !!pricedCard);
+check('البطاقة تقول «من» لاختلاف سعري الصحن والصحنين',
+  !!pricedCard && !!pricedCard.querySelector('.price-from'));
 
 /* تبويب التواصل: تعديل رقم واتساب */
 clickP(pdoc.querySelector('.ad-tab[data-tab="contact"]'));
