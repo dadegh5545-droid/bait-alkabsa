@@ -6,7 +6,7 @@
    حقول الطبق:
      id      : معرّف فريد بالإنجليزية (لا تغيّره بعد النشر — السلة تعتمد عليه)
      name    : الاسم المعروض
-     cat     : التصنيف — rice | grill | starter | dessert | drink
+     cat     : التصنيف — fish | rice | grill | starter | dessert | drink
      price   : السعر الأساسي بالريال القطري
      emoji   : رمز مؤقت مكان الصورة
      img     : مسار صورة حقيقية (اختياري) مثل "images/kabsa.jpg"
@@ -15,12 +15,15 @@
      hot     : true لإبراز الشارة بالأحمر
      prep    : وقت التحضير بالدقائق (اختياري)
      sizes   : خيارات الحجم — delta يُضاف للسعر الأساسي
-     addons  : إضافات اختيارية بسعر لكل واحدة
+     sizeLabel: عنوان الخيارات لو لم تكن أحجاماً، مثل «اختر النوع» (اختياري)
+     addons  : إضافات اختيارية بسعر لكل واحدة — السعر ٠ يُعرض «مجاناً»
+     hidden  : true يخفي الطبق عن الزوّار دون حذفه
    ========================================================================== */
 
 var MENU_CATEGORIES = [
   { id: 'all',     label: 'الكل' },
   { id: 'fav',     label: 'المفضّلة ♥' },
+  { id: 'fish',    label: 'السمك البحري' },
   { id: 'rice',    label: 'الأرز واللحوم' },
   { id: 'grill',   label: 'المشاوي' },
   { id: 'starter', label: 'المقبلات' },
@@ -28,9 +31,108 @@ var MENU_CATEGORIES = [
   { id: 'drink',   label: 'المشروبات' }
 ];
 
+/* ---------------- الصوالين ----------------
+   الصالونة تُطلب طبقاً مستقلاً وتُطلب إضافةً على اللقن، فسعرها معرّف
+   هنا مرة واحدة فقط. عدّل السعر في هذه القائمة وحدها، وينتشر في
+   الموضعين تلقائياً — لا تكرار ولا سعران مختلفان لصالونة واحدة. */
+var SALONA_TYPES = [
+  { id: 'shari',   label: 'شعري',   price: 35 },
+  { id: 'kanad',   label: 'كنعد',   price: 40 },
+  { id: 'qabaqib', label: 'قباقب',  price: 40 },
+  { id: 'rubian',  label: 'روبيان', price: 45 },
+  { id: 'hamour',  label: 'هامور',  price: 55 }
+];
+
+/* أرخص صالونة = سعر الطبق المستقل الأساسي، والباقي فرقٌ يُضاف إليه */
+var SALONA_BASE = Math.min.apply(null, SALONA_TYPES.map(function (t) { return t.price; }));
+
+var SALONA_SIZES = SALONA_TYPES.map(function (t) {
+  return { id: t.id, label: t.label, delta: t.price - SALONA_BASE };
+});
+
+/* كل طلب في قسم السمك يأتي معه سلطة وصالونة كنعد بلا مقابل.
+   يُعرض في شريط بارز داخل البطاقة والنافذة عبر حقل included. */
+var FISH_INCLUDED = 'مع كل طلب: سلطة + صالونة كنعد';
+var INCLUDED_SALONA = 'kanad';
+
+/* الإضافات على اللقن: بقيّة الصوالين بسعرها، وصالونة المشمول
+   تُسمّى «إضافية» حتى لا يظنّ الزبون أنه يدفع ثمن المجانية. */
+var LAQAN_ADDONS = SALONA_TYPES.map(function (t) {
+  return {
+    id: 'salona-' + t.id,
+    label: 'صالونة ' + t.label + (t.id === INCLUDED_SALONA ? ' إضافية' : ''),
+    price: t.price
+  };
+}).concat([
+  { id: 'daqoos', label: 'دقوس', price: 0 }
+]);
+
 var MENU = [
 
-  /* ---------------- الأرز واللحوم ---------------- */
+  /* ---------------- السمك البحري ---------------- */
+  {
+    id: 'laqan-vip',
+    name: 'لقن بحري مشكّل VIP',
+    cat: 'fish',
+    price: 1300,
+    emoji: '🐟',
+    desc: 'ثمانية أصناف بحرية: هامور، كنعد، صافي، أم الربيان، روبيان، زبيدي، سيباس، وشعري. نوع الأرز على حسب طلبك.',
+    tag: 'ثمانية أصناف',
+    hot: true,
+    included: FISH_INCLUDED,
+    sizes: [
+      { id: 'small',  label: 'صغير — ٦ إلى ٨ أشخاص',   delta: 0 },
+      { id: 'medium', label: 'وسط — ٨ إلى ١٢ شخصاً',   delta: 300 },
+      { id: 'large',  label: 'كبير — ١٣ إلى ١٥ شخصاً', delta: 1300 }
+    ],
+    addons: LAQAN_ADDONS
+  },
+  {
+    id: 'laqan-5',
+    name: 'لقن بحري ٥ أصناف',
+    cat: 'fish',
+    price: 1000,
+    emoji: '🐠',
+    desc: 'خمسة أصناف: كنعد، صافي، روبيان، شعري، وقياقي. نوع الأرز على حسب طلبك.',
+    tag: 'خمسة أصناف',
+    included: FISH_INCLUDED,
+    sizes: [
+      { id: 'small',  label: 'صغير — ٦ إلى ٨ أشخاص',   delta: 0 },
+      { id: 'medium', label: 'وسط — ٨ إلى ١٠ أشخاص',  delta: 300 },
+      { id: 'large',  label: 'كبير — ١٠ إلى ١٥ شخصاً', delta: 900 }
+    ],
+    addons: LAQAN_ADDONS
+  },
+  {
+    id: 'salona',
+    name: 'صالونة سمك',
+    cat: 'fish',
+    price: SALONA_BASE,
+    emoji: '🥘',
+    desc: 'تُطلب بالنوع الذي تختاره: شعري، كنعد، قباقب، روبيان، أو هامور.',
+    sizeLabel: 'اختر النوع',
+    sizes: SALONA_SIZES
+  },
+  {
+    id: 'qabaqib-bechamel',
+    name: 'قباقب بشاميل',
+    cat: 'fish',
+    price: 35,
+    emoji: '🦀',
+    desc: 'قباقب بصوص البشاميل — من أطباق أم الربيان.'
+  },
+  {
+    id: 'qashid',
+    name: 'قشيد',
+    cat: 'fish',
+    price: 50,
+    emoji: '🦐',
+    desc: 'من أطباق أم الربيان.'
+  },
+
+  /* ---------------- الأرز واللحوم ----------------
+     مخفيّة مؤقتاً: أسعارها للوجبة الفردية، والطلب حالياً صحون
+     لخمسة أشخاص أو أكثر. تُعاد بحذف hidden عند وصول منيو اللحوم. */
   {
     id: 'kabsa-lamb',
     name: 'كبسة بداوي لحم',
@@ -284,6 +386,7 @@ var MENU = [
     emoji: '🧃',
     desc: 'برتقال أو ليمون نعناع أو مانجو — يُعصر عند الطلب.',
     prep: 5,
+    sizeLabel: 'اختر النوع',
     sizes: [
       { id: 'orange', label: 'برتقال', delta: 0 },
       { id: 'lemon',  label: 'ليمون نعناع', delta: 0 },
@@ -291,6 +394,16 @@ var MENU = [
     ]
   }
 ];
+
+/* ---------------- الأقسام المؤجّلة ----------------
+   منيو اللحوم لم يصل بعد، وأسعار أقسامه أدناه للوجبة الفردية في حين أن
+   الطلب حالياً صحون لخمسة أشخاص أو أكثر. فنُخفيها بدل عرض سعر خاطئ.
+   لإظهار قسم: احذف معرّفه من هذه القائمة فقط — الأطباق كلها باقية. */
+var HIDDEN_CATEGORIES = ['rice', 'grill', 'starter', 'dessert', 'drink'];
+
+MENU.forEach(function (dish) {
+  if (HIDDEN_CATEGORIES.indexOf(dish.cat) !== -1) dish.hidden = true;
+});
 
 /* ---------------- إعدادات الطلب ---------------- */
 var ORDER_CONFIG = {

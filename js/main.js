@@ -228,10 +228,15 @@
      ====================================================================== */
   var counters = $$('[data-count]');
 
-  /* عدد الأطباق يُقرأ من بيانات القائمة تلقائياً */
+  /* عدد الأطباق يُقرأ من بيانات القائمة تلقائياً — والمخفيّ لا يُعدّ،
+     فالرقم المعلن في الصفحة هو ما يراه الزائر فعلاً */
+  function liveDishCount() {
+    return DISHES.filter(function (d) { return !d.hidden; }).length;
+  }
+
   counters.forEach(function (el) {
     if (el.getAttribute('data-count-source') === 'menu' && DISHES.length) {
-      el.setAttribute('data-count', String(DISHES.length));
+      el.setAttribute('data-count', String(liveDishCount()));
     }
   });
 
@@ -295,9 +300,17 @@
   var activeCat = 'all';
   var query     = '';
 
+  /* التصنيف الفارغ لا يُعرض — لا يضغط الزائر زرّاً يؤدّي لصفحة خالية */
+  function catHasDishes(id) {
+    if (id === 'all' || id === 'fav') return true;
+    return DISHES.some(function (d) { return !d.hidden && d.cat === id; });
+  }
+
   function renderFilters() {
     if (!filtersBox) return;
-    filtersBox.innerHTML = CATS.map(function (cat) {
+    filtersBox.innerHTML = CATS.filter(function (cat) {
+      return catHasDishes(cat.id);
+    }).map(function (cat) {
       var on = cat.id === activeCat;
       return '<button class="chip' + (on ? ' is-active' : '') + '" role="tab"' +
              ' aria-selected="' + on + '" data-filter="' + cat.id + '">' +
@@ -335,6 +348,19 @@
 
     var hasOptions = (dish.sizes && dish.sizes.length) || (dish.addons && dish.addons.length);
 
+    /* ما يأتي مع الطبق مجاناً — شريط بارز لا سطر في الوصف */
+    var included = dish.included
+      ? '<p class="included"><span aria-hidden="true">🎁</span>' +
+        escapeHtml(dish.included) + '</p>'
+      : '';
+
+    /* أحجام بأسعار متفاوتة ⇒ سعر البطاقة هو الأدنى، فنقول «من» */
+    var varies = !!(dish.sizes && dish.sizes.some(function (s) { return s.delta > 0; }));
+    var priceHtml =
+      (varies ? '<small class="price-from">من</small>' : '') +
+      toArabicDigits(dish.price) +
+      '<small>' + escapeHtml(CFG.currency || 'ر.ق') + '</small>';
+
     return '' +
       '<article class="dish reveal" data-id="' + dish.id + '">' +
         '<div class="dish-media-wrap">' +
@@ -347,9 +373,10 @@
         '<div class="dish-body">' +
           '<div class="dish-head">' +
             '<h3>' + escapeHtml(dish.name) + '</h3>' +
-            '<span class="price">' + toArabicDigits(dish.price) + '</span>' +
+            '<span class="price">' + priceHtml + '</span>' +
           '</div>' +
-          '<p>' + escapeHtml(dish.desc) + '</p>' +
+          '<p>' + escapeHtml(dish.desc || '') + '</p>' +
+          included +
           '<div class="dish-foot">' +
             tag +
             '<button class="add-btn" data-add="' + dish.id + '">' +
@@ -844,8 +871,9 @@
     lastFocus = document.activeElement;
 
     $('#dmTitle').textContent = dish.name;
-    $('#dmDesc').textContent  = dish.desc;
-    $('#dmBasePrice').textContent = toArabicDigits(dish.price);
+    $('#dmDesc').textContent  = dish.desc || '';
+    $('#dmBasePrice').innerHTML = toArabicDigits(dish.price) +
+      '<small>' + escapeHtml(CFG.currency || 'ر.ق') + '</small>';
     $('#dmEmoji').textContent = dish.emoji || '🍽️';
 
     /* صورة الطبق داخل النافذة — تُستبدل مع كل فتح، والإطار النائب بديلها */
@@ -859,6 +887,14 @@
       watchPhotos(dmPhoto);
     }
 
+    var inc = $('#dmIncluded');
+    if (inc) {
+      inc.hidden = !dish.included;
+      inc.innerHTML = dish.included
+        ? '<span aria-hidden="true">🎁</span>' + escapeHtml(dish.included)
+        : '';
+    }
+
     var prep = $('#dmPrep');
     if (prep) {
       prep.hidden = !dish.prep;
@@ -870,8 +906,17 @@
     var sizesList = $('#dmSizesList');
     if (dish.sizes && dish.sizes.length) {
       sizesBox.hidden = false;
+
+      /* بعض الأطباق خياراتها أنواع لا أحجام — الطبق يسمّي العنوان بنفسه */
+      var sizesHead = $('h4', sizesBox);
+      if (sizesHead) sizesHead.textContent = dish.sizeLabel || 'اختر الحجم';
+
+      /* السعر الكامل لكل حجم، لا الفرق — أوضح حين تكون الفروق بالمئات */
+      var varying = dish.sizes.some(function (s) { return s.delta; });
       sizesList.innerHTML = dish.sizes.map(function (s, i) {
-        var extra = s.delta ? '<span class="opt-price">+ ' + formatPrice(s.delta) + '</span>' : '';
+        var extra = varying
+          ? '<span class="opt-price">' + formatPrice(dish.price + (s.delta || 0)) + '</span>'
+          : '';
         return '<label class="opt">' +
                  '<input type="radio" name="dmSize" value="' + s.id + '"' + (i === 0 ? ' checked' : '') + ' />' +
                  '<span class="opt-label">' + escapeHtml(s.label) + '</span>' + extra +
@@ -888,10 +933,14 @@
     if (dish.addons && dish.addons.length) {
       addonsBox.hidden = false;
       addonsList.innerHTML = dish.addons.map(function (a) {
+        /* إضافة بسعر صفر تُقدَّم مع الطبق، فنقولها بدل «+ ٠» */
+        var price = a.price
+          ? '+ ' + formatPrice(a.price)
+          : 'مجاناً';
         return '<label class="opt">' +
                  '<input type="checkbox" value="' + a.id + '" />' +
                  '<span class="opt-label">' + escapeHtml(a.label) + '</span>' +
-                 '<span class="opt-price">+ ' + formatPrice(a.price) + '</span>' +
+                 '<span class="opt-price">' + price + '</span>' +
                '</label>';
       }).join('');
     } else {
@@ -1365,7 +1414,7 @@
   }
 
   function refreshMenuCount() {
-    var live = DISHES.filter(function (d) { return !d.hidden; }).length;
+    var live = liveDishCount();
     $$('[data-count-source="menu"]').forEach(function (el) {
       el.setAttribute('data-count', String(live));
       el.textContent = toArabicDigits(live);

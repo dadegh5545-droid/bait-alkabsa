@@ -309,11 +309,11 @@
 
           <div class="field">
             <label for="rGuests">عدد الأشخاص</label>
+            <!-- أقل صحن يكفي ٦ أشخاص، فالخيارات تبدأ من هناك -->
             <select id="rGuests" name="guests">
-              <option value="2">شخصان</option>
-              <option value="4" selected>٤ أشخاص</option>
-              <option value="6">٦ أشخاص</option>
-              <option value="10">١٠ أشخاص</option>
+              <option value="8" selected>٦ إلى ٨ أشخاص</option>
+              <option value="12">٨ إلى ١٢ شخصاً</option>
+              <option value="15">١٣ إلى ١٥ شخصاً</option>
               <option value="20">وليمة (أكثر من ١٥)</option>
             </select>
           </div>
@@ -450,6 +450,7 @@
           <span class="price" id="dmBasePrice"></span>
         </div>
         <p class="modal-desc" id="dmDesc"></p>
+        <p class="included" id="dmIncluded" hidden></p>
         <p class="modal-prep" id="dmPrep" hidden></p>
 
         <div class="opt-group" id="dmSizes" hidden>

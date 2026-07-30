@@ -47,8 +47,14 @@ function makeWindow({ fetchStub } = {}) {
    ========================================================================== */
 console.log('\n— فهرس الصور (images/manifest.json) —');
 
+/* الطبق المُفهرس يُختار من المرئي، فلا ينكسر الاختبار حين يُخفى طبق */
+const probeWindow = makeWindow({ fetchStub: () => Promise.resolve({ ok: false, status: 404 }) });
+const VISIBLE_IDS = probeWindow.MENU.filter((d) => !d.hidden).map((d) => d.id);
+const INDEXED_DISH = VISIBLE_IDS[0];
+const VISIBLE_COUNT = VISIBLE_IDS.length;
+
 const INDEXED = [
-  'images/dishes/kabsa-lamb.jpg',
+  `images/dishes/${INDEXED_DISH}.jpg`,
   'images/gallery/tannour.jpg',
   'images/about.jpg'
 ];
@@ -70,13 +76,13 @@ await tick();
 const doc1 = w1.document;
 check('طُلب الفهرس عند التحميل', asked.some((u) => u.includes('images/manifest.json')));
 
-const inIndex = doc1.querySelector('#menuGrid .dish[data-id="kabsa-lamb"] .photo-img');
+const inIndex = doc1.querySelector(`#menuGrid .dish[data-id="${INDEXED_DISH}"] .photo-img`);
 check('طبق مدرج في الفهرس تظهر صورته',
-  !!inIndex && inIndex.getAttribute('src') === 'images/dishes/kabsa-lamb.jpg');
+  !!inIndex && inIndex.getAttribute('src') === `images/dishes/${INDEXED_DISH}.jpg`);
 check('طبق غير مدرج لا يُطلب له ملف',
-  doc1.querySelector('#menuGrid .dish[data-id="mandi-chicken"] .photo-img') === null);
+  doc1.querySelector(`#menuGrid .dish[data-id="${VISIBLE_IDS[1]}"] .photo-img`) === null);
 check('كل البطاقات فيها إطار نائب',
-  doc1.querySelectorAll('#menuGrid .dish-media .photo-emoji').length === w1.MENU.length);
+  doc1.querySelectorAll('#menuGrid .dish-media .photo-emoji').length === VISIBLE_COUNT);
 check('صور الأطباق المرسومة = المدرجة فقط',
   doc1.querySelectorAll('#menuGrid .dish-media .photo-img').length === 1);
 
@@ -340,7 +346,10 @@ check('الأطباق المنشورة تُحلّ محلّ الافتراضية'
   `(ظهر ${doc3.querySelectorAll('#menuGrid .dish').length})`);
 check('الطبق المخفي لا يظهر', doc3.querySelector('#menuGrid .dish[data-id="kunafa"]') === null);
 check('السعر الجديد ظهر في البطاقة',
-  doc3.querySelector('#menuGrid .dish[data-id="kabsa-lamb"] .price').textContent === '٩٩');
+  doc3.querySelector('#menuGrid .dish[data-id="kabsa-lamb"] .price').textContent.includes('٩٩'),
+  `(${doc3.querySelector('#menuGrid .dish[data-id="kabsa-lamb"] .price').textContent})`);
+check('البطاقة تعرض العملة القطرية لا السعودية',
+  doc3.querySelector('#menuGrid .dish[data-id="kabsa-lamb"] .price small').textContent === 'ر.ق');
 check('الطبق المضاف ظهر', !!doc3.querySelector('#menuGrid .dish[data-id="new-dish"]'));
 check('عدّاد الأطباق يستثني المخفي',
   doc3.querySelector('[data-count-source="menu"]').getAttribute('data-count') === '3');

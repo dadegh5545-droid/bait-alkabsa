@@ -538,11 +538,19 @@ p  { margin: 0 0 1rem; }
   color: var(--gold);
   white-space: nowrap;
 }
-.price::after {
-  content: ' ر.س';
+/* رمز العملة يأتي من ORDER_CONFIG.currency عبر السكربت، لا من هنا،
+   حتى لا يتناقض مع بقيّة الموقع لو تغيّرت العملة. */
+.price small {
   font-size: .65rem;
   font-weight: 500;
   color: var(--ink-faint);
+  margin-inline-start: .2rem;
+}
+.price .price-from {
+  font-size: .62rem;
+  font-weight: 600;
+  color: var(--ink-faint);
+  margin-inline-end: .25rem;
 }
 
 .dish-body p {
@@ -552,6 +560,25 @@ p  { margin: 0 0 1rem; }
   margin: 0 0 .8rem;
   flex: 1;
 }
+
+/* ما يأتي مع الطبق مجاناً — يجب أن يُلحظ من نظرة واحدة.
+   المحدّد `p.included` يأتي بعد `.dish-body p` ليغلبه داخل البطاقة. */
+p.included {
+  display: flex;
+  align-items: center;
+  gap: .45rem;
+  flex: 0 0 auto;
+  margin: 0 0 .9rem;
+  padding: .5rem .7rem;
+  border-radius: 10px;
+  background: var(--gold-dim);
+  border-inline-start: 3px solid var(--gold);
+  color: var(--brown);
+  font-size: .82rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+p.included span { font-size: 1rem; }
 
 .tag {
   align-self: flex-start;
