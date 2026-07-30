@@ -317,6 +317,16 @@ if (SIDE && MAIN) {
   click($('#cartClear'));
 }
 
+/* واجهة المجلس: نقش السدو وإطار السفرة */
+console.log('\n— واجهة المجلس —');
+check('شريطا السدو مرسومان', $$('.hero .sadu-band').length === 2);
+check('إطار السفرة موجود', !!$('#heroPhoto'));
+check('بلا صورة يبقى الإطار النائب', !!$('#heroPhoto .photo-emoji'));
+check('السفرة تنتظر ملفاً محدّداً',
+  $('#heroPhoto').getAttribute('data-src') === 'images/majlis.jpg');
+check('عدّاد الأطباق في الواجهة يقرأ الظاهر فعلاً',
+  $('[data-count-source="menu"]').getAttribute('data-count') === String(VISIBLE.length));
+
 /* المشروع منزلي: لا حجز طاولات ولا فروع */
 console.log('\n— لا حجز ولا فروع —');
 check('قسم الحجز أُزيل', $('#reserve') === null && $('#reserveForm') === null);

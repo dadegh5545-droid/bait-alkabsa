@@ -279,6 +279,87 @@ p  { margin: 0 0 1rem; }
 
 .hero-inner { position: relative; z-index: 2; max-width: 760px; }
 
+/* ===== نقش السدو =====
+   النسيج القطري التقليدي: معيّنات حمراء بين خطّين، بالأبيض والأسود.
+   مرسوم بالتدرّجات لا بصورة، فلا طلب شبكة ولا انتظار تحميل. */
+:root {
+  --sadu-red:   #a93b2c;
+  --sadu-dark:  #24170f;
+  --sadu-light: #f3e9dc;
+}
+
+.sadu-band {
+  position: absolute;
+  inset-inline: 0;
+  z-index: 3;
+  height: 22px;
+  background:
+    /* الخطّان الفاصلان أعلى وأسفل */
+    linear-gradient(var(--sadu-dark), var(--sadu-dark)) 0 0 / 100% 3px no-repeat,
+    linear-gradient(var(--sadu-dark), var(--sadu-dark)) 0 100% / 100% 3px no-repeat,
+    /* شريط المعيّنات */
+    linear-gradient(135deg, var(--sadu-red) 25%, transparent 25%) -8px 0,
+    linear-gradient(225deg, var(--sadu-red) 25%, transparent 25%) -8px 0,
+    linear-gradient(315deg, var(--sadu-red) 25%, transparent 25%) 0 0,
+    linear-gradient(45deg,  var(--sadu-red) 25%, transparent 25%) 0 0,
+    var(--sadu-light);
+  background-size: 100% 3px, 100% 3px, 16px 16px, 16px 16px, 16px 16px, 16px 16px, auto;
+}
+.sadu-top    { inset-block-start: 0; }
+.sadu-bottom { inset-block-end: 0; }
+
+/* ===== واجهة المجلس ===== */
+.hero-majlis .hero-inner {
+  max-width: var(--container, 1180px);
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  align-items: center;
+  gap: clamp(1.5rem, 5vw, 4rem);
+}
+.hero-majlis .hero-text { min-width: 0; }
+.hero-majlis .hero-actions { margin-bottom: 2.4rem; }
+
+/* السفرة: دائرة عليها إطار سدو ذهبي */
+.hero-spread {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .9rem;
+}
+.spread-ring {
+  position: relative;
+  width: min(38vw, 380px);
+  aspect-ratio: 1;
+  padding: 12px;
+  border-radius: 50%;
+  background:
+    repeating-conic-gradient(
+      var(--gold) 0deg 6deg,
+      var(--sadu-red) 6deg 12deg,
+      var(--sadu-dark) 12deg 18deg
+    );
+  box-shadow: 0 26px 60px rgba(0, 0, 0, .45);
+}
+.spread-photo {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+}
+.spread-photo .photo-emoji { font-size: clamp(3rem, 9vw, 6rem); }
+.spread-cap {
+  font-size: .8rem;
+  color: rgba(255, 255, 255, .72);
+  letter-spacing: .04em;
+}
+
+@media (max-width: 860px) {
+  .hero-majlis .hero-inner { grid-template-columns: 1fr; }
+  .hero-spread { order: -1; }
+  .spread-ring { width: min(62vw, 260px); }
+  .hero-majlis .hero-stats { padding-top: 1.4rem; }
+}
+
 .hero .eyebrow { color: var(--gold-soft); }
 .hero .eyebrow::before { background: var(--gold-soft); }
 

@@ -72,30 +72,52 @@
 
   <main>
 
-    <!-- ===== الواجهة الرئيسية ===== -->
-    <section class="hero" id="home">
+    <!-- ===== الواجهة الرئيسية — «المجلس» =====
+         العناصر التي تُعدَّل هنا:
+           ١. النصوص الثلاثة أدناه (العنوان الصغير، العنوان، الوصف)
+           ٢. صورة السفرة: ضع ملفاً باسم images/majlis.jpg
+              أو غيّر المسار في data-src أدناه. بلا صورة يظهر
+              إطار نقش السدو وحده وهو مقصود لا عطل.
+         شريط السدو مرسوم بالكود لا بصورة، فلا يبطئ الصفحة. -->
+    <section class="hero hero-majlis" id="home">
       <div class="hero-bg" aria-hidden="true"></div>
+      <div class="sadu-band sadu-top" aria-hidden="true"></div>
+
       <div class="container hero-inner">
-        <p class="eyebrow reveal">مطابخ بيت الكبسة · قطر</p>
-        <h1 class="hero-title reveal">
-          طعم الكبسة<br />
-          كما تُطبخ في <span class="gold">بيت الجدّة</span>
-        </h1>
-        <p class="hero-lead reveal">
-          أرزٌ يُطهى على نار هادئة، ولحمٌ بلديّ يُدفن في الحنيذ ساعاتٍ طويلة،
-          وبهاراتٌ تُطحن كل صباح في مطبخنا. لا اختصارات — فقط الطريقة الأصيلة.
-        </p>
-        <div class="hero-actions reveal">
-          <a href="#menu" class="btn btn-primary btn-lg">تصفّح القائمة</a>
-          <a href="#contact" class="btn btn-ghost btn-lg">تواصل معنا</a>
+        <div class="hero-text">
+          <p class="eyebrow reveal">مطابخ بيت الكبسة · قطر</p>
+          <h1 class="hero-title reveal">
+            سفرةٌ قطرية<br />
+            تُطبخ في <span class="gold">بيت</span>، لا في مطعم
+          </h1>
+          <p class="hero-lead reveal">
+            نُجهّز لكم ما نُجهّزه لأهلنا: لقنٌ بحريّ، وخروفٌ على الجمر،
+            وأرزٌ بالبهار البلدي. تطلبونه اليوم، فيصلكم غداً ساخناً على سفرتكم.
+          </p>
+          <div class="hero-actions reveal">
+            <a href="#menu" class="btn btn-primary btn-lg">تصفّح القائمة</a>
+            <a href="#contact" class="btn btn-ghost btn-lg">تواصل معنا</a>
+          </div>
+
+          <ul class="hero-stats reveal" role="list">
+            <li><strong data-count="0" data-count-source="menu">0</strong><span>طبقاً في القائمة</span></li>
+            <li><strong data-count="5">0</strong><span>أشخاص فأكثر لكل صحن</span></li>
+          </ul>
         </div>
 
-        <!-- أرقام حقيقية فقط: عدد الأطباق يُقرأ من القائمة، والولائم بطلب مسبق -->
-        <ul class="hero-stats reveal" role="list">
-          <li><strong data-count="42" data-count-source="menu">0</strong><span>طبقاً في القائمة</span></li>
-          <li><strong data-count="24">0</strong><span>ساعة لتجهيز الولائم</span></li>
-        </ul>
+        <!-- سفرة المجلس: صورة من أعلى تملأ الدائرة -->
+        <div class="hero-spread reveal" aria-hidden="true">
+          <div class="spread-ring">
+            <div class="photo spread-photo" id="heroPhoto"
+                 data-label="سفرة بيت الكبسة" data-src="images/majlis.jpg">
+              <span class="photo-emoji">🍛</span>
+            </div>
+          </div>
+          <span class="spread-cap">على سفرة المجلس</span>
+        </div>
       </div>
+
+      <div class="sadu-band sadu-bottom" aria-hidden="true"></div>
       <a href="#about" class="scroll-cue" aria-label="انزل للأسفل"><span></span></a>
     </section>
 

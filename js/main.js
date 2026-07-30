@@ -1608,6 +1608,20 @@
     watchPhotos(aboutPhoto);
   }
 
+  /* أي إطار صورة في الصفحة يحمل data-src — مثل سفرة الواجهة.
+     بلا الملف يبقى الإطار النائب ظاهراً، وهو تصميم لا عطل. */
+  function renderStaticPhotos() {
+    $$('.photo[data-src]').forEach(function (box) {
+      var src = box.getAttribute('data-src');
+      $$('.photo-img', box).forEach(function (old) { box.removeChild(old); });
+      if (!src || !imageExists(src)) return;
+
+      box.insertAdjacentHTML('beforeend',
+        photoImg(src, box.getAttribute('data-src2x'), box.getAttribute('data-label') || ''));
+      watchPhotos(box);
+    });
+  }
+
   /* يُستدعى بعد وصول الفهرس، أو من لوحة الإدارة بعد نشر صورة */
   function applyImageIndex(files) {
     IMAGE_INDEX = files || [];
@@ -1615,6 +1629,7 @@
     renderMenu();
     renderGallery();
     renderAbout();
+    renderStaticPhotos();
     renderLogo();
   }
 
@@ -1631,6 +1646,7 @@
   }
 
   renderAbout();
+  renderStaticPhotos();
   loadImageIndex();
 
   /* صور ثابتة في الصفحة */
