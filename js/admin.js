@@ -494,10 +494,12 @@
       /* حقل سعر كامل لكل حجم بعد الأول — الأول سعره هو السعر الأساسي.
          المالك يكتب السعر كما يقوله للزبون، واللوحة تحسب الفرق. */
       var sizeFields = (d.sizes || []).slice(1).map(function (s, k) {
+        var full = s.price != null
+          ? Number(s.price) || 0
+          : (Number(d.price) || 0) + (Number(s.delta) || 0);
         return '<label class="ad-size">' + escapeHtml(s.label) +
           '<input class="ad-in ad-in-size" type="number" inputmode="decimal" min="0" step="0.5"' +
-          ' data-size="' + (k + 1) + '" value="' +
-          ((Number(d.price) || 0) + (Number(s.delta) || 0)) + '" /></label>';
+          ' data-size="' + (k + 1) + '" value="' + full + '" /></label>';
       }).join('');
 
       return '<div class="ad-row" data-i="' + i + '" data-id="' + escapeHtml(d.id || '') + '">' +
@@ -530,10 +532,12 @@
       dish.cat    = $('.ad-in-cat', row).value;
       dish.hidden = $('.ad-hide', row).checked;
 
-      /* أسعار الأحجام: يُكتب السعر الكامل ويُحفظ الفرق */
+      /* أسعار الأحجام تُحفظ كاملة كما كتبها المالك، لا فروقاً */
       $$('.ad-in-size', row).forEach(function (inp) {
         var s = (dish.sizes || [])[+inp.getAttribute('data-size')];
-        if (s) s.delta = Math.max(0, (Number(inp.value) || 0) - dish.price);
+        if (!s) return;
+        s.price = Number(inp.value) || 0;
+        delete s.delta;
       });
 
       /* نفس قاعدة menu-data.js: وصل السعر ⇒ يُنشر وحده،

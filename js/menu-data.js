@@ -6,7 +6,7 @@
    حقول الطبق:
      id      : معرّف فريد بالإنجليزية (لا تغيّره بعد النشر — السلة تعتمد عليه)
      name    : الاسم المعروض
-     cat     : التصنيف — fish | rice | grill | starter | dessert | drink
+     cat     : التصنيف — fish | lamb | chicken | rice | grill | starter | dessert | drink
      price   : السعر الأساسي بالريال القطري
      emoji   : رمز مؤقت مكان الصورة
      img     : مسار صورة حقيقية (اختياري) مثل "images/kabsa.jpg"
@@ -27,6 +27,7 @@ var MENU_CATEGORIES = [
   { id: 'fav',     label: 'المفضّلة ♥' },
   { id: 'fish',    label: 'السمك البحري' },
   { id: 'lamb',    label: 'الخروف' },
+  { id: 'chicken', label: 'الدجاج' },
   { id: 'rice',    label: 'الأرز واللحوم' },
   { id: 'grill',   label: 'المشاوي' },
   { id: 'starter', label: 'المقبلات' },
@@ -131,13 +132,21 @@ var MEAT_RICE_PICKS = {
 
 var MEAT_INCLUDED = 'مع كل طلب: سلطة + مرق مجاناً';
 
-/* خيار الصحن للخروف الكامل: الخروف نفسه، إمّا في صحن واحد أو
-   موزّعاً على صحنين بسعر أعلى. فرق السعر لم يصل بعد — ضعه في
-   delta الثاني (سعر الصحنين ناقص سعر الصحن الواحد). */
-var LAMB_PLATES = [
-  { id: 'one', label: 'صحن واحد',        delta: 0 },
-  { id: 'two', label: 'موزّع على صحنين', delta: 0 }
-];
+/* ============ أسعار الخروف والدجاج ============
+   ┌──────────────────────────────────────────────────────────┐
+   │  اكتب السعر مكان الصفر — كما تقوله للزبون تماماً.        │
+   │  الخروف والدجاج الكامل: رقمان — صحن واحد، ثم صحنين.      │
+   │  النصف: رقم واحد.                                        │
+   │  الصفر يعني «لم يصل السعر» فيبقى الطبق محجوباً وحده.     │
+   └──────────────────────────────────────────────────────────┘ */
+
+/* يبني طبقاً بصحن واحد وصحنين، لكلٍّ سعره الكامل المستقلّ */
+function platesOf(onePlate, twoPlates) {
+  return [
+    { id: 'one', label: 'صحن واحد',        price: onePlate },
+    { id: 'two', label: 'موزّع على صحنين', price: twoPlates }
+  ];
+}
 
 /* إضافات اللحم: السلطات وحدها.
    الهريس والمضروبة تخصّان قسم «الأكلات الشعبية» ولم يصل بعد. */
@@ -145,44 +154,77 @@ var MEAT_ADDONS = SALAD_TYPES.map(function (s) {
   return { id: 'salad-' + s.id, group: 'سلطات', label: s.label, price: s.price };
 });
 
-/* الأطباق التي يتغيّر فيها الأرز فقط — تُبنى مرة واحدة بدل تكرار
-   الحقول ست مرات. price صفر حتى تصل الأسعار من المطعم. */
-function lambDish(id, name, opts) {
+/* أطباق اللحم والدجاج يتغيّر فيها الأرز فقط، فتُبنى مرة واحدة
+   بدل تكرار الحقول اثنتي عشرة مرة. */
+function meatDish(cat, id, name, opts) {
+  opts = opts || {};
   var dish = {
     id: id,
     name: name,
-    cat: 'lamb',
-    price: 0,
+    cat: cat,
+    price: opts.price || 0,
     main: true,
-    emoji: (opts && opts.emoji) || '🍖',
+    emoji: opts.emoji || (cat === 'chicken' ? '🍗' : '🍖'),
     included: MEAT_INCLUDED,
     picks: MEAT_RICE_PICKS,
     addons: MEAT_ADDONS
   };
-  if (opts && opts.sizes) dish.sizes = opts.sizes;
-  if (opts && opts.sizeLabel) dish.sizeLabel = opts.sizeLabel;
-  if (opts && opts.tag) dish.tag = opts.tag;
+  if (opts.sizes) {
+    dish.sizes = opts.sizes;
+    dish.sizeLabel = 'صحن أو صحنين';
+    /* سعر الطبق الأساسي هو سعر الصحن الواحد */
+    dish.price = opts.sizes[0].price || 0;
+  }
+  if (opts.tag) dish.tag = opts.tag;
   return dish;
+}
+
+/* الخروف الكامل: سعر الصحن ثم سعر الصحنين */
+function lambFull(id, name, onePlate, twoPlates, emoji) {
+  return meatDish('lamb', id, name, {
+    sizes: platesOf(onePlate, twoPlates), tag: 'خروف كامل', emoji: emoji
+  });
+}
+
+/* نصف الخروف: صحن واحد فقط */
+function lambHalf(id, name, price, emoji) {
+  return meatDish('lamb', id, name, { price: price, tag: 'نصف خروف', emoji: emoji });
+}
+
+/* الدجاج: صحن أو صحنين */
+function chickenDish(id, name, onePlate, twoPlates, emoji) {
+  return meatDish('chicken', id, name, {
+    sizes: platesOf(onePlate, twoPlates), emoji: emoji
+  });
 }
 
 var MENU = [
 
   /* ---------------- الخروف الكامل ----------------
-     صحن أو صحنين، والسعران يختلفان */
-  lambDish('lamb-badawi',   'خروف على بداوي',      { sizes: LAMB_PLATES, sizeLabel: 'صحن أو صحنين', tag: 'خروف كامل' }),
-  lambDish('lamb-biryani',  'خروف على برياني',     { sizes: LAMB_PLATES, sizeLabel: 'صحن أو صحنين', tag: 'خروف كامل' }),
-  lambDish('lamb-malakiya', 'خروف على كيسة ملكية', { sizes: LAMB_PLATES, sizeLabel: 'صحن أو صحنين', tag: 'خروف كامل' }),
-  lambDish('lamb-barriya',  'خروف على كيسة برية',  { sizes: LAMB_PLATES, sizeLabel: 'صحن أو صحنين', tag: 'خروف كامل' }),
-  lambDish('lamb-mashwi',   'خروف مشوي (محمر)',    { sizes: LAMB_PLATES, sizeLabel: 'صحن أو صحنين', tag: 'خروف كامل', emoji: '🔥' }),
+                                          صحن    صحنين */
+  lambFull('lamb-badawi',   'خروف على بداوي',      0, 0),
+  lambFull('lamb-biryani',  'خروف على برياني',     0, 0),
+  lambFull('lamb-malakiya', 'خروف على كيسة ملكية', 0, 0),
+  lambFull('lamb-barriya',  'خروف على كيسة برية',  0, 0),
+  lambFull('lamb-mashwi',   'خروف مشوي (محمر)',    0, 0, '🔥'),
 
   /* ---------------- نصف الخروف ----------------
-     صحن واحد فقط، فلا خيار صحون */
-  lambDish('half-badawi',       'نص خروف على بداوي',       { tag: 'نصف خروف' }),
-  lambDish('half-biryani',      'نص خروف على برياني',      { tag: 'نصف خروف' }),
-  lambDish('half-malakiya',     'نص خروف على كيسة ملكية',  { tag: 'نصف خروف' }),
-  lambDish('half-barriya',      'نص خروف على كيسة برية',   { tag: 'نصف خروف' }),
-  lambDish('half-biryani-arabi','نص خروف على برياني عربي', { tag: 'نصف خروف' }),
-  lambDish('half-mashwi',       'نص خروف مشوي (محمر)',     { tag: 'نصف خروف', emoji: '🔥' }),
+     صحن واحد فقط، فسعر واحد */
+  lambHalf('half-badawi',        'نص خروف على بداوي',       0),
+  lambHalf('half-biryani',       'نص خروف على برياني',      0),
+  lambHalf('half-malakiya',      'نص خروف على كيسة ملكية',  0),
+  lambHalf('half-barriya',       'نص خروف على كيسة برية',   0),
+  lambHalf('half-biryani-arabi', 'نص خروف على برياني عربي', 0),
+  lambHalf('half-mashwi',        'نص خروف مشوي (محمر)',     0, '🔥'),
+
+  /* ---------------- الدجاج ----------------
+                                          صحن    صحنين */
+  chickenDish('chicken-badawi',       'دجاج على بداوي',       0, 0),
+  chickenDish('chicken-biryani',      'دجاج على برياني',      0, 0),
+  chickenDish('chicken-malakiya',     'دجاج على كيسة ملكية',  0, 0),
+  chickenDish('chicken-barriya',      'دجاج على كيسة برية',   0, 0),
+  chickenDish('chicken-biryani-arabi','دجاج على برياني عربي', 0, 0),
+  chickenDish('chicken-mashwi',       'دجاج مشوي (محمر)',     0, 0, '🔥'),
 
   /* ---------------- السمك البحري ---------------- */
   {
@@ -554,6 +596,19 @@ var ORDER_CONFIG = {
 
   /* أقل مبلغ للطلب */
   minOrder: 30,
+
+  /* مهلة التجهيز: الطلب يُفضّل قبل يوم.
+     الغداء (قبل هذه الساعة) يُطلب في اليوم السابق،
+     والعشاء يُطلب صباح يومه على أبعد تقدير. */
+  lead: {
+    /* أقل عدد ساعات بين الطلب ووقت التسليم */
+    minHours: 8,
+    /* ما قبل هذه الساعة يُعدّ غداءً */
+    lunchUntil: 17,
+    /* آخر ساعة صباحية يُقبل فيها طلب عشاء اليوم نفسه */
+    dinnerSameDayBefore: 11,
+    note: 'يُفضّل الطلب قبل يوم. طلب الغداء يُستقبل قبله بيوم، والعشاء صباح يومه.'
+  },
 
   /* الفروع المتاحة للاستلام — فارغة حالياً: الطلب عبر التوصيل فقط.
      عند فتح فرع، أضفه هنا بهذا الشكل ويظهر خيار الاستلام تلقائياً:

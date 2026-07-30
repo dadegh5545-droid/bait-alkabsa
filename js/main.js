@@ -39,6 +39,23 @@
     });
   }
 
+  /* سعر الحجم: إمّا price كامل مكتوب فيه، أو delta يُضاف للسعر
+     الأساسي. الأول أوضح لمن يحرّر الملف، والثاني باقٍ للتوافق. */
+  function sizePrice(dish, size) {
+    if (!size) return dish.price;
+    if (size.price != null) return size.price;
+    return dish.price + (size.delta || 0);
+  }
+
+  /* أرخص أحجام الطبق — هو ما يُعرض على البطاقة */
+  function basePrice(dish) {
+    if (!dish.sizes || !dish.sizes.length) return dish.price;
+    return dish.sizes.reduce(function (min, s) {
+      var p = sizePrice(dish, s);
+      return p < min ? p : min;
+    }, sizePrice(dish, dish.sizes[0]));
+  }
+
   function getDish(id) {
     for (var i = 0; i < DISHES.length; i++) {
       if (DISHES[i].id === id) return DISHES[i];
@@ -370,10 +387,13 @@
       : '';
 
     /* أحجام بأسعار متفاوتة ⇒ سعر البطاقة هو الأدنى، فنقول «من» */
-    var varies = !!(dish.sizes && dish.sizes.some(function (s) { return s.delta > 0; }));
+    var lowest = basePrice(dish);
+    var varies = !!(dish.sizes && dish.sizes.some(function (s) {
+      return sizePrice(dish, s) !== lowest;
+    }));
     var priceHtml =
       (varies ? '<small class="price-from">من</small>' : '') +
-      toArabicDigits(dish.price) +
+      toArabicDigits(lowest) +
       '<small>' + escapeHtml(CFG.currency || 'ر.ق') + '</small>';
 
     return '' +
@@ -533,7 +553,7 @@
 
     if (item.sizeId && dish.sizes) {
       dish.sizes.forEach(function (s) {
-        if (s.id === item.sizeId) unit += s.delta;
+        if (s.id === item.sizeId) unit = sizePrice(dish, s);
       });
     }
 
@@ -645,7 +665,132 @@
   var zoneSelect   = $('#cartZone');
   var zoneField    = $('#zoneField');
   var addressField = $('#addressField');
+  var unitField    = $('#unitField');
   var cartWarn     = $('#cartWarn');
+
+  /* ---------- بيانات الزبون ----------
+     تُحفظ على جهازه فتُملأ وحدها في الطلب القادم. لا تُرسل لأي
+     مكان إلا في رسالة واتساب التي يضغط هو زرّها. */
+  var INFO_KEY = 'bak_customer';
+
+  function customerFields() {
+    return {
+      name:    $('#cartName'),
+      phone:   $('#cartPhone'),
+      address: $('#cartAddress'),
+      unit:    $('#cartUnit'),
+      date:    $('#cartDate'),
+      time:    $('#cartWhen')
+    };
+  }
+
+  function loadCustomer() {
+    var saved = store.get(INFO_KEY, null);
+    if (!saved) return;
+    var f = customerFields();
+    ['name', 'phone', 'address', 'unit'].forEach(function (k) {
+      if (f[k] && saved[k]) f[k].value = saved[k];
+    });
+  }
+
+  function saveCustomer() {
+    var f = customerFields();
+    store.set(INFO_KEY, {
+      name:    f.name    ? f.name.value.trim()    : '',
+      phone:   f.phone   ? f.phone.value.trim()   : '',
+      address: f.address ? f.address.value.trim() : '',
+      unit:    f.unit    ? f.unit.value.trim()    : ''
+    });
+  }
+
+  /* ---------- وقت التسليم ----------
+     المطبخ منزلي يطبخ بالطلب، فلكل وجبة مهلة. */
+  function leadCfg() {
+    return CFG.lead || { minHours: 8, lunchUntil: 17, dinnerSameDayBefore: 11 };
+  }
+
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+
+  function dateValue(d) {
+    return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+  }
+
+  /* أقرب موعد تسليم مقبول من الآن */
+  function earliestSlot() {
+    var lead = leadCfg();
+    var t = new Date();
+    t.setHours(t.getHours() + (lead.minHours || 8));
+
+    /* طلب عشاء اليوم لا يُقبل بعد ساعة الصباح المحدّدة */
+    var now = new Date();
+    if (now.getHours() >= (lead.dinnerSameDayBefore || 11) &&
+        t.getFullYear() === now.getFullYear() &&
+        t.getMonth() === now.getMonth() &&
+        t.getDate() === now.getDate()) {
+      t = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 12, 0, 0);
+    }
+    return t;
+  }
+
+  /* هل الموعد المختار مقبول؟ ترجع رسالة الخطأ أو نصّاً فارغاً */
+  function slotProblem() {
+    var f = customerFields();
+    if (!f.date || !f.time || !f.date.value || !f.time.value) return 'اختر تاريخ التسليم وساعته';
+
+    var parts = f.date.value.split('-');
+    var hm    = f.time.value.split(':');
+    var when  = new Date(+parts[0], +parts[1] - 1, +parts[2], +hm[0], +hm[1], 0);
+    if (isNaN(when.getTime())) return 'اختر تاريخ التسليم وساعته';
+
+    var lead = leadCfg();
+    var min  = earliestSlot();
+    if (when < min) {
+      var isLunch = when.getHours() < (lead.lunchUntil || 17);
+      return isLunch
+        ? 'طلب الغداء يُستقبل قبله بيوم — اختر موعداً أبعد'
+        : 'العشاء يُطلب صباح يومه على أبعد تقدير — اختر موعداً أبعد';
+    }
+    return '';
+  }
+
+  function setupWhen() {
+    var f = customerFields();
+    if (!f.date) return;
+
+    var min = earliestSlot();
+    f.date.setAttribute('min', dateValue(new Date()));
+    if (!f.date.value) {
+      f.date.value = dateValue(min);
+      if (f.time) f.time.value = pad2(min.getHours()) + ':' + pad2(min.getMinutes());
+    }
+
+    var hint = $('#cartWhenHint');
+    if (hint) hint.textContent = leadCfg().note || '';
+  }
+
+  /* الموعد المختار بصيغة يقرأها المطبخ */
+  function whenText() {
+    var f = customerFields();
+    if (!f.date || !f.time || !f.date.value || !f.time.value) return '';
+
+    var parts = f.date.value.split('-');
+    var hm    = +f.time.value.split(':')[0];
+    var meal  = hm < (leadCfg().lunchUntil || 17) ? 'غداء' : 'عشاء';
+
+    return toArabicDigits(parts[2] + '/' + parts[1] + '/' + parts[0]) +
+           ' — ' + toArabicDigits(f.time.value) + ' (' + meal + ')';
+  }
+
+  function fieldError(id, message) {
+    var slot = $('.cart-err[data-for="' + id + '"]');
+    if (slot) {
+      slot.textContent = message || '';
+      slot.hidden = !message;
+    }
+    var input = $('#' + id);
+    if (input) input.classList.toggle('has-error', !!message);
+    return !message;
+  }
 
   function renderCartBadge() {
     var n = cartCount();
@@ -728,6 +873,7 @@
     if (branchField)  branchField.hidden  = !hasBranches() || orderMode !== 'pickup';
     if (zoneField)    zoneField.hidden    = !zones() || orderMode !== 'delivery';
     if (addressField) addressField.hidden = orderMode !== 'delivery';
+    if (unitField)    unitField.hidden    = orderMode !== 'delivery';
 
     var modeBar = $('.cart-mode');
     if (modeBar) modeBar.hidden = !hasBranches();
@@ -753,6 +899,8 @@
 
   function openCart() {
     if (!cartDrawer) return;
+    loadCustomer();
+    setupWhen();
     renderCart();
     cartDrawer.hidden = false;
     document.body.classList.add('modal-open');
@@ -855,12 +1003,53 @@
         return;
       }
 
-      var address = $('#cartAddress');
-      if (orderMode === 'delivery' && (!address || !address.value.trim())) {
-        toast('اكتب عنوان التوصيل أولاً', 'error');
-        if (address) address.focus();
+      /* بيانات الزبون — كلّها تُفحص معاً ليرى كل النواقص مرة واحدة */
+      var f  = customerFields();
+      var ok = true;
+      var firstBad = null;
+
+      function need(el, id, message) {
+        var good = !!(el && el.value.trim());
+        if (!fieldError(id, good ? '' : message)) {
+          ok = false;
+          if (!firstBad) firstBad = el;
+        }
+        return good;
+      }
+
+      need(f.name, 'cartName', 'اكتب اسمك');
+
+      var phone = f.phone ? f.phone.value.replace(/\D/g, '') : '';
+      if (!phone) {
+        fieldError('cartPhone', 'اكتب رقم جوالك');
+        ok = false;
+        if (!firstBad) firstBad = f.phone;
+      } else if (phone.length < 8) {
+        fieldError('cartPhone', 'رقم الجوال غير مكتمل');
+        ok = false;
+        if (!firstBad) firstBad = f.phone;
+      } else {
+        fieldError('cartPhone', '');
+      }
+
+      if (orderMode === 'delivery') {
+        need(f.address, 'cartAddress', 'اكتب موقع البيت');
+        need(f.unit, 'cartUnit', 'اكتب رقم الفيلا أو الشقة');
+      }
+
+      var whenBad = slotProblem();
+      if (!fieldError('cartWhen', whenBad)) {
+        ok = false;
+        if (!firstBad) firstBad = f.time;
+      }
+
+      if (!ok) {
+        toast('أكمل بيانات التوصيل أولاً', 'error');
+        if (firstBad && firstBad.focus) firstBad.focus();
         return;
       }
+
+      saveCustomer();
 
       var lines = ['السلام عليكم، أرغب بطلب من بيت الكبسة', ''];
 
@@ -880,13 +1069,23 @@
         var fee = deliveryFee();
         lines.push('التوصيل: ' + (fee === 0 ? 'مجاناً' : formatPrice(fee)));
         lines.push('الإجمالي: ' + formatPrice(subtotal + fee));
+      } else {
+        lines.push('الإجمالي: ' + formatPrice(subtotal));
+      }
+
+      lines.push('');
+      lines.push('الاسم: ' + f.name.value.trim());
+      lines.push('الجوال: ' + phone);
+      lines.push('وقت التسليم: ' + whenText());
+
+      if (orderMode === 'delivery') {
         lines.push('');
         lines.push('طريقة الاستلام: توصيل');
         var z = currentZone();
         if (z) lines.push('المنطقة: ' + z.label);
-        lines.push('العنوان: ' + address.value.trim());
+        lines.push('الموقع: ' + f.address.value.trim());
+        lines.push('رقم الفيلا/الشقة: ' + f.unit.value.trim());
       } else {
-        lines.push('الإجمالي: ' + formatPrice(subtotal));
         lines.push('');
         lines.push('طريقة الاستلام: من الفرع');
         if (branchSelect && branchSelect.selectedIndex >= 0) {
@@ -949,7 +1148,7 @@
 
     var sizeId = selectedSizeId();
     if (sizeId && dmDish.sizes) {
-      dmDish.sizes.forEach(function (s) { if (s.id === sizeId) unit += s.delta; });
+      dmDish.sizes.forEach(function (s) { if (s.id === sizeId) unit = sizePrice(dmDish, s); });
     }
 
     var addons = selectedAddonIds();
@@ -1018,10 +1217,11 @@
       if (sizesHead) sizesHead.textContent = dish.sizeLabel || 'اختر الحجم';
 
       /* السعر الكامل لكل حجم، لا الفرق — أوضح حين تكون الفروق بالمئات */
-      var varying = dish.sizes.some(function (s) { return s.delta; });
+      var first   = sizePrice(dish, dish.sizes[0]);
+      var varying = dish.sizes.some(function (s) { return sizePrice(dish, s) !== first; });
       sizesList.innerHTML = dish.sizes.map(function (s, i) {
         var extra = varying
-          ? '<span class="opt-price">' + formatPrice(dish.price + (s.delta || 0)) + '</span>'
+          ? '<span class="opt-price">' + formatPrice(sizePrice(dish, s)) + '</span>'
           : '';
         return '<label class="opt">' +
                  '<input type="radio" name="dmSize" value="' + s.id + '"' + (i === 0 ? ' checked' : '') + ' />' +
@@ -1145,92 +1345,6 @@
 
   renderCartBadge();
 
-  /* ======================================================================
-     12. نموذج الحجز
-     ====================================================================== */
-  var form = $('#reserveForm');
-
-  if (form) {
-    var dateInput = $('#rDate');
-    if (dateInput) {
-      var today = new Date();
-      var iso = today.getFullYear() + '-' +
-                String(today.getMonth() + 1).padStart(2, '0') + '-' +
-                String(today.getDate()).padStart(2, '0');
-      dateInput.min = iso;
-      if (!dateInput.value) dateInput.value = iso;
-    }
-
-    var RULES = {
-      rName: function (v) {
-        if (!v.trim()) return 'الاسم مطلوب';
-        if (v.trim().length < 3) return 'الاسم قصير جداً';
-        return '';
-      },
-      /* أرقام قطر ثمانية أرقام تبدأ بـ 3 أو 5 أو 6 أو 7، مع أو بدون +974 */
-      rPhone: function (v) {
-        var clean = v.replace(/[\s\-()]/g, '');
-        if (!clean) return 'رقم الجوال مطلوب';
-        if (!/^(?:\+?974|00974)?[3567]\d{7}$/.test(clean)) {
-          return 'أدخل رقم جوال قطري صحيح (٨ أرقام يبدأ بـ ٣ أو ٥ أو ٦ أو ٧)';
-        }
-        return '';
-      },
-      rDate: function (v) { return v ? '' : 'اختر تاريخ الحجز'; },
-      rTime: function (v) { return v ? '' : 'اختر وقت الحجز'; }
-    };
-
-    function validateField(id) {
-      var input = document.getElementById(id);
-      if (!input || !RULES[id]) return true;
-
-      var msg   = RULES[id](input.value);
-      var field = input.closest('.field');
-      var slot  = field ? $('.error', field) : null;
-
-      if (field) field.classList.toggle('has-error', !!msg);
-      if (slot)  slot.textContent = msg;
-      return !msg;
-    }
-
-    Object.keys(RULES).forEach(function (id) {
-      var input = document.getElementById(id);
-      if (!input) return;
-      input.addEventListener('blur', function () { validateField(id); });
-      input.addEventListener('input', function () {
-        var field = input.closest('.field');
-        if (field && field.classList.contains('has-error')) validateField(id);
-      });
-    });
-
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-
-      var ok = Object.keys(RULES).map(validateField).every(Boolean);
-      if (!ok) {
-        var firstError = $('.field.has-error input, .field.has-error select');
-        if (firstError) firstError.focus();
-        return;
-      }
-
-      var guests = $('#rGuests');
-      var msg =
-        'السلام عليكم، أرغب بحجز طاولة في بيت الكبسة\n\n' +
-        '• الاسم: '   + $('#rName').value.trim()  + '\n' +
-        '• الجوال: '  + $('#rPhone').value.trim() + '\n' +
-        '• التاريخ: ' + $('#rDate').value         + '\n' +
-        '• الوقت: '   + $('#rTime').value         + '\n' +
-        '• العدد: '   + guests.options[guests.selectedIndex].text;
-
-      var note = $('#rNote').value.trim();
-      if (note) msg += '\n• ملاحظات: ' + note;
-
-      var success = $('#formSuccess');
-      if (success) success.hidden = false;
-
-      window.open('https://wa.me/' + CFG.whatsapp + '?text=' + encodeURIComponent(msg), '_blank');
-    });
-  }
 
   /* ======================================================================
      13. سنة الفوتر

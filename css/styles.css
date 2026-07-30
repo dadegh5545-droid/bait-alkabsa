@@ -1403,7 +1403,7 @@ html[dir="rtl"] .cart-panel { transform: translateX(100%); }
 
 .cart-field { display: flex; flex-direction: column; gap: .35rem; }
 .cart-field label { font-size: .85rem; font-weight: 500; }
-.cart-field select, .cart-field textarea {
+.cart-field select, .cart-field textarea, .cart-field input {
   padding: .7rem .9rem;
   border: 1.5px solid var(--line);
   border-radius: var(--radius-sm);
@@ -1411,10 +1411,51 @@ html[dir="rtl"] .cart-panel { transform: translateX(100%); }
   font-family: inherit;
   font-size: .89rem;
   resize: vertical;
+  width: 100%;
 }
-.cart-field select:focus, .cart-field textarea:focus {
+.cart-field select:focus,
+.cart-field textarea:focus,
+.cart-field input:focus {
   outline: none;
   border-color: var(--gold);
+}
+
+/* عنوان مرحلة داخل السلة */
+.cart-step {
+  margin: .3rem 0 -.2rem;
+  font-size: .78rem;
+  font-weight: 800;
+  color: var(--gold);
+  letter-spacing: .02em;
+}
+
+/* التاريخ والساعة جنباً إلى جنب */
+.cart-when { display: flex; gap: .5rem; }
+.cart-when input { flex: 1 1 0; min-width: 0; }
+
+.cart-hint {
+  font-size: .74rem;
+  color: var(--ink-faint);
+  line-height: 1.6;
+  margin: .1rem 0 0;
+}
+
+/* خطأ حقل واحد — تحت الحقل مباشرة ليعرف الزبون أين المشكلة */
+.cart-err {
+  font-size: .75rem;
+  color: var(--red);
+  font-weight: 600;
+}
+.cart-err[hidden] { display: none; }
+.cart-field input.has-error,
+.cart-field textarea.has-error { border-color: var(--red); }
+
+.cart-pay {
+  font-size: .76rem;
+  color: var(--ink-faint);
+  text-align: center;
+  line-height: 1.6;
+  margin: .5rem 0 0;
 }
 
 .cart-summary {

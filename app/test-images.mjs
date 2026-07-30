@@ -580,8 +580,10 @@ const pricedDish = pricedData.dishes[noPrice];
 check('السعر الأساسي محفوظ', pricedDish.price === 2500);
 check('إدخال السعر يرفع الحجب تلقائياً', pricedDish.hidden === false,
   `(hidden = ${pricedDish.hidden})`);
-check('سعر الحجم الثاني محفوظ فرقاً صحيحاً', pricedDish.sizes[1].delta === 1700,
-  `(delta = ${pricedDish.sizes[1].delta})`);
+check('سعر الحجم الثاني محفوظ كاملاً كما كُتب', pricedDish.sizes[1].price === 4200,
+  `(price = ${pricedDish.sizes[1].price})`);
+check('لا يبقى فرق قديم يتعارض مع السعر الكامل',
+  pricedDish.sizes[1].delta === undefined);
 
 /* الطبق المنشور بهذين السعرين يعرضهما كاملين للزبون */
 const wPriced = makeWindow({

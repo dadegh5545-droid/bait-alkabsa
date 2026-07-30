@@ -54,7 +54,7 @@
           <li><a href="#reviews" class="nav-link">آراء الضيوف</a></li>
           <li><a href="#contact" class="nav-link">تواصل معنا</a></li>
         </ul>
-        <a href="#reserve" class="btn btn-primary nav-cta">احجز طاولة</a>
+        <a href="#menu" class="btn btn-primary nav-cta">اطلب الآن</a>
       </nav>
 
       <div class="header-actions">
@@ -87,7 +87,7 @@
         </p>
         <div class="hero-actions reveal">
           <a href="#menu" class="btn btn-primary btn-lg">تصفّح القائمة</a>
-          <a href="#reserve" class="btn btn-ghost btn-lg">احجز طاولتك</a>
+          <a href="#contact" class="btn btn-ghost btn-lg">تواصل معنا</a>
         </div>
 
         <!-- أرقام حقيقية فقط: عدد الأطباق يُقرأ من القائمة، والولائم بطلب مسبق -->
@@ -205,7 +205,7 @@
         <div class="banquet-card">
           <span class="banquet-label">السعر</span>
           <strong class="banquet-price">حسب <small>العدد والطلب</small></strong>
-          <a href="#reserve" class="btn btn-primary btn-block">اطلب الآن</a>
+          <a href="#menu" class="btn btn-primary btn-block">اطلب الآن</a>
           <a href="tel:+97466265898" class="banquet-call" data-tel="call">أو اتصل: ٦٦٢٦٥٨٩٨</a>
         </div>
       </div>
@@ -250,87 +250,7 @@
       </div>
     </section>
 
-    <!-- ===== الحجز ===== -->
-    <section class="section reserve" id="reserve">
-      <div class="container reserve-grid">
-        <div class="reserve-intro reveal">
-          <p class="eyebrow">احجز طاولتك</p>
-          <h2>لا تنتظر على الباب</h2>
-          <p>
-            املأ النموذج وسنؤكّد حجزك عبر واتساب خلال دقائق.
-            للحجوزات العاجلة أو الولائم، الاتصال أسرع.
-          </p>
-
-          <ul class="info-list" role="list">
-            <li>
-              <span class="info-icon" aria-hidden="true">📍</span>
-              <span><strong>الموقع</strong><span data-address>قطر</span></span>
-            </li>
-            <li>
-              <span class="info-icon" aria-hidden="true">🕒</span>
-              <span><strong>أوقات العمل</strong><span data-hours>يومياً من ١١:٣٠ صباحاً حتى ١٢:٠٠ منتصف الليل</span></span>
-            </li>
-            <li>
-              <span class="info-icon" aria-hidden="true">📞</span>
-              <span><strong>الهاتف</strong><a href="tel:+97466265898" data-tel="label" dir="ltr">+974 6626 5898</a></span>
-            </li>
-            <li>
-              <span class="info-icon" aria-hidden="true">💬</span>
-              <span><strong>واتساب</strong><a href="https://wa.me/97455921554" target="_blank" rel="noopener" data-wa="label" dir="ltr">+974 5592 1554</a></span>
-            </li>
-          </ul>
-        </div>
-
-        <form class="reserve-form reveal" id="reserveForm" novalidate>
-          <div class="field">
-            <label for="rName">الاسم الكامل</label>
-            <input type="text" id="rName" name="name" placeholder="مثال: محمد علي" required />
-            <span class="error" data-for="rName"></span>
-          </div>
-
-          <div class="field">
-            <label for="rPhone">رقم الجوال</label>
-            <input type="tel" id="rPhone" name="phone" placeholder="٥٥٩٢١٥٥٤" inputmode="numeric" required />
-            <span class="error" data-for="rPhone"></span>
-          </div>
-
-          <div class="field-row">
-            <div class="field">
-              <label for="rDate">التاريخ</label>
-              <input type="date" id="rDate" name="date" required />
-              <span class="error" data-for="rDate"></span>
-            </div>
-            <div class="field">
-              <label for="rTime">الوقت</label>
-              <input type="time" id="rTime" name="time" value="20:00" required />
-              <span class="error" data-for="rTime"></span>
-            </div>
-          </div>
-
-          <div class="field">
-            <label for="rGuests">عدد الأشخاص</label>
-            <!-- أقل صحن يكفي ٦ أشخاص، فالخيارات تبدأ من هناك -->
-            <select id="rGuests" name="guests">
-              <option value="8" selected>٦ إلى ٨ أشخاص</option>
-              <option value="12">٨ إلى ١٢ شخصاً</option>
-              <option value="15">١٣ إلى ١٥ شخصاً</option>
-              <option value="20">وليمة (أكثر من ١٥)</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label for="rNote">ملاحظات <span class="optional">(اختياري)</span></label>
-            <textarea id="rNote" name="note" rows="3" placeholder="مثال: طاولة عائلية بعيدة عن المدخل"></textarea>
-          </div>
-
-          <button type="submit" class="btn btn-primary btn-block btn-lg">تأكيد الحجز</button>
-          <p class="form-note">بالضغط على التأكيد ستُفتح محادثة واتساب بتفاصيل حجزك جاهزة للإرسال.</p>
-          <p class="form-success" id="formSuccess" hidden>تم تجهيز طلبك ✅ أكمل الإرسال عبر واتساب.</p>
-        </form>
-      </div>
-    </section>
-
-    <!-- ===== الفروع والخريطة ===== -->
+    <!-- ===== التوصيل والتواصل ===== -->
     <section class="section contact" id="contact">
       <div class="container">
         <header class="section-head reveal">
@@ -377,7 +297,7 @@
         <ul>
           <li><a href="#about">عن المطعم</a></li>
           <li><a href="#menu">قائمة الطعام</a></li>
-          <li><a href="#reserve">الحجوزات</a></li>
+          <li><a href="#gallery">معرض الصور</a></li>
           <li><a href="#contact">التوصيل والتواصل</a></li>
         </ul>
       </nav>
@@ -416,7 +336,7 @@
     <a href="#home"><i aria-hidden="true">🏠</i>الرئيسية</a>
     <a href="#menu"><i aria-hidden="true">🍛</i>القائمة</a>
     <button type="button" id="tabCart"><i aria-hidden="true">🛒</i>السلة<span class="tab-badge" id="tabCartCount" hidden>٠</span></button>
-    <a href="#reserve"><i aria-hidden="true">📅</i>حجز</a>
+    <a href="#gallery"><i aria-hidden="true">📷</i>الصور</a>
     <a href="#contact"><i aria-hidden="true">📍</i>تواصل</a>
   </nav>
 
@@ -425,7 +345,7 @@
     <span class="ib-icon" aria-hidden="true">🍛</span>
     <span class="ib-text">
       <strong>ثبّت تطبيق بيت الكبسة</strong>
-      <small>اطلب واحجز أسرع — ويعمل بدون إنترنت</small>
+      <small>اطلب أسرع — ويعمل بدون إنترنت</small>
     </span>
     <button class="btn btn-primary" id="installBtn">تثبيت</button>
     <button class="ib-close" id="installClose" aria-label="إغلاق">×</button>
@@ -529,18 +449,20 @@
       <div class="cart-content" id="cartContent" hidden>
         <ul class="cart-items" id="cartItems"></ul>
 
-        <div class="cart-mode" role="radiogroup" aria-label="طريقة الاستلام">
-          <button type="button" class="mode-btn is-active" data-mode="pickup">
-            <span aria-hidden="true">🏠</span>استلام من الفرع
-          </button>
-          <button type="button" class="mode-btn" data-mode="delivery">
-            <span aria-hidden="true">🛵</span>توصيل
-          </button>
+        <!-- بيانات الزبون: تُملأ مرة وتُحفظ على جهازه للطلبات القادمة -->
+        <p class="cart-step">بيانات التوصيل</p>
+
+        <div class="cart-field">
+          <label for="cartName">الاسم</label>
+          <input type="text" id="cartName" placeholder="مثال: محمد علي" autocomplete="name" />
+          <span class="cart-err" data-for="cartName"></span>
         </div>
 
-        <div class="cart-field" id="branchField">
-          <label for="cartBranch">اختر الفرع</label>
-          <select id="cartBranch"></select>
+        <div class="cart-field">
+          <label for="cartPhone">رقم الجوال</label>
+          <input type="tel" id="cartPhone" inputmode="numeric" placeholder="٥٥٩٢١٥٥٤"
+                 autocomplete="tel" dir="ltr" />
+          <span class="cart-err" data-for="cartPhone"></span>
         </div>
 
         <div class="cart-field" id="zoneField" hidden>
@@ -549,8 +471,42 @@
         </div>
 
         <div class="cart-field" id="addressField" hidden>
-          <label for="cartAddress">عنوان التوصيل</label>
-          <textarea id="cartAddress" rows="2" placeholder="الحي، الشارع، رقم المبنى، وأي علامة مميزة"></textarea>
+          <label for="cartAddress">موقع البيت</label>
+          <textarea id="cartAddress" rows="2"
+                    placeholder="المنطقة، الشارع، وأي علامة مميزة"></textarea>
+          <span class="cart-err" data-for="cartAddress"></span>
+        </div>
+
+        <div class="cart-field" id="unitField" hidden>
+          <label for="cartUnit">رقم الفيلا أو الشقة</label>
+          <input type="text" id="cartUnit" placeholder="مثال: فيلا ١٢ — أو شقة ٤، الدور ٢" />
+          <span class="cart-err" data-for="cartUnit"></span>
+        </div>
+
+        <!-- وقت التسليم: يُفضّل الطلب قبل يوم، والحدّ الأدنى تحسبه الواجهة -->
+        <div class="cart-field">
+          <label for="cartWhen">وقت التسليم</label>
+          <div class="cart-when">
+            <input type="date" id="cartDate" aria-label="تاريخ التسليم" />
+            <input type="time" id="cartWhen" aria-label="ساعة التسليم" value="20:00" />
+          </div>
+          <span class="cart-err" data-for="cartWhen"></span>
+          <p class="cart-hint" id="cartWhenHint"></p>
+        </div>
+
+        <!-- شريط طريقة الاستلام يظهر وحده إن فُتح فرع يوماً ما -->
+        <div class="cart-mode" role="radiogroup" aria-label="طريقة الاستلام" hidden>
+          <button type="button" class="mode-btn" data-mode="pickup">
+            <span aria-hidden="true">🏠</span>استلام من الفرع
+          </button>
+          <button type="button" class="mode-btn is-active" data-mode="delivery">
+            <span aria-hidden="true">🛵</span>توصيل
+          </button>
+        </div>
+
+        <div class="cart-field" id="branchField" hidden>
+          <label for="cartBranch">اختر الفرع</label>
+          <select id="cartBranch"></select>
         </div>
 
         <div class="cart-summary">
@@ -563,6 +519,7 @@
         <p class="cart-warn" id="cartWarn" hidden></p>
 
         <button class="btn btn-primary btn-block btn-lg" id="cartSubmit">إرسال الطلب عبر واتساب</button>
+        <p class="cart-pay">الدفع بعد تأكيد الطلب — نتواصل معك على واتساب لتأكيد الموعد.</p>
         <button class="cart-clear" id="cartClear">تفريغ السلة</button>
       </div>
     </div>

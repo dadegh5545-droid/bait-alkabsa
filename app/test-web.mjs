@@ -213,12 +213,41 @@ zoneSel.dispatchEvent(new window.Event('change', { bubbles: true }));
 check('الرجوع لداخل الدوحة يعيد رسمها',
   $('#sumDelivery').textContent === qr(ZONES[0].fee), `(${$('#sumDelivery').textContent})`);
 
-/* إرسال بدون عنوان يجب أن يُرفض */
+/* ===== بيانات الزبون إلزامية قبل الإرسال ===== */
 click($('#cartSubmit'));
-check('رفض الإرسال بلا عنوان', opened.length === 0);
-check('ظهر تنبيه خطأ', $('#toasts').textContent.includes('عنوان التوصيل'));
+check('رفض الإرسال ببيانات ناقصة', opened.length === 0);
+check('ظهر تنبيه يطلب إكمال البيانات', $('#toasts').textContent.includes('أكمل بيانات التوصيل'));
+check('الاسم مُعلَّم بالخطأ', $('.cart-err[data-for="cartName"]').textContent.length > 0);
+check('الجوال مُعلَّم بالخطأ', $('.cart-err[data-for="cartPhone"]').textContent.length > 0);
+check('الموقع مُعلَّم بالخطأ', $('.cart-err[data-for="cartAddress"]').textContent.length > 0);
+check('رقم الفيلا مُعلَّم بالخطأ', $('.cart-err[data-for="cartUnit"]').textContent.length > 0);
 
+/* رقم جوال ناقص يُرفض وحده */
+$('#cartName').value = 'سعد العنزي';
+$('#cartPhone').value = '123';
+click($('#cartSubmit'));
+check('رقم الجوال الناقص مرفوض',
+  opened.length === 0 && $('.cart-err[data-for="cartPhone"]').textContent.includes('غير مكتمل'));
+
+/* موعد قريب جداً يُرفض — المطبخ يحتاج مهلة */
+$('#cartPhone').value = '55921554';
 $('#cartAddress').value = 'حي النرجس، شارع الأمير';
+$('#cartUnit').value = 'فيلا ١٢';
+const soon = new Date();
+soon.setHours(soon.getHours() + 1);
+const pad = (n) => String(n).padStart(2, '0');
+$('#cartDate').value = `${soon.getFullYear()}-${pad(soon.getMonth() + 1)}-${pad(soon.getDate())}`;
+$('#cartWhen').value = `${pad(soon.getHours())}:${pad(soon.getMinutes())}`;
+click($('#cartSubmit'));
+check('موعد بعد ساعة مرفوض — يُفضّل الطلب قبل يوم',
+  opened.length === 0 && $('.cart-err[data-for="cartWhen"]').textContent.length > 0,
+  `(${$('.cart-err[data-for="cartWhen"]').textContent})`);
+
+/* موعد بعد غدٍ مقبول */
+const later = new Date();
+later.setDate(later.getDate() + 2);
+$('#cartDate').value = `${later.getFullYear()}-${pad(later.getMonth() + 1)}-${pad(later.getDate())}`;
+$('#cartWhen').value = '20:00';
 click($('#cartSubmit'));
 check('فُتح رابط واتساب', opened.length === 1 && opened[0].startsWith('https://wa.me/97455921554?text='));
 const msg = decodeURIComponent(opened[0].split('text=')[1]);
@@ -228,6 +257,13 @@ if (SUBJECT.picks) {
   check('الرسالة تحوي الاختيار (نوع الأرز)', msg.includes(SUBJECT.picks.options[0].label),
     `(لم يظهر ${SUBJECT.picks.options[0].label})`);
 }
+check('الرسالة تحوي اسم الزبون', msg.includes('سعد العنزي'));
+check('الرسالة تحوي جواله', msg.includes('55921554'));
+check('الرسالة تحوي رقم الفيلا', msg.includes('فيلا ١٢'));
+check('الرسالة تحوي وقت التسليم', msg.includes('وقت التسليم'));
+check('الرسالة تميّز الغداء من العشاء', /عشاء|غداء/.test(msg));
+check('بيانات الزبون حُفظت لطلبه القادم',
+  (JSON.parse(window.localStorage.getItem('bak_customer') || '{}')).name === 'سعد العنزي');
 check('الرسالة تحوي العنوان', msg.includes('حي النرجس'));
 check('الرسالة تحوي منطقة التوصيل', msg.includes(ZONES[0].label));
 
@@ -281,21 +317,12 @@ if (SIDE && MAIN) {
   click($('#cartClear'));
 }
 
-console.log('\n— نموذج الحجز —');
-opened.length = 0;
-$('#rName').value = 'سع';
-$('#rPhone').value = '123';
-click($('#reserveForm button[type="submit"]'));
-check('رفض الاسم القصير', $('#rName').closest('.field').classList.contains('has-error'));
-check('رفض رقم الجوال الخاطئ (غير قطري)', $('#rPhone').closest('.field').classList.contains('has-error'));
-check('لم يُرسل شيء', opened.length === 0);
-
-$('#rName').value = 'سعد العنزي';
-$('#rPhone').value = '55921554';
-$('#rName').dispatchEvent(new window.Event('input', { bubbles: true }));
-$('#rPhone').dispatchEvent(new window.Event('input', { bubbles: true }));
-click($('#reserveForm button[type="submit"]'));
-check('قبل البيانات الصحيحة وفتح واتساب', opened.length === 1 && opened[0].includes('wa.me'));
+/* المشروع منزلي: لا حجز طاولات ولا فروع */
+console.log('\n— لا حجز ولا فروع —');
+check('قسم الحجز أُزيل', $('#reserve') === null && $('#reserveForm') === null);
+check('لا رابط يشير للحجز', $$('a[href="#reserve"]').length === 0);
+check('شريط طريقة الاستلام مخفيّ', $('.cart-mode').hidden === true);
+check('اختيار الفرع مخفيّ', $('#branchField').hidden === true);
 
 console.log('\n— معرض الصور —');
 const cells = $$('#galleryGrid .gal-item');
