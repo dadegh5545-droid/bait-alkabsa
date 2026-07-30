@@ -1055,7 +1055,7 @@
 
       if (e.target.id === 'dmAdd') {
         /* اختيار إلزامي لم يُحدَّد ⇒ لا نُرسل طلباً ناقصاً للمطبخ */
-        if (dmDish.picks && !selectedPickIds().length) {
+        if (dmDish.picks && !dmDish.picks.optional && !selectedPickIds().length) {
           toast(dmDish.picks.label || 'اختر أولاً', 'error');
           return;
         }

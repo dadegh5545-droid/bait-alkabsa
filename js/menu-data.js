@@ -24,6 +24,7 @@ var MENU_CATEGORIES = [
   { id: 'all',     label: 'الكل' },
   { id: 'fav',     label: 'المفضّلة ♥' },
   { id: 'fish',    label: 'السمك البحري' },
+  { id: 'lamb',    label: 'الخروف' },
   { id: 'rice',    label: 'الأرز واللحوم' },
   { id: 'grill',   label: 'المشاوي' },
   { id: 'starter', label: 'المقبلات' },
@@ -107,7 +108,81 @@ var LAQAN_ADDONS = SALONA_TYPES.map(function (t) {
   { id: 'daqoos', group: 'أخرى', label: 'دقوس', price: 10 }
 ]);
 
+/* ==========================================================================
+   الخروف — أنواع الأرز والمشمول والإضافات
+   ========================================================================== */
+
+/* أنواع أرز اللحم تختلف عن أرز السمك. الاختيار اختياري: اسم الطبق
+   يحدّد الأرز أصلاً، وهذه لمن يريد تخصيصه. */
+var MEAT_RICE_PICKS = {
+  label: 'نوع الأرز (اختياري)',
+  max: 1,
+  optional: true,
+  options: [
+    { id: 'badawi',  label: 'بداوي' },
+    { id: 'biryani', label: 'برياني' },
+    { id: 'malaki',  label: 'ملكي' },
+    { id: 'barriya', label: 'برية' },
+    { id: 'white',   label: 'أبيض' }
+  ]
+};
+
+var MEAT_INCLUDED = 'مع كل طلب: سلطة + مرق مجاناً';
+
+/* خيار الصحن للخروف الكامل — فرق سعر الصحنين لم يصل بعد.
+   ضع الفرق في delta (سعر الصحنين ناقص سعر الصحن). */
+var LAMB_PLATES = [
+  { id: 'one', label: 'صحن واحد', delta: 0 },
+  { id: 'two', label: 'صحنين',    delta: 0 }
+];
+
+/* إضافات اللحم: السلطات بأسعارها المعروفة، ثم الهريس والمضروبة.
+   سعر الهريس والمضروبة لم يصل، فيسقطان تلقائياً حتى يوضع (انظر
+   حماية الأسعار الناقصة في أسفل الملف). */
+var MEAT_ADDONS = SALAD_TYPES.map(function (s) {
+  return { id: 'salad-' + s.id, group: 'سلطات', label: s.label, price: s.price };
+}).concat([
+  { id: 'hareis',    group: 'أطباق جانبية', label: 'هريس',   price: 0 },
+  { id: 'madhrouba', group: 'أطباق جانبية', label: 'مضروبة', price: 0 }
+]);
+
+/* الأطباق التي يتغيّر فيها الأرز فقط — تُبنى مرة واحدة بدل تكرار
+   الحقول ست مرات. price صفر حتى تصل الأسعار من المطعم. */
+function lambDish(id, name, opts) {
+  var dish = {
+    id: id,
+    name: name,
+    cat: 'lamb',
+    price: 0,
+    emoji: (opts && opts.emoji) || '🍖',
+    included: MEAT_INCLUDED,
+    picks: MEAT_RICE_PICKS,
+    addons: MEAT_ADDONS
+  };
+  if (opts && opts.sizes) dish.sizes = opts.sizes;
+  if (opts && opts.sizeLabel) dish.sizeLabel = opts.sizeLabel;
+  if (opts && opts.tag) dish.tag = opts.tag;
+  return dish;
+}
+
 var MENU = [
+
+  /* ---------------- الخروف الكامل ----------------
+     صحن أو صحنين، والسعران يختلفان */
+  lambDish('lamb-badawi',   'خروف على بداوي',      { sizes: LAMB_PLATES, sizeLabel: 'صحن أو صحنين', tag: 'خروف كامل' }),
+  lambDish('lamb-biryani',  'خروف على برياني',     { sizes: LAMB_PLATES, sizeLabel: 'صحن أو صحنين', tag: 'خروف كامل' }),
+  lambDish('lamb-malakiya', 'خروف على كيسة ملكية', { sizes: LAMB_PLATES, sizeLabel: 'صحن أو صحنين', tag: 'خروف كامل' }),
+  lambDish('lamb-barriya',  'خروف على كيسة برية',  { sizes: LAMB_PLATES, sizeLabel: 'صحن أو صحنين', tag: 'خروف كامل' }),
+  lambDish('lamb-mashwi',   'خروف مشوي (محمر)',    { sizes: LAMB_PLATES, sizeLabel: 'صحن أو صحنين', tag: 'خروف كامل', emoji: '🔥' }),
+
+  /* ---------------- نصف الخروف ----------------
+     صحن واحد فقط، فلا خيار صحون */
+  lambDish('half-badawi',       'نص خروف على بداوي',       { tag: 'نصف خروف' }),
+  lambDish('half-biryani',      'نص خروف على برياني',      { tag: 'نصف خروف' }),
+  lambDish('half-malakiya',     'نص خروف على كيسة ملكية',  { tag: 'نصف خروف' }),
+  lambDish('half-barriya',      'نص خروف على كيسة برية',   { tag: 'نصف خروف' }),
+  lambDish('half-biryani-arabi','نص خروف على برياني عربي', { tag: 'نصف خروف' }),
+  lambDish('half-mashwi',       'نص خروف مشوي (محمر)',     { tag: 'نصف خروف', emoji: '🔥' }),
 
   /* ---------------- السمك البحري ---------------- */
   {
@@ -429,6 +504,21 @@ var HIDDEN_CATEGORIES = ['rice', 'grill', 'starter', 'dessert', 'drink'];
 
 MENU.forEach(function (dish) {
   if (HIDDEN_CATEGORIES.indexOf(dish.cat) !== -1) dish.hidden = true;
+});
+
+/* ---------------- حماية الأسعار الناقصة ----------------
+   أي طبق أو إضافة سعره صفر لم يصل سعره بعد، فيُحجب تلقائياً:
+   عرض «٠ ر.ق» أو «مجاناً» على شيء مدفوع أسوأ من عدم عرضه.
+   ضع السعر في مكانه فيظهر وحده — لا خطوة أخرى ولا hidden تُحذف.
+   (الإضافة المجانية عن قصد تُعلَّم free: true فتبقى ظاهرة.) */
+MENU.forEach(function (dish) {
+  if (!dish.price) dish.hidden = true;
+
+  if (dish.addons) {
+    dish.addons = dish.addons.filter(function (a) {
+      return a.price > 0 || a.free === true;
+    });
+  }
 });
 
 /* ---------------- إعدادات الطلب ---------------- */
