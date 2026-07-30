@@ -152,11 +152,14 @@ check('السلة غير فارغة', $('#cartEmpty').hidden === true);
 check(`المجموع الفرعي ${ar(SUB_FULL * 2)}`, $('#sumSubtotal').textContent === qr(SUB_FULL * 2), `(${$('#sumSubtotal').textContent})`);
 check('الملاحظة ظهرت في السطر', $('#cartItems').textContent.includes('بدون بصل'));
 
-/* وضع التوصيل — المجموع فوق حدّ المجانية داخل الدوحة */
+/* وضع التوصيل — التوصيل مدفوع دائماً، فالرسم يُضاف مهما بلغ المجموع */
 click($('.mode-btn[data-mode="delivery"]'));
 check('ظهر حقل العنوان', $('#addressField').hidden === false);
-check('التوصيل مجاني فوق ٢٠٠', $('#sumDelivery').textContent === 'مجاناً', `(${$('#sumDelivery').textContent})`);
-check(`الإجمالي بقي ${ar(SUB_FULL * 2)}`, $('#sumTotal').textContent === qr(SUB_FULL * 2));
+check(`رسم التوصيل ${qr(ZONES[0].fee)} ولا مجانية`,
+  $('#sumDelivery').textContent === qr(ZONES[0].fee), `(${$('#sumDelivery').textContent})`);
+check('الإجمالي يضمّ رسم التوصيل',
+  $('#sumTotal').textContent === qr(SUB_FULL * 2 + ZONES[0].fee), `(${$('#sumTotal').textContent})`);
+check('لا تنبيه توصيل مجاني', !$('#cartWarn').textContent.includes('مجاناً'));
 
 /* مناطق التوصيل — لا فروع فالاستلام مخفيّ، والمنطقة تحدّد الرسم */
 console.log('\n— مناطق التوصيل —');
@@ -175,7 +178,8 @@ check('الإجمالي يضمّ رسم خارج الدوحة',
 
 zoneSel.value = 'doha';
 zoneSel.dispatchEvent(new window.Event('change', { bubbles: true }));
-check('الرجوع لداخل الدوحة يعيد المجانية', $('#sumDelivery').textContent === 'مجاناً');
+check('الرجوع لداخل الدوحة يعيد رسمها',
+  $('#sumDelivery').textContent === qr(ZONES[0].fee), `(${$('#sumDelivery').textContent})`);
 
 /* إرسال بدون عنوان يجب أن يُرفض */
 click($('#cartSubmit'));

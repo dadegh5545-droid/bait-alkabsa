@@ -50,22 +50,23 @@ var SALONA_SIZES = SALONA_TYPES.map(function (t) {
   return { id: t.id, label: t.label, delta: t.price - SALONA_BASE };
 });
 
-/* كل طلب في قسم السمك يأتي معه سلطة وصالونة كنعد بلا مقابل.
-   يُعرض في شريط بارز داخل البطاقة والنافذة عبر حقل included. */
-var FISH_INCLUDED = 'مع كل طلب: سلطة + صالونة كنعد';
+/* كل طلب سمك لخمسة أشخاص أو أكثر — أي اللقن — يأتي معه سلطة
+   وصالونة كنعد بلا مقابل. يُعرض في شريط بارز عبر حقل included.
+   لا يسري على الصالونة والقباقب والقشيد وحدها. */
+var FISH_INCLUDED = 'مع كل طلب لخمسة أشخاص أو أكثر: سلطة + صالونة كنعد مجاناً';
 var INCLUDED_SALONA = 'kanad';
 
 /* الإضافات على اللقن: بقيّة الصوالين بسعرها، وصالونة المشمول
-   تُسمّى «إضافية» حتى لا يظنّ الزبون أنه يدفع ثمن المجانية. */
+   تُسمّى «إضافية» حتى لا يظنّ الزبون أنه يدفع ثمن المجانية.
+   الدقوس مدفوع ولم يصل سعره بعد، فلا يُعرض حتى يصل — عرضه
+   بسعر صفر يعني «مجاناً» وهذا خطأ يكلّف المطعم. */
 var LAQAN_ADDONS = SALONA_TYPES.map(function (t) {
   return {
     id: 'salona-' + t.id,
     label: 'صالونة ' + t.label + (t.id === INCLUDED_SALONA ? ' إضافية' : ''),
     price: t.price
   };
-}).concat([
-  { id: 'daqoos', label: 'دقوس', price: 0 }
-]);
+});
 
 var MENU = [
 
@@ -420,9 +421,10 @@ var ORDER_CONFIG = {
   address: 'قطر',
   hours: 'يومياً من ١١:٣٠ صباحاً حتى ١٢:٠٠ منتصف الليل',
 
-  /* مناطق التوصيل ورسم كل منطقة — الأولى هي الافتراضية */
+  /* مناطق التوصيل ورسم كل منطقة — الأولى هي الافتراضية.
+     freeOver: 0 يعني لا توصيل مجاني مهما بلغ الطلب — قرار المطعم. */
   deliveryZones: [
-    { id: 'doha',    label: 'داخل الدوحة', fee: 50,  freeOver: 200 },
+    { id: 'doha',    label: 'داخل الدوحة', fee: 50,  freeOver: 0 },
     { id: 'outside', label: 'خارج الدوحة', fee: 150, freeOver: 0 }
   ],
 
@@ -430,7 +432,7 @@ var ORDER_CONFIG = {
   deliveryFee: 50,
 
   /* التوصيل مجاني فوق هذا المبلغ (0 = معطّل) — تُغلبه freeOver في المنطقة */
-  freeDeliveryOver: 200,
+  freeDeliveryOver: 0,
 
   /* أقل مبلغ للطلب */
   minOrder: 30,
