@@ -486,32 +486,117 @@
     }).join('');
   }
 
+  /* اسم التصنيف كما يقرأه المالك */
+  function catLabel(id) {
+    var cats = typeof MENU_CATEGORIES !== 'undefined' ? MENU_CATEGORIES : [];
+    for (var i = 0; i < cats.length; i++) {
+      if (cats[i].id === id) return cats[i].label;
+    }
+    return id || 'بلا تصنيف';
+  }
+
+  /* بطاقة الطبق الواحد — صنف ad-row باقٍ لأن الجمع يعتمد عليه */
+  function dishCardHtml(d, i) {
+    var price = Number(d.price) || 0;
+    var live  = price > 0 && !d.hidden;
+
+    /* حقل سعر كامل لكل حجم بعد الأول — الأول هو السعر الأساسي */
+    var sizeFields = (d.sizes || []).slice(1).map(function (s, k) {
+      var full = s.price != null
+        ? Number(s.price) || 0
+        : price + (Number(s.delta) || 0);
+      return '<label class="ad-size">' + escapeHtml(s.label) +
+        '<input class="ad-in ad-in-size" type="number" inputmode="decimal" min="0" step="0.5"' +
+        ' data-size="' + (k + 1) + '" value="' + full + '" /></label>';
+    }).join('');
+
+    var firstLabel = (d.sizes && d.sizes.length) ? d.sizes[0].label : 'السعر';
+
+    return '<div class="ad-row ad-card" data-i="' + i + '" data-id="' + escapeHtml(d.id || '') + '"' +
+             ' data-name="' + escapeHtml(d.name || '') + '">' +
+
+      '<div class="ad-card-top">' +
+        '<input class="ad-in ad-in-name" type="text" value="' + escapeHtml(d.name || '') +
+          '" aria-label="اسم الطبق" />' +
+        '<span class="ad-state' + (live ? ' is-live' : '') + '">' +
+          (live ? 'منشور' : (price ? 'محجوب' : 'بلا سعر')) +
+        '</span>' +
+      '</div>' +
+
+      '<div class="ad-card-prices">' +
+        '<label class="ad-size">' + escapeHtml(firstLabel) +
+          '<input class="ad-in ad-in-price" type="number" inputmode="decimal" min="0" step="0.5"' +
+          ' value="' + price + '" aria-label="السعر" /></label>' +
+        sizeFields +
+      '</div>' +
+
+      '<div class="ad-card-foot">' +
+        '<select class="ad-in ad-in-cat" aria-label="التصنيف">' + catOptions(d.cat) + '</select>' +
+        '<label class="ad-check"><input type="checkbox" class="ad-hide"' +
+          (d.hidden ? ' checked' : '') + ' />إخفاء</label>' +
+        '<button type="button" class="ad-del" data-del="' + i + '" aria-label="حذف الطبق">🗑</button>' +
+      '</div>' +
+
+    '</div>';
+  }
+
   function renderDishRows() {
     var box = $('#adDishes', panel);
     if (!box) return;
 
-    box.innerHTML = state.draft.dishes.map(function (d, i) {
-      /* حقل سعر كامل لكل حجم بعد الأول — الأول سعره هو السعر الأساسي.
-         المالك يكتب السعر كما يقوله للزبون، واللوحة تحسب الفرق. */
-      var sizeFields = (d.sizes || []).slice(1).map(function (s, k) {
-        var full = s.price != null
-          ? Number(s.price) || 0
-          : (Number(d.price) || 0) + (Number(s.delta) || 0);
-        return '<label class="ad-size">' + escapeHtml(s.label) +
-          '<input class="ad-in ad-in-size" type="number" inputmode="decimal" min="0" step="0.5"' +
-          ' data-size="' + (k + 1) + '" value="' + full + '" /></label>';
-      }).join('');
+    var dishes = state.draft.dishes;
 
-      return '<div class="ad-row" data-i="' + i + '" data-id="' + escapeHtml(d.id || '') + '">' +
-        '<input class="ad-in ad-in-name" type="text" value="' + escapeHtml(d.name || '') + '" aria-label="اسم الطبق" />' +
-        '<input class="ad-in ad-in-price" type="number" inputmode="decimal" min="0" step="0.5" value="' +
-          (Number(d.price) || 0) + '" aria-label="السعر" />' +
-        '<select class="ad-in ad-in-cat" aria-label="التصنيف">' + catOptions(d.cat) + '</select>' +
-        '<label class="ad-check"><input type="checkbox" class="ad-hide"' + (d.hidden ? ' checked' : '') + ' />إخفاء</label>' +
-        '<button type="button" class="ad-del" data-del="' + i + '" aria-label="حذف الطبق">🗑</button>' +
-        (sizeFields ? '<div class="ad-sizes">' + sizeFields + '</div>' : '') +
-      '</div>';
+    /* التجميع بالتصنيف: مع أكثر من ثلاثين طبقاً، القائمة المسطّحة
+       لا تُستعمل على الجوال. كل قسم يُطوى، وأوّل قسم مفتوح. */
+    var order = [];
+    var byCat = {};
+    dishes.forEach(function (d, i) {
+      var c = d.cat || '-';
+      if (!byCat[c]) { byCat[c] = []; order.push(c); }
+      byCat[c].push({ dish: d, index: i });
+    });
+
+    box.innerHTML = order.map(function (c, n) {
+      var group = byCat[c];
+      var liveCount = group.filter(function (g) {
+        return (Number(g.dish.price) || 0) > 0 && !g.dish.hidden;
+      }).length;
+
+      return '<details class="ad-group"' + (n === 0 ? ' open' : '') + ' data-cat="' + escapeHtml(c) + '">' +
+        '<summary>' +
+          '<span class="ad-group-name">' + escapeHtml(catLabel(c)) + '</span>' +
+          '<span class="ad-group-count">' +
+            toArabicDigits(liveCount) + ' من ' + toArabicDigits(group.length) + ' منشور' +
+          '</span>' +
+        '</summary>' +
+        '<div class="ad-cards">' +
+          group.map(function (g) { return dishCardHtml(g.dish, g.index); }).join('') +
+        '</div>' +
+      '</details>';
     }).join('');
+
+    applyDishSearch();
+  }
+
+  /* البحث يخفي ما لا يطابق ويفتح الأقسام التي فيها نتيجة */
+  function applyDishSearch() {
+    var input = $('#adDishSearch', panel);
+    var box   = $('#adDishes', panel);
+    if (!box) return;
+
+    var q = input ? input.value.trim().toLowerCase() : '';
+
+    $$('.ad-group', box).forEach(function (group) {
+      var shown = 0;
+      $$('.ad-row', group).forEach(function (card) {
+        var name = (card.getAttribute('data-name') || '').toLowerCase();
+        var hit  = !q || name.indexOf(q) !== -1;
+        card.hidden = !hit;
+        if (hit) shown++;
+      });
+      group.hidden = shown === 0;
+      if (q && shown) group.open = true;
+    });
   }
 
   function collectDishes() {
@@ -725,7 +810,9 @@
 
             /* ---- تبويب الأسعار ---- */
             '<div class="ad-pane" data-pane="menu" hidden>' +
-              '<p class="ad-hint">عدّل الاسم أو السعر، أو أخفِ طبقاً لا تقدّمه اليوم. الإخفاء يزيله من القائمة ولا يحذف بياناته.</p>' +
+              '<p class="ad-hint">اكتب السعر فينشر الطبق نفسه. السعر صفر = لا يظهر للزبائن.</p>' +
+              '<input class="ad-search" id="adDishSearch" type="search" ' +
+                'placeholder="🔎 ابحث عن طبق…" aria-label="ابحث عن طبق" />' +
               '<div class="ad-rows" id="adDishes"></div>' +
               '<button type="button" class="ad-add" id="adAddDish">＋ أضف طبقاً</button>' +
               '<div class="ad-actions">' +
@@ -943,6 +1030,9 @@
       var last = rows[rows.length - 1];
       if (last) $('.ad-in-name', last).focus();
     });
+
+    var dishSearch = $('#adDishSearch', panel);
+    if (dishSearch) dishSearch.addEventListener('input', applyDishSearch);
 
     $('#adSaveMenu', panel).addEventListener('click', function () {
       ensureDraft();

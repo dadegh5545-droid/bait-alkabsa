@@ -531,6 +531,44 @@ check('تبويب الأسعار يعرض صفّاً لكل طبق',
 check('السعر الحالي معروض في الصفّ',
   Number(pdoc.querySelector('#adDishes .ad-row .ad-in-price').value) === owner.MENU[0].price);
 
+/* ===== اللوحة مرتّبة بالأقسام، لا قائمة مسطّحة ===== */
+const liveCats = [...new Set(owner.MENU.map((d) => d.cat))];
+check('كل تصنيف قسم مستقلّ يُطوى',
+  pdoc.querySelectorAll('#adDishes .ad-group').length === liveCats.length,
+  `(${pdoc.querySelectorAll('#adDishes .ad-group').length} من ${liveCats.length})`);
+check('أوّل قسم مفتوح والبقيّة مطويّة',
+  pdoc.querySelectorAll('#adDishes .ad-group[open]').length === 1);
+check('كل قسم يعلن كم طبقاً منه منشور',
+  pdoc.querySelector('#adDishes .ad-group-count').textContent.includes('منشور'));
+check('كل طبق بطاقة لا صفّ مزدحم',
+  pdoc.querySelectorAll('#adDishes .ad-card').length === owner.MENU.length);
+check('حالة كل طبق مكتوبة',
+  pdoc.querySelectorAll('#adDishes .ad-state').length === owner.MENU.length);
+check('الطبق بلا سعر مُعلَّم «بلا سعر»',
+  Array.from(pdoc.querySelectorAll('#adDishes .ad-state'))
+    .some((s) => s.textContent === 'بلا سعر'));
+check('الطبق المنشور مُعلَّم «منشور»',
+  Array.from(pdoc.querySelectorAll('#adDishes .ad-state.is-live')).length ===
+  owner.MENU.filter((d) => d.price > 0 && !d.hidden).length);
+
+/* البحث يضيّق القائمة ويفتح القسم الذي فيه النتيجة */
+const searchBox = pdoc.querySelector('#adDishSearch');
+const someName  = owner.MENU.find((d) => d.price > 0).name;
+searchBox.value = someName;
+searchBox.dispatchEvent(new owner.Event('input', { bubbles: true }));
+const visibleCards = Array.from(pdoc.querySelectorAll('#adDishes .ad-card'))
+  .filter((c) => !c.hidden);
+check('البحث يُظهر المطابق وحده',
+  visibleCards.length >= 1 && visibleCards.every((c) => c.getAttribute('data-name').includes(someName)),
+  `(${visibleCards.length} بطاقة)`);
+check('البحث يخفي الأقسام الفارغة',
+  Array.from(pdoc.querySelectorAll('#adDishes .ad-group')).some((g) => g.hidden));
+
+searchBox.value = '';
+searchBox.dispatchEvent(new owner.Event('input', { bubbles: true }));
+check('مسح البحث يعيد كل الأطباق',
+  Array.from(pdoc.querySelectorAll('#adDishes .ad-card')).every((c) => !c.hidden));
+
 /* تعديل سعر وإخفاء طبق ثم حفظ */
 pdoc.querySelector('#adDishes .ad-row .ad-in-price').value = '123';
 pdoc.querySelectorAll('#adDishes .ad-row')[1].querySelector('.ad-hide').checked = true;
