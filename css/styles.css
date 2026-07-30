@@ -1186,6 +1186,17 @@ body.modal-open { overflow: hidden; }
 
 .opt-group { margin-bottom: 1.3rem; }
 .opt-group h4 { font-size: .92rem; margin-bottom: .6rem; }
+
+/* تنبيه حدّ الاختيار — نوع الأرز ونحوه */
+.opt-note {
+  font-size: .76rem;
+  color: var(--ink-faint);
+  margin-top: .45rem;
+}
+
+/* الخيار المقفل بعد بلوغ الحدّ يبدو معطّلاً بوضوح */
+.opt input:disabled + .opt-label { opacity: .45; }
+.opt:has(input:disabled) { cursor: not-allowed; }
 .opt-group textarea {
   width: 100%;
   padding: .7rem .9rem;

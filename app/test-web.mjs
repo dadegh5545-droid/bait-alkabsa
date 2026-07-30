@@ -127,6 +127,32 @@ check('خيار الحجم يعرض السعر الكامل لا الفرق',
   $('#dmSizesList .opt-price').textContent === qr(SUBJECT.price),
   `(${$('#dmSizesList .opt-price').textContent})`);
 
+/* الاختيارات بلا سعر — نوع الأرز: نوعان على الأكثر */
+if (SUBJECT.picks) {
+  const PICKS = SUBJECT.picks;
+  check('ظهرت مجموعة الاختيارات', $('#dmPicks').hidden === false);
+  check(`رُسم ${PICKS.options.length} خياراً`, $$('#dmPicksList input').length === PICKS.options.length);
+  check('عنوان المجموعة من البيانات', $('#dmPicksLabel').textContent === PICKS.label);
+  check('التنبيه يذكر الحدّ الأقصى', $('#dmPicksNote').textContent.includes(ar(PICKS.max)));
+
+  const picks = $$('#dmPicksList input');
+  picks[0].checked = true;
+  picks[0].dispatchEvent(new window.Event('change', { bubbles: true }));
+  check('اختيار واحد لا يقفل البقيّة', picks.every((p) => !p.disabled));
+
+  picks[1].checked = true;
+  picks[1].dispatchEvent(new window.Event('change', { bubbles: true }));
+  check('بلوغ الحدّ يقفل غير المختار',
+    picks.filter((p) => p.disabled).length === PICKS.options.length - PICKS.max);
+  check('المختار يبقى قابلاً للإلغاء', !picks[0].disabled && !picks[1].disabled);
+
+  picks[1].checked = false;
+  picks[1].dispatchEvent(new window.Event('change', { bubbles: true }));
+  check('إلغاء اختيار يفتح البقيّة', picks.every((p) => !p.disabled));
+
+  check('الاختيار لا يغيّر السعر', $('#dmTotal').textContent === qr(SUBJECT.price));
+}
+
 /* أغلى حجم + إضافة مدفوعة + كميّة ٢ */
 const sizeRadio = $(`#dmSizesList input[value="${SUB_SIZE.id}"]`);
 sizeRadio.checked = true;
@@ -192,6 +218,10 @@ check('فُتح رابط واتساب', opened.length === 1 && opened[0].startsW
 const msg = decodeURIComponent(opened[0].split('text=')[1]);
 check('الرسالة تحوي الطبق والحجم والإضافة',
   msg.includes(SUBJECT.name) && msg.includes(SUB_SIZE.label) && msg.includes(SUB_ADDON.label));
+if (SUBJECT.picks) {
+  check('الرسالة تحوي الاختيار (نوع الأرز)', msg.includes(SUBJECT.picks.options[0].label),
+    `(لم يظهر ${SUBJECT.picks.options[0].label})`);
+}
 check('الرسالة تحوي العنوان', msg.includes('حي النرجس'));
 check('الرسالة تحوي منطقة التوصيل', msg.includes(ZONES[0].label));
 

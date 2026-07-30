@@ -50,6 +50,20 @@ var SALONA_SIZES = SALONA_TYPES.map(function (t) {
   return { id: t.id, label: t.label, delta: t.price - SALONA_BASE };
 });
 
+/* ---------------- أنواع الأرز ----------------
+   تُختار مع اللقن بلا فرق سعر، ويُسمح بنوعين على الأكثر.
+   حقل picks في الطبق يرسمها مجموعةً مستقلّة في النافذة. */
+var RICE_PICKS = {
+  label: 'اختر نوع الأرز — نوع أو نوعان',
+  max: 2,
+  options: [
+    { id: 'white',   label: 'رز أبيض' },
+    { id: 'mjabbas', label: 'رز مجبس' },
+    { id: 'malaki',  label: 'رز ملكي' },
+    { id: 'sukkari', label: 'رز سكري' }
+  ]
+};
+
 /* كل طلب سمك لخمسة أشخاص أو أكثر — أي اللقن — يأتي معه سلطة
    وصالونة كنعد بلا مقابل. يُعرض في شريط بارز عبر حقل included.
    لا يسري على الصالونة والقباقب والقشيد وحدها. */
@@ -77,10 +91,11 @@ var MENU = [
     cat: 'fish',
     price: 1300,
     emoji: '🐟',
-    desc: 'ثمانية أصناف بحرية: هامور، كنعد، صافي، أم الربيان، روبيان، زبيدي، سيباس، وشعري. نوع الأرز على حسب طلبك.',
+    desc: 'ثمانية أصناف بحرية: هامور، كنعد، صافي، أم الربيان، روبيان، زبيدي، سيباس، وشعري.',
     tag: 'ثمانية أصناف',
     hot: true,
     included: FISH_INCLUDED,
+    picks: RICE_PICKS,
     sizes: [
       { id: 'small',  label: 'صغير — ٦ إلى ٨ أشخاص',   delta: 0 },
       { id: 'medium', label: 'وسط — ٨ إلى ١٢ شخصاً',   delta: 300 },
@@ -94,9 +109,10 @@ var MENU = [
     cat: 'fish',
     price: 1000,
     emoji: '🐠',
-    desc: 'خمسة أصناف: كنعد، صافي، روبيان، شعري، وقياقي. نوع الأرز على حسب طلبك.',
+    desc: 'خمسة أصناف: كنعد، صافي، روبيان، شعري، وقياقي.',
     tag: 'خمسة أصناف',
     included: FISH_INCLUDED,
+    picks: RICE_PICKS,
     sizes: [
       { id: 'small',  label: 'صغير — ٦ إلى ٨ أشخاص',   delta: 0 },
       { id: 'medium', label: 'وسط — ٨ إلى ١٠ أشخاص',  delta: 300 },

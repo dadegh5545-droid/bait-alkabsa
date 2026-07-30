@@ -346,7 +346,9 @@
       ? '<span class="tag' + (dish.hot ? ' tag-hot' : '') + '">' + escapeHtml(dish.tag) + '</span>'
       : '';
 
-    var hasOptions = (dish.sizes && dish.sizes.length) || (dish.addons && dish.addons.length);
+    var hasOptions = (dish.sizes && dish.sizes.length) ||
+                     (dish.addons && dish.addons.length) ||
+                     (dish.picks && dish.picks.options && dish.picks.options.length);
 
     /* ما يأتي مع الطبق مجاناً — شريط بارز لا سطر في الوصف */
     var included = dish.included
@@ -481,8 +483,15 @@
   }
 
   /* مفتاح السطر: نفس الطبق بنفس الحجم ونفس الإضافات = سطر واحد */
-  function lineKey(dishId, sizeId, addonIds) {
-    return [dishId, sizeId || '-', (addonIds || []).slice().sort().join('+') || '-'].join('|');
+  /* المفتاح يشمل الاختيارات كذلك، وإلّا اندمج لقنٌ برزّ أبيض
+     مع لقنٍ برزّ سكري في سطر واحد */
+  function lineKey(dishId, sizeId, addonIds, pickIds) {
+    return [
+      dishId,
+      sizeId || '-',
+      (addonIds || []).slice().sort().join('+') || '-',
+      (pickIds || []).slice().sort().join('+') || '-'
+    ].join('|');
   }
 
   function linePrice(item) {
@@ -536,12 +545,13 @@
     renderCartBadge();
   }
 
-  function addToCart(dishId, sizeId, addonIds, qty, note) {
-    var key = lineKey(dishId, sizeId, addonIds);
+  function addToCart(dishId, sizeId, addonIds, qty, note, pickIds) {
+    var key = lineKey(dishId, sizeId, addonIds, pickIds);
     var found = null;
 
     cart.forEach(function (item) {
-      if (lineKey(item.dishId, item.sizeId, item.addonIds) === key && (item.note || '') === (note || '')) {
+      if (lineKey(item.dishId, item.sizeId, item.addonIds, item.pickIds) === key &&
+          (item.note || '') === (note || '')) {
         found = item;
       }
     });
@@ -549,7 +559,14 @@
     if (found) {
       found.qty += qty;
     } else {
-      cart.push({ dishId: dishId, sizeId: sizeId, addonIds: addonIds || [], qty: qty, note: note || '' });
+      cart.push({
+        dishId: dishId,
+        sizeId: sizeId,
+        addonIds: addonIds || [],
+        pickIds: pickIds || [],
+        qty: qty,
+        note: note || ''
+      });
     }
 
     saveCart();
@@ -598,6 +615,11 @@
 
     if (item.sizeId && dish.sizes) {
       dish.sizes.forEach(function (s) { if (s.id === item.sizeId) parts.push(s.label); });
+    }
+    if (item.pickIds && dish.picks && dish.picks.options) {
+      dish.picks.options.forEach(function (o) {
+        if (item.pickIds.indexOf(o.id) !== -1) parts.push(o.label);
+      });
     }
     if (item.addonIds && dish.addons) {
       dish.addons.forEach(function (a) {
@@ -837,6 +859,33 @@
     return $$('#dmAddonsList input:checked').map(function (i) { return i.value; });
   }
 
+  function selectedPickIds() {
+    return $$('#dmPicksList input:checked').map(function (i) { return i.value; });
+  }
+
+  /* الاختيارات محدودة العدد: عند بلوغ الحدّ تُقفل غير المختارة،
+     فلا يستطيع الزبون تجاوز ما يقبله المطبخ */
+  function enforcePickLimit() {
+    if (!dmDish || !dmDish.picks) return;
+
+    var max     = dmDish.picks.max || 0;
+    var boxes   = $$('#dmPicksList input');
+    var chosen  = selectedPickIds().length;
+    var atLimit = max > 0 && chosen >= max;
+
+    boxes.forEach(function (b) { b.disabled = atLimit && !b.checked; });
+
+    var note = $('#dmPicksNote');
+    if (note) {
+      note.hidden = !max;
+      if (max) {
+        note.textContent = atLimit
+          ? 'اخترت الحدّ الأقصى (' + toArabicDigits(max) + '). أزل اختياراً لتبديله.'
+          : 'يمكنك اختيار ' + toArabicDigits(max) + ' على الأكثر.';
+      }
+    }
+  }
+
   function dmUnitPrice() {
     if (!dmDish) return 0;
     var unit = dmDish.price;
@@ -927,6 +976,24 @@
       sizesList.innerHTML = '';
     }
 
+    /* الاختيارات بلا سعر — نوع الأرز ونحوه */
+    var picksBox  = $('#dmPicks');
+    var picksList = $('#dmPicksList');
+    if (picksBox && dish.picks && dish.picks.options && dish.picks.options.length) {
+      picksBox.hidden = false;
+      $('#dmPicksLabel').textContent = dish.picks.label || 'اختر';
+      picksList.innerHTML = dish.picks.options.map(function (o) {
+        return '<label class="opt">' +
+                 '<input type="checkbox" value="' + o.id + '" />' +
+                 '<span class="opt-label">' + escapeHtml(o.label) + '</span>' +
+               '</label>';
+      }).join('');
+      enforcePickLimit();
+    } else if (picksBox) {
+      picksBox.hidden = true;
+      picksList.innerHTML = '';
+    }
+
     /* الإضافات */
     var addonsBox = $('#dmAddons');
     var addonsList = $('#dmAddonsList');
@@ -976,13 +1043,22 @@
       if (e.target.id === 'dmMinus') { if (dmQty > 1) dmQty--; refreshModalTotal(); return; }
 
       if (e.target.id === 'dmAdd') {
-        addToCart(dmDish.id, selectedSizeId(), selectedAddonIds(), dmQty, $('#dmNote').value.trim());
+        /* اختيار إلزامي لم يُحدَّد ⇒ لا نُرسل طلباً ناقصاً للمطبخ */
+        if (dmDish.picks && !selectedPickIds().length) {
+          toast(dmDish.picks.label || 'اختر أولاً', 'error');
+          return;
+        }
+        addToCart(dmDish.id, selectedSizeId(), selectedAddonIds(), dmQty,
+                  $('#dmNote').value.trim(), selectedPickIds());
         toast(dmDish.name + ' أُضيف للسلة ✅');
         closeDish();
       }
     });
 
-    modal.addEventListener('change', refreshModalTotal);
+    modal.addEventListener('change', function () {
+      enforcePickLimit();
+      refreshModalTotal();
+    });
   }
 
   document.addEventListener('keydown', function (e) {
