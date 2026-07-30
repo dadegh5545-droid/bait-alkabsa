@@ -4,7 +4,7 @@
    ملاحظة: عند أي تعديل على ملفات الموقع، ارفع رقم CACHE_VERSION.
    ========================================================================== */
 
-var CACHE_VERSION = 'bak-v11';
+var CACHE_VERSION = 'bak-v12';
 var PRECACHE = [
   './',
   './index.html',

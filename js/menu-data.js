@@ -43,11 +43,21 @@ var SALONA_TYPES = [
   { id: 'hamour',  label: 'هامور',  price: 55 }
 ];
 
-/* أرخص صالونة = سعر الطبق المستقل الأساسي، والباقي فرقٌ يُضاف إليه */
-var SALONA_BASE = Math.min.apply(null, SALONA_TYPES.map(function (t) { return t.price; }));
+/* ---------------- الأصناف الجانبية ----------------
+   الصوالين، ومعها القشيد وقباقب بشاميل بطلب المطعم: كلها خيارات
+   داخل طبق واحد بدل بطاقة لكل صنف. مرتّبة بالسعر تصاعدياً. */
+var SIDE_TYPES = SALONA_TYPES.map(function (t) {
+  return { id: 'salona-' + t.id, label: 'صالونة ' + t.label, price: t.price };
+}).concat([
+  { id: 'qabaqib-bechamel', label: 'قباقب بشاميل', price: 35 },
+  { id: 'qashid',           label: 'قشيد',         price: 50 }
+]).sort(function (a, b) { return a.price - b.price; });
 
-var SALONA_SIZES = SALONA_TYPES.map(function (t) {
-  return { id: t.id, label: t.label, delta: t.price - SALONA_BASE };
+/* أرخص صنف = سعر الطبق الأساسي، والباقي فرقٌ يُضاف إليه */
+var SIDE_BASE = Math.min.apply(null, SIDE_TYPES.map(function (t) { return t.price; }));
+
+var SIDE_SIZES = SIDE_TYPES.map(function (t) {
+  return { id: t.id, label: t.label, delta: t.price - SIDE_BASE };
 });
 
 /* ---------------- أنواع الأرز ----------------
@@ -122,29 +132,13 @@ var MENU = [
   },
   {
     id: 'salona',
-    name: 'صالونة سمك',
+    name: 'صالونة سمك وجوانب',
     cat: 'fish',
-    price: SALONA_BASE,
+    price: SIDE_BASE,
     emoji: '🥘',
-    desc: 'تُطلب بالنوع الذي تختاره: شعري، كنعد، قباقب، روبيان، أو هامور.',
-    sizeLabel: 'اختر النوع',
-    sizes: SALONA_SIZES
-  },
-  {
-    id: 'qabaqib-bechamel',
-    name: 'قباقب بشاميل',
-    cat: 'fish',
-    price: 35,
-    emoji: '🦀',
-    desc: 'قباقب بصوص البشاميل.'
-  },
-  {
-    /* بانتظار وصف من المطعم — الوصف الغائب لا يعطّل البطاقة */
-    id: 'qashid',
-    name: 'قشيد',
-    cat: 'fish',
-    price: 50,
-    emoji: '🦐'
+    desc: 'صوالين الشعري والكنعد والقباقب والروبيان والهامور، ومعها قباقب بشاميل وقشيد.',
+    sizeLabel: 'اختر الصنف',
+    sizes: SIDE_SIZES
   },
 
   /* ---------------- الأرز واللحوم ----------------
