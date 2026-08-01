@@ -204,16 +204,16 @@ var MENU = [
                                           صحن    صحنين */
   lambFull('lamb-badawi',   'خروف على بداوي',      2000, 3000),
   lambFull('lamb-biryani',  'خروف على برياني',     2000, 3000),
-  lambFull('lamb-malakiya', 'خروف على كيسة ملكية', 2000, 3000),
-  lambFull('lamb-barriya',  'خروف على كيسة برية',  2000, 3000),
+  lambFull('lamb-malakiya', 'خروف على كبسة ملكية', 2000, 3000),
+  lambFull('lamb-barriya',  'خروف على كبسة برية',  2000, 3000),
   lambFull('lamb-mashwi',   'خروف مشوي (محمر)',    2000, 3000, '🔥'),
 
   /* ---------------- نصف الخروف ----------------
      صحن واحد فقط، فسعر واحد */
   lambHalf('half-badawi',        'نص خروف على بداوي',       1200),
   lambHalf('half-biryani',       'نص خروف على برياني',      1200),
-  lambHalf('half-malakiya',      'نص خروف على كيسة ملكية',  1200),
-  lambHalf('half-barriya',       'نص خروف على كيسة برية',   1200),
+  lambHalf('half-malakiya',      'نص خروف على كبسة ملكية',  1200),
+  lambHalf('half-barriya',       'نص خروف على كبسة برية',   1200),
   lambHalf('half-biryani-arabi', 'نص خروف على برياني عربي', 1200),
   lambHalf('half-mashwi',        'نص خروف مشوي (محمر)',     1200, '🔥'),
 
@@ -221,8 +221,8 @@ var MENU = [
                                           صحن    صحنين */
   chickenDish('chicken-badawi',       'دجاج على بداوي',       700, 1200),
   chickenDish('chicken-biryani',      'دجاج على برياني',      700, 1200),
-  chickenDish('chicken-malakiya',     'دجاج على كيسة ملكية',  700, 1200),
-  chickenDish('chicken-barriya',      'دجاج على كيسة برية',   700, 1200),
+  chickenDish('chicken-malakiya',     'دجاج على كبسة ملكية',  700, 1200),
+  chickenDish('chicken-barriya',      'دجاج على كبسة برية',   700, 1200),
   chickenDish('chicken-biryani-arabi','دجاج على برياني عربي', 700, 1200),
   chickenDish('chicken-mashwi',       'دجاج مشوي (محمر)',     700, 1200, '🔥'),
 

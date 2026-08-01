@@ -59,7 +59,7 @@ var GALLERY = [
     emoji: '🍗',
     img: 'images/gallery/chicken.jpg',
     alt: 'صحن دجاج على الأرز',
-    caption: 'الدجاج على الأرز — بداوي أو برياني أو كيسة.',
+    caption: 'الدجاج على الأرز — بداوي أو برياني أو كبسة.',
     span: 'g-3'
   },
   {
