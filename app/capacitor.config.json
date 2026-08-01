@@ -1,6 +1,6 @@
 {
   "appId": "com.baitalkabsa.app",
-  "appName": "بيت الكبسة",
+  "appName": "مطابخ بيت الكبسة",
   "webDir": "www",
   "android": {
     "allowMixedContent": false,

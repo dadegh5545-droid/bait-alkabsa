@@ -1,7 +1,7 @@
 {
-  "name": "بيت الكبسة — أصالة المطبخ السعودي",
+  "name": "مطابخ بيت الكبسة — سفرة قطرية",
   "short_name": "بيت الكبسة",
-  "description": "كبسة ومندي وحنيذ ومظبي على الطريقة السعودية الأصيلة. تصفّح القائمة واحجز طاولتك.",
+  "description": "كبسة ولقن بحري وخروف على الطريقة الخليجية الأصيلة — تصفّح القائمة واطلب عبر واتساب.",
   "lang": "ar",
   "dir": "rtl",
   "start_url": "./index.html",
@@ -10,7 +10,11 @@
   "orientation": "portrait",
   "background_color": "#fbf7f1",
   "theme_color": "#3b2415",
-  "categories": ["food", "lifestyle", "shopping"],
+  "categories": [
+    "food",
+    "lifestyle",
+    "shopping"
+  ],
   "icons": [
     {
       "src": "icons/icon-192.png",
@@ -44,13 +48,8 @@
       "url": "./index.html#menu"
     },
     {
-      "name": "حجز طاولة",
-      "short_name": "حجز",
-      "url": "./index.html#reserve"
-    },
-    {
-      "name": "الفروع",
-      "short_name": "الفروع",
+      "name": "تواصل معنا",
+      "short_name": "تواصل",
       "url": "./index.html#contact"
     }
   ]
