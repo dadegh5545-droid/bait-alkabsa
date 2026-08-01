@@ -185,7 +185,11 @@ check(`حساب السعر مع الحجم والإضافة والكمية = ${a
   $('#dmTotal').textContent === qr(SUB_FULL * 2), `(${$('#dmTotal').textContent})`);
 
 $('#dmNote').value = 'بدون بصل';
-click($('#dmAdd'));
+/* الضغطة على السعر داخل الزر — لا على الزر نفسه — هي ما يفعله الزبون
+   بإصبعه غالباً، وكانت تسقط بلا أثر فتبقى السلة فارغة */
+click($('#dmTotal'));
+check('الضغط على السعر داخل الزر يضيف للسلة',
+  JSON.parse(window.localStorage.getItem('bak_cart') || '[]').length === 1);
 check('أُغلقت النافذة بعد الإضافة', $('#dishModal').classList.contains('is-open') === false);
 
 console.log('\n— السلة —');
@@ -340,6 +344,19 @@ check('السفرة تنتظر ملفاً محدّداً',
   $('#heroPhoto').getAttribute('data-src') === 'images/majlis.jpg');
 check('عدّاد الأطباق في الواجهة يقرأ الظاهر فعلاً',
   $('[data-count-source="menu"]').getAttribute('data-count') === String(VISIBLE.length));
+
+/* فيديو الطبخ: ملف اختياري. ما لم يجهز الملف تبقى الواجهة كما هي،
+   فلا مستطيل أسود ولا حجاب يغمق العنوان بلا سبب. */
+const heroVideo = $('#heroVideo');
+check('مكان فيديو الطبخ موجود في الواجهة', !!heroVideo);
+check('الفيديو ينتظر ملفاً محدّداً',
+  heroVideo.getAttribute('src') === 'images/hero.mp4' || heroVideo.src.endsWith('images/hero.mp4'),
+  `(${heroVideo.getAttribute('src')})`);
+check('الفيديو صامت ومكرّر ولا يخرج من الصفحة',
+  heroVideo.hasAttribute('muted') && heroVideo.hasAttribute('loop') &&
+  heroVideo.hasAttribute('playsinline'));
+check('الفيديو لا يظهر قبل أن يجهز', !$('.hero').classList.contains('has-video'));
+check('الفيديو خارج ترتيب لوحة المفاتيح', heroVideo.getAttribute('tabindex') === '-1');
 
 /* المشروع منزلي: لا حجز طاولات ولا فروع */
 console.log('\n— لا حجز ولا فروع —');

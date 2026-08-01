@@ -4,7 +4,7 @@
    ملاحظة: عند أي تعديل على ملفات الموقع، ارفع رقم CACHE_VERSION.
    ========================================================================== */
 
-var CACHE_VERSION = 'bak-v24';
+var CACHE_VERSION = 'bak-v25';
 var PRECACHE = [
   './',
   './index.html',
@@ -57,6 +57,10 @@ self.addEventListener('fetch', function (event) {
       !/fonts\.(googleapis|gstatic)\.com/.test(url.hostname)) {
     return;
   }
+
+  /* الفيديو يُترك للمتصفح وحده: طلباته جزئية (Range) والكاش يردّ عليها
+     بملف كامل فينكسر التشغيل، وحجمه أكبر من أن يُخزَّن للعمل بلا إنترنت */
+  if (/\.(mp4|webm|mov|m4v)$/i.test(url.pathname)) return;
 
   /* فهرس الصور وبيانات الموقع: الشبكة أولاً دائماً،
      حتى تظهر الصور والأسعار المنشورة من لوحة التحكّم فوراً */

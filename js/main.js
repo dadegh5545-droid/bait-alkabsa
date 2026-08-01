@@ -1307,10 +1307,13 @@
     modal.addEventListener('click', function (e) {
       if (e.target.closest('[data-close]')) { closeDish(); return; }
 
-      if (e.target.id === 'dmPlus')  { dmQty++; refreshModalTotal(); return; }
-      if (e.target.id === 'dmMinus') { if (dmQty > 1) dmQty--; refreshModalTotal(); return; }
+      /* closest لا مقارنة المعرّف: زرّ «أضف للسلة» يحوي سعراً داخله،
+         فالضغطة على السعر هدفها العنصر الداخلي لا الزرّ. المقارنة
+         المباشرة كانت تبتلع الضغطة فتبقى السلة فارغة. */
+      if (e.target.closest('#dmPlus'))  { dmQty++; refreshModalTotal(); return; }
+      if (e.target.closest('#dmMinus')) { if (dmQty > 1) dmQty--; refreshModalTotal(); return; }
 
-      if (e.target.id === 'dmAdd') {
+      if (e.target.closest('#dmAdd')) {
         /* الجانب لا يُطلب وحده — النافذة تبقى مفتوحة ليرى الزبون مكانه */
         if (dmDish.needsMain && !cartHasMain()) {
           toast('تُطلب مع لقن أو خروف — أضف الطبق الرئيسي أولاً', 'error');
@@ -1651,6 +1654,45 @@
 
   /* صور ثابتة في الصفحة */
   watchPhotos(document);
+
+  /* ---------- فيديو الواجهة ----------
+     ملف اختياري في images/hero.mp4 يُري الزبون طريقة الطبخ خلف العنوان.
+     لا نطلبه إلا بعد التأكّد من أن الجهاز يريده، ونحذف العنصر كلّياً إن
+     غاب الملف — فيبقى تدرّج الخلفية كما كان، بلا مستطيل أسود. */
+  var HERO_VIDEO = 'images/hero.mp4';
+
+  function setupHeroVideo() {
+    var video = $('#heroVideo');
+    if (!video) return;
+
+    var hero = video.closest('.hero');
+    var veil = $('.hero-veil');
+
+    function drop() {
+      [video, veil].forEach(function (el) {
+        if (el && el.parentNode) el.parentNode.removeChild(el);
+      });
+    }
+
+    /* من طلب تقليل الحركة، ومن فتح وضع توفير البيانات: لا نحمّل شيئاً */
+    var reduce = window.matchMedia &&
+                 window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var saver  = navigator.connection && navigator.connection.saveData;
+    if (reduce || saver) { drop(); return; }
+
+    video.addEventListener('error', drop);
+    video.addEventListener('loadeddata', function () {
+      if (hero) hero.classList.add('has-video');
+      /* الكتم شرط التشغيل التلقائي، وسفاري يتجاهل الوسم أحياناً */
+      video.muted = true;
+      var started = video.play();
+      if (started && started.catch) started.catch(function () {});
+    });
+
+    video.preload = 'auto';
+    video.src = HERO_VIDEO;
+  }
+  setupHeroVideo();
 
   /* ======================================================================
      21. بيانات الموقع القابلة للتعديل — data/site.json

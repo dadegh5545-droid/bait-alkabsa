@@ -81,6 +81,15 @@
          شريط السدو مرسوم بالكود لا بصورة، فلا يبطئ الصفحة. -->
     <section class="hero hero-majlis" id="home">
       <div class="hero-bg" aria-hidden="true"></div>
+
+      <!-- فيديو الطبخ في الخلفية:
+           ضع الملف باسم images/hero.mp4 فيظهر وحده خلف العنوان.
+           بلا الملف تبقى الخلفية كما هي تماماً — لا مساحة سوداء ولا عطل.
+           يُشغَّل صامتاً ومكرّراً، ويُلغى كلياً لمن يطلب تقليل الحركة. -->
+      <video class="hero-video" id="heroVideo" aria-hidden="true" tabindex="-1"
+             muted playsinline loop preload="none"></video>
+      <div class="hero-veil" aria-hidden="true"></div>
+
       <div class="sadu-band sadu-top" aria-hidden="true"></div>
 
       <div class="container hero-inner">
