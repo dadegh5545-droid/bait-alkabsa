@@ -32,6 +32,12 @@ window.scrollTo = () => {};
 const opened = [];
 window.open = (url) => { opened.push(url); return null; };
 
+/* ورقة الأنماط تُقرأ نصّاً لا تُحسب:
+   jsdom يجعل وسم hidden يغلب أي قاعدة display، والمتصفّح الحقيقي
+   يفعل العكس — فقياس getComputedStyle هنا يمرّ دائماً ولو كان
+   الزبون يرى «سلتك فارغة» فوق سلة ممتلئة. فنفحص القاعدة نصّاً. */
+const CSS = readFileSync(`${ROOT}/css/styles.css`, 'utf8');
+
 /* تحميل السكربتات بالترتيب */
 window.eval(readFileSync(`${ROOT}/js/menu-data.js`, 'utf8'));
 window.eval(readFileSync(`${ROOT}/js/gallery-data.js`, 'utf8'));
@@ -232,6 +238,8 @@ check('انفتحت السلة', $('#cartDrawer').hidden === false);
 check('السلة غير فارغة', $('#cartEmpty').hidden === true);
 check(`المجموع الفرعي ${ar(SUB_FULL * 2)}`, $('#sumSubtotal').textContent === qr(SUB_FULL * 2), `(${$('#sumSubtotal').textContent})`);
 check('الملاحظة ظهرت في السطر', $('#cartItems').textContent.includes('بدون بصل'));
+
+check('وسم الإخفاء مُعلَّم في السلة', $('#cartEmpty').hidden === true);
 
 /* السلة ثلاث مراحل مرقّمة وشريط إرسال ثابت أسفلها */
 check('السلة ثلاث مراحل مرقّمة', $$('#cartContent .cart-sec').length === 3);
@@ -546,6 +554,20 @@ check('التسمية التلقائية تبني المسار من معرّف �
 check('التسمية التلقائية تغطّي كل الأطباق',
   $$('#menuGrid .dish-media .photo-img').length === VISIBLE.length);
 window.IMAGE_CONFIG.autoDishImages = false;
+
+/* ===== حارس الإخفاء =====
+   الجافاسكربت يخفي بوسم hidden، وقاعدة واحدة في الأنماط تكتب display
+   تُبطله في المتصفّح الحقيقي — فظهر إطار «سلتك فارغة» فوق سلة فيها
+   طلب، وظهر خيار «استلام من الفرع» ولا فرع. القاعدة العامة هي الحارس،
+   ولا يقيسها jsdom، فنحرسها نصّاً. */
+console.log('\n— حارس وسم الإخفاء —');
+check('قاعدة [hidden] العامة موجودة في الأنماط',
+  /\[hidden\]\s*\{\s*display:\s*none\s*!important/.test(CSS));
+
+/* وكل عنصر يخفيه الجافاسكربت لا بدّ أن يقع تحت القاعدة، فنتأكّد أنها
+   تسبق بقيّة الأنماط — قاعدة لاحقة بالوزن نفسه كانت ستغلبها */
+check('القاعدة في أوّل الملف قبل بقيّة الأنماط',
+  CSS.indexOf('[hidden]') < CSS.indexOf('.cart-empty'));
 
 console.log(`\n${'='.repeat(46)}`);
 console.log(`النتيجة:  ✓ ${pass} ناجح   ✗ ${fail} فاشل`);

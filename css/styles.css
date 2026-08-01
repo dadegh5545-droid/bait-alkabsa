@@ -40,6 +40,13 @@
 /* ---------- 2. إعادة الضبط ---------- */
 *, *::before, *::after { box-sizing: border-box; }
 
+/* الوسم hidden يغلب كل شيء.
+   قاعدة المتصفّح ‎[hidden]{display:none}‎ تسقط أمام أي قاعدة لنا تكتب
+   display — و‎.cart-empty‎ تكتب ‎display:grid‎ — فيبقى إطار «سلتك فارغة»
+   ظاهراً فوق سلة فيها طلب، ويظهر خيار «استلام من الفرع» ولا فرع، وتظهر
+   حقول مخفيّة. الجافاسكربت يُخفي بالوسم، فليكن الوسم هو الفاصل. */
+[hidden] { display: none !important; }
+
 html {
   scroll-behavior: smooth;
   scroll-padding-top: calc(var(--header-h) + 12px);
