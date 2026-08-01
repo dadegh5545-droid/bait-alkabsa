@@ -223,22 +223,29 @@
     <!-- ===== عروض الولائم ===== -->
     <section class="section banquet">
       <div class="container banquet-inner reveal">
-        <div>
+        <div class="banquet-text">
           <p class="eyebrow">ولائم ومناسبات</p>
+          <!-- كل سطر هنا مكتوبٌ من بيانات القائمة نفسها: الأصناف من
+               أطباق الخروف، والمشمول من MEAT_INCLUDED، والتوصيل من
+               مناطق ORDER_CONFIG، والمهلة من lead.note. لا تكتب هنا
+               ما لا يوجد في js/menu-data.js. -->
           <h2>ذبيحة كاملة لعزيمتك</h2>
           <p>
-            نُجهّز ذبيحة كاملة على الأرز مع المقبلات والحلويات والقهوة،
-            ونوصلها ساخنة إلى موقع المناسبة مع طاقم تقديم إن رغبت.
+            خروف كامل على الأرز الذي تختاره — بداوي أو برياني أو كبسة
+            ملكية أو كبسة برية أو برياني عربي أو مشوياً محمّراً — ومعه
+            سلطة البيت والمرق، يصلك ساخناً إلى بيتك أو موقع مناسبتك.
           </p>
           <ul class="check-list" role="list">
-            <li>تكفي من ١٥ إلى ٢٠ شخصاً</li>
-            <li>التوصيل داخل قطر</li>
-            <li>الطلب قبل ٢٤ ساعة على الأقل</li>
+            <li>الصحن لخمسة أشخاص فأكثر، ويُوزَّع على صحنين للعدد الأكبر</li>
+            <li>توصيل داخل الدوحة وخارجها</li>
+            <li>يُفضّل الطلب قبل يوم — والغداء يُطلب في اليوم السابق</li>
           </ul>
         </div>
         <div class="banquet-card">
-          <span class="banquet-label">السعر</span>
-          <strong class="banquet-price">حسب <small>العدد والطلب</small></strong>
+          <span class="banquet-label">يبدأ من</span>
+          <!-- السعر يتبع القائمة: أرخص خروف كامل ظاهر. النصّ المكتوب
+               هنا احتياطٌ يظهر لو حُجبت أطباق الخروف كلّها. -->
+          <strong class="banquet-price" data-price-source="lamb">حسب <small>العدد والطلب</small></strong>
           <a href="#menu" class="btn btn-primary btn-block">اطلب الآن</a>
           <a href="tel:+97466265898" class="banquet-call" data-tel="call">أو اتصل: ٦٦٢٦٥٨٩٨</a>
         </div>

@@ -1975,6 +1975,28 @@
     });
   }
 
+  /* سعر قسم الولائم يتبع القائمة: أرخص خروف كامل ظاهر — معرّفاته
+     تبدأ بـ lamb- بخلاف النصف (half-). فلا يبقى في الصفحة رقمٌ
+     مكتوب باليد يخالف ما في القائمة بعد أي تعديل سعر. */
+  function refreshBanquetPrice() {
+    var slots = $$('[data-price-source="lamb"]');
+    if (!slots.length) return;
+
+    var prices = DISHES.filter(function (d) {
+      return !d.hidden && String(d.id).indexOf('lamb-') === 0;
+    }).map(basePrice).filter(function (p) { return p > 0; });
+
+    /* بلا خروف ظاهر يبقى النصّ الاحتياطي المكتوب في الصفحة */
+    if (!prices.length) return;
+
+    var min = Math.min.apply(null, prices);
+    slots.forEach(function (el) {
+      el.innerHTML = toArabicDigits(min) +
+        ' <small>' + escapeHtml(CFG.currency || 'ر.ق') + '</small>';
+    });
+  }
+  refreshBanquetPrice();
+
   function applySiteData(data) {
     if (!data) return;
 
@@ -1998,6 +2020,7 @@
     }
 
     refreshMenuCount();
+    refreshBanquetPrice();
     renderFilters();
     renderMenu();
     renderBranches();

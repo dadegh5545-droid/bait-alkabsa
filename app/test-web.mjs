@@ -439,6 +439,24 @@ if (REQ_DISH) {
   click($('#cartDrawer [data-cart-close]'));
 }
 
+/* قسم الولائم لا يَعِد بما ليس في القائمة، وسعره يتبعها */
+console.log('\n— الولائم —');
+const LAMB_FULL = VISIBLE.filter((d) => d.id.startsWith('lamb-'));
+const LAMB_MIN  = Math.min(...LAMB_FULL.map((d) =>
+  d.sizes && d.sizes.length ? Math.min(...d.sizes.map((s) => sizeFull(d, s))) : d.price));
+check(`سعر الولائم يتبع أرخص خروف كامل (${ar(LAMB_MIN)})`,
+  $('[data-price-source="lamb"]').textContent.trim() === qr(LAMB_MIN),
+  `(${$('[data-price-source="lamb"]').textContent.trim()})`);
+
+const banquet = $('.banquet-text').textContent;
+check('لا وعد بطاقم تقديم', !banquet.includes('طاقم'));
+check('لا وعد بمقبلات وحلويات وقهوة — أقسامها محجوبة',
+  !banquet.includes('المقبلات') && !banquet.includes('الحلويات') && !banquet.includes('القهوة'));
+check('المشمول كما في القائمة: سلطة ومرق',
+  banquet.includes('سلطة') && banquet.includes('المرق'));
+check('المهلة كما في الإعدادات لا رقماً مخالفاً',
+  banquet.includes('قبل يوم') && !banquet.includes('٢٤ ساعة'));
+
 console.log('\n— واجهة المجلس —');
 check('شريطا السدو مرسومان', $$('.hero .sadu-band').length === 2);
 check('إطار السفرة موجود', !!$('#heroPhoto'));
