@@ -533,14 +533,28 @@
     return list[0];
   }
 
+  /* ---------- كميّة الإضافة ----------
+     لكل إضافة عددها المستقلّ: صالونتان مع لقن واحد تعنيان ثمن
+     صالونة مرّتين، لا ثمن اللقن مرّتين. السلال المحفوظة قبل هذا
+     لا تحمل خريطة كميات، فالغياب يعني واحدة — لا ينكسر طلب قديم. */
+  function addonCount(item, addonId) {
+    var n = item && item.addonQty ? item.addonQty[addonId] : 0;
+    return n > 0 ? n : 1;
+  }
+
   /* مفتاح السطر: نفس الطبق بنفس الحجم ونفس الإضافات = سطر واحد */
-  /* المفتاح يشمل الاختيارات كذلك، وإلّا اندمج لقنٌ برزّ أبيض
-     مع لقنٍ برزّ سكري في سطر واحد */
-  function lineKey(dishId, sizeId, addonIds, pickIds) {
+  /* المفتاح يشمل الاختيارات والكميات كذلك، وإلّا اندمج لقنٌ برزّ
+     أبيض مع لقنٍ برزّ سكري، أو صالونة مع صالونتين، في سطر واحد */
+  function lineKey(dishId, sizeId, addonIds, pickIds, addonQty) {
+    var adds = (addonIds || []).slice().sort().map(function (id) {
+      var n = addonQty ? addonQty[id] : 0;
+      return id + '×' + (n > 0 ? n : 1);
+    }).join('+');
+
     return [
       dishId,
       sizeId || '-',
-      (addonIds || []).slice().sort().join('+') || '-',
+      adds || '-',
       (pickIds || []).slice().sort().join('+') || '-'
     ].join('|');
   }
@@ -559,7 +573,7 @@
 
     if (item.addonIds && dish.addons) {
       dish.addons.forEach(function (a) {
-        if (item.addonIds.indexOf(a.id) !== -1) unit += a.price;
+        if (item.addonIds.indexOf(a.id) !== -1) unit += a.price * addonCount(item, a.id);
       });
     }
 
@@ -614,12 +628,12 @@
     renderCartBadge();
   }
 
-  function addToCart(dishId, sizeId, addonIds, qty, note, pickIds) {
-    var key = lineKey(dishId, sizeId, addonIds, pickIds);
+  function addToCart(dishId, sizeId, addonIds, qty, note, pickIds, addonQty) {
+    var key = lineKey(dishId, sizeId, addonIds, pickIds, addonQty);
     var found = null;
 
     cart.forEach(function (item) {
-      if (lineKey(item.dishId, item.sizeId, item.addonIds, item.pickIds) === key &&
+      if (lineKey(item.dishId, item.sizeId, item.addonIds, item.pickIds, item.addonQty) === key &&
           (item.note || '') === (note || '')) {
         found = item;
       }
@@ -632,6 +646,7 @@
         dishId: dishId,
         sizeId: sizeId,
         addonIds: addonIds || [],
+        addonQty: addonQty || {},
         pickIds: pickIds || [],
         qty: qty,
         note: note || ''
@@ -802,9 +817,10 @@
     if (cartBtn) cartBtn.classList.toggle('has-items', n > 0);
   }
 
-  function itemLabel(item) {
+  /* الحجم والاختيارات — ما لا ثمن له، فيُكتب سطراً واحداً خفيفاً */
+  function itemOptions(item) {
     var dish = getDish(item.dishId);
-    if (!dish) return '';
+    if (!dish) return [];
     var parts = [];
 
     if (item.sizeId && dish.sizes) {
@@ -815,12 +831,27 @@
         if (item.pickIds.indexOf(o.id) !== -1) parts.push(o.label);
       });
     }
-    if (item.addonIds && dish.addons) {
-      dish.addons.forEach(function (a) {
-        if (item.addonIds.indexOf(a.id) !== -1) parts.push('+ ' + a.label);
-      });
-    }
-    return parts.join(' · ');
+    return parts;
+  }
+
+  /* الإضافات المدفوعة، كلٌّ بعددها وثمن عددها — يراها الزبون
+     مفصّلة فيعرف على أي شيء دفع، ويصل المطبخ العدد صريحاً */
+  function itemAddons(item) {
+    var dish = getDish(item.dishId);
+    if (!dish || !dish.addons || !item.addonIds) return [];
+
+    return dish.addons.filter(function (a) {
+      return item.addonIds.indexOf(a.id) !== -1;
+    }).map(function (a) {
+      var n = addonCount(item, a.id);
+      return { id: a.id, label: a.label, qty: n, total: a.price * n, free: !a.price };
+    });
+  }
+
+  function itemLabel(item) {
+    return itemOptions(item).concat(itemAddons(item).map(function (a) {
+      return '+ ' + a.label + (a.qty > 1 ? ' ×' + toArabicDigits(a.qty) : '');
+    })).join(' · ');
   }
 
   function renderCart() {
@@ -835,15 +866,27 @@
     cartItemsEl.innerHTML = cart.map(function (item, i) {
       var dish = getDish(item.dishId);
       if (!dish) return '';
-      var sub = itemLabel(item);
+      var opts = itemOptions(item).join(' · ');
       var note = item.note ? '<span class="ci-note">📝 ' + escapeHtml(item.note) + '</span>' : '';
+
+      /* كل إضافة سطرها: اسمها، وكم واحدة، وثمن العدد كاملاً */
+      var adds = itemAddons(item).map(function (a) {
+        return '<li class="ci-add">' +
+                 '<span class="ci-add-name">' + escapeHtml(a.label) + '</span>' +
+                 '<span class="ci-add-qty">×' + toArabicDigits(a.qty) + '</span>' +
+                 '<span class="ci-add-price">' +
+                   (a.free ? 'مجاناً' : formatPrice(a.total)) +
+                 '</span>' +
+               '</li>';
+      }).join('');
 
       return '' +
         '<li class="cart-item">' +
           '<span class="ci-emoji" aria-hidden="true">' + (dish.emoji || '🍽️') + '</span>' +
           '<div class="ci-body">' +
             '<strong>' + escapeHtml(dish.name) + '</strong>' +
-            (sub ? '<span class="ci-sub">' + escapeHtml(sub) + '</span>' : '') +
+            (opts ? '<span class="ci-sub">' + escapeHtml(opts) + '</span>' : '') +
+            (adds ? '<ul class="ci-adds">' + adds + '</ul>' : '') +
             note +
             '<span class="ci-price">' + formatPrice(linePrice(item)) + '</span>' +
           '</div>' +
@@ -1053,12 +1096,21 @@
 
       var lines = ['السلام عليكم، أرغب بطلب من بيت الكبسة', ''];
 
+      /* الرسالة تفصّل الإضافات سطراً سطراً بعددها وثمنها، فيصل
+         المطبخ عددٌ صريح لا يحتمل التأويل، ويراجعه الزبون قبل الإرسال */
       cart.forEach(function (item) {
         var dish = getDish(item.dishId);
         if (!dish) return;
         lines.push('• ' + dish.name + ' ×' + toArabicDigits(item.qty) + ' — ' + formatPrice(linePrice(item)));
-        var sub = itemLabel(item);
-        if (sub)       lines.push('   ' + sub);
+
+        var opts = itemOptions(item).join(' · ');
+        if (opts) lines.push('   ' + opts);
+
+        itemAddons(item).forEach(function (a) {
+          lines.push('   + ' + a.label + ' ×' + toArabicDigits(a.qty) +
+                     ' — ' + (a.free ? 'مجاناً' : formatPrice(a.total)));
+        });
+
         if (item.note) lines.push('   ملاحظة: ' + item.note);
       });
 
@@ -1106,13 +1158,27 @@
   var dmDish   = null;
   var lastFocus = null;
 
+  /* كميّة كل إضافة في النافذة المفتوحة — تُصفَّر مع كل فتح */
+  var dmAddonQty = {};
+  var ADDON_MAX = 20;
+
   function selectedSizeId() {
     var input = $('#dmSizesList input:checked');
     return input ? input.value : null;
   }
 
+  /* المختار = ما عدده واحد فأكثر، بترتيب القائمة لا بترتيب الضغط */
   function selectedAddonIds() {
-    return $$('#dmAddonsList input:checked').map(function (i) { return i.value; });
+    if (!dmDish || !dmDish.addons) return [];
+    return dmDish.addons.filter(function (a) {
+      return dmAddonQty[a.id] > 0;
+    }).map(function (a) { return a.id; });
+  }
+
+  function selectedAddonQty() {
+    var map = {};
+    selectedAddonIds().forEach(function (id) { map[id] = dmAddonQty[id]; });
+    return map;
   }
 
   function selectedPickIds() {
@@ -1151,13 +1217,50 @@
       dmDish.sizes.forEach(function (s) { if (s.id === sizeId) unit = sizePrice(dmDish, s); });
     }
 
-    var addons = selectedAddonIds();
+    /* ثمن الإضافة يُضرب بعددها وحدها — لا بعدد الأطباق */
     if (dmDish.addons) {
       dmDish.addons.forEach(function (a) {
-        if (addons.indexOf(a.id) !== -1) unit += a.price;
+        var n = dmAddonQty[a.id] || 0;
+        if (n > 0) unit += a.price * n;
       });
     }
     return unit;
+  }
+
+  /* ملخّص الطلب قبل الإضافة: ماذا اختار الزبون بالضبط، وكم واحدة
+     من كل إضافة، وثمن كل بند — فلا يضغط «أضف» وهو يخمّن */
+  function refreshModalSummary() {
+    var box = $('#dmSummary');
+    if (!box || !dmDish) return;
+
+    var head = [dmDish.name];
+    var sizeId = selectedSizeId();
+    if (sizeId && dmDish.sizes) {
+      dmDish.sizes.forEach(function (s) { if (s.id === sizeId) head.push(s.label); });
+    }
+    if (dmDish.picks && dmDish.picks.options) {
+      var picked = selectedPickIds();
+      dmDish.picks.options.forEach(function (o) {
+        if (picked.indexOf(o.id) !== -1) head.push(o.label);
+      });
+    }
+
+    var rows = selectedAddonIds().map(function (id) {
+      var a = null;
+      dmDish.addons.forEach(function (x) { if (x.id === id) a = x; });
+      if (!a) return '';
+      var n = dmAddonQty[id];
+      return '<li>' +
+               '<span>' + escapeHtml(a.label) + '</span>' +
+               '<b>×' + toArabicDigits(n) + '</b>' +
+               '<span>' + (a.price ? formatPrice(a.price * n) : 'مجاناً') + '</span>' +
+             '</li>';
+    }).join('');
+
+    box.innerHTML =
+      '<p class="dm-sum-head">' + escapeHtml(head.join(' · ')) +
+        (dmQty > 1 ? ' <b>×' + toArabicDigits(dmQty) + '</b>' : '') + '</p>' +
+      (rows ? '<ul class="dm-sum-adds">' + rows + '</ul>' : '');
   }
 
   function refreshModalTotal() {
@@ -1165,6 +1268,7 @@
     if (total) total.textContent = formatPrice(dmUnitPrice() * dmQty);
     var qtyEl = $('#dmQty');
     if (qtyEl) qtyEl.textContent = toArabicDigits(dmQty);
+    refreshModalSummary();
   }
 
   function openDish(id) {
@@ -1173,6 +1277,7 @@
 
     dmDish = dish;
     dmQty = 1;
+    dmAddonQty = {};
     lastFocus = document.activeElement;
 
     $('#dmTitle').textContent = dish.name;
@@ -1271,12 +1376,20 @@
           ? '+ ' + formatPrice(a.price)
           : 'مجاناً';
 
+        /* عدّاد لكل إضافة: صالونتان تعنيان ثمن صالونة مرّتين،
+           بينما زرّ الكمية أسفل النافذة يضاعف الطبق كلّه */
         return head +
-               '<label class="opt">' +
-                 '<input type="checkbox" value="' + a.id + '" />' +
+               '<div class="opt opt-addon" data-addon="' + escapeHtml(a.id) + '">' +
                  '<span class="opt-label">' + escapeHtml(a.label) + '</span>' +
                  '<span class="opt-price">' + price + '</span>' +
-               '</label>';
+                 '<span class="qty qty-sm addon-qty">' +
+                   '<button type="button" data-addon-step="-1"' +
+                     ' aria-label="إنقاص ' + escapeHtml(a.label) + '">−</button>' +
+                   '<span class="addon-count" aria-live="polite">٠</span>' +
+                   '<button type="button" data-addon-step="1"' +
+                     ' aria-label="زيادة ' + escapeHtml(a.label) + '">+</button>' +
+                 '</span>' +
+               '</div>';
       }).join('');
     } else {
       addonsBox.hidden = true;
@@ -1313,6 +1426,25 @@
       if (e.target.closest('#dmPlus'))  { dmQty++; refreshModalTotal(); return; }
       if (e.target.closest('#dmMinus')) { if (dmQty > 1) dmQty--; refreshModalTotal(); return; }
 
+      /* عدّاد الإضافة: يزيد ثمنها وحدها في السطر */
+      var step = e.target.closest('[data-addon-step]');
+      if (step) {
+        var row = step.closest('[data-addon]');
+        if (!row) return;
+
+        var id  = row.getAttribute('data-addon');
+        var now = (dmAddonQty[id] || 0) + parseInt(step.getAttribute('data-addon-step'), 10);
+        if (now < 0) now = 0;
+        if (now > ADDON_MAX) now = ADDON_MAX;
+
+        dmAddonQty[id] = now;
+        row.classList.toggle('is-picked', now > 0);
+        var count = $('.addon-count', row);
+        if (count) count.textContent = toArabicDigits(now);
+        refreshModalTotal();
+        return;
+      }
+
       if (e.target.closest('#dmAdd')) {
         /* الجانب لا يُطلب وحده — النافذة تبقى مفتوحة ليرى الزبون مكانه */
         if (dmDish.needsMain && !cartHasMain()) {
@@ -1326,7 +1458,7 @@
           return;
         }
         addToCart(dmDish.id, selectedSizeId(), selectedAddonIds(), dmQty,
-                  $('#dmNote').value.trim(), selectedPickIds());
+                  $('#dmNote').value.trim(), selectedPickIds(), selectedAddonQty());
         toast(dmDish.name + ' أُضيف للسلة ✅');
         closeDish();
       }

@@ -419,6 +419,8 @@
           <p class="opt-note" id="dmPicksNote" hidden></p>
         </div>
 
+        <!-- الإضافات: لكل واحدة عدّادها المستقلّ، فزيادة صالونة
+             تزيد ثمن الصالونة وحدها لا ثمن الطبق كلّه -->
         <div class="opt-group" id="dmAddons" hidden>
           <h4>إضافات <span class="optional">(اختياري)</span></h4>
           <div class="opt-list" id="dmAddonsList"></div>
@@ -430,11 +432,15 @@
         </div>
       </div>
 
+      <!-- ملخّص ما اختاره الزبون قبل أن يضغط «أضف»: الطبق وحجمه،
+           ثم كل إضافة بعددها وثمن عددها -->
+      <div class="dm-summary" id="dmSummary" aria-live="polite"></div>
+
       <div class="modal-foot">
-        <div class="qty" role="group" aria-label="الكمية">
-          <button type="button" id="dmMinus" aria-label="إنقاص">−</button>
+        <div class="qty" role="group" aria-label="عدد الأطباق">
+          <button type="button" id="dmMinus" aria-label="إنقاص عدد الأطباق">−</button>
           <span id="dmQty">١</span>
-          <button type="button" id="dmPlus" aria-label="زيادة">+</button>
+          <button type="button" id="dmPlus" aria-label="زيادة عدد الأطباق">+</button>
         </div>
         <button class="btn btn-primary btn-lg" id="dmAdd">
           أضف للسلة · <span id="dmTotal"></span>

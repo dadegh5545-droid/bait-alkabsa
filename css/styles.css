@@ -1388,6 +1388,42 @@ body.modal-open { overflow: hidden; }
 .opt-label { flex: 1; }
 .opt-price { font-size: .84rem; font-weight: 700; color: var(--gold); }
 
+/* ===== الإضافة بعدّادها =====
+   صفّ لا يُضغط كلّه: الضغط على العدّاد وحده يغيّر العدد، فلا
+   يزيد الزبون صالونةً وهو يظنّ أنه يختارها. والصفّ يتلوّن عند
+   اختياره كما تتلوّن بقيّة الخيارات. */
+.opt-addon { cursor: default; }
+.opt-addon.is-picked { border-color: var(--gold); background: var(--gold-dim); }
+.addon-qty { flex-shrink: 0; }
+
+/* ===== ملخّص الاختيار قبل الإضافة ===== */
+.dm-summary {
+  padding: .75rem 1.5rem 0;
+  background: var(--bg);
+  flex-shrink: 0;
+}
+.dm-sum-head {
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  line-height: 1.6;
+}
+.dm-sum-adds {
+  list-style: none;
+  margin-top: .35rem;
+  display: grid;
+  gap: .2rem;
+}
+.dm-sum-adds li {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  font-size: .78rem;
+  color: var(--ink-faint);
+}
+.dm-sum-adds li span:first-child { flex: 1; }
+.dm-sum-adds b { color: var(--gold); font-size: .8rem; }
+
 .modal-foot {
   display: flex;
   align-items: center;
@@ -1487,6 +1523,19 @@ html[dir="rtl"] .cart-panel { transform: translateX(100%); }
 .ci-body { flex: 1; display: flex; flex-direction: column; line-height: 1.5; min-width: 0; }
 .ci-body strong { font-size: .92rem; }
 .ci-sub, .ci-note { font-size: .76rem; color: var(--ink-faint); }
+
+/* الإضافات في السلة: سطر لكل واحدة بعددها وثمن عددها */
+.ci-adds { list-style: none; margin-top: .25rem; display: grid; gap: .15rem; }
+.ci-add {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  font-size: .76rem;
+  color: var(--ink-faint);
+}
+.ci-add-name { flex: 1; }
+.ci-add-name::before { content: '+ '; color: var(--gold); }
+.ci-add-qty { font-weight: 700; color: var(--gold); }
 .ci-price { font-size: .88rem; font-weight: 700; color: var(--gold); margin-top: .15rem; }
 
 .cart-mode { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }

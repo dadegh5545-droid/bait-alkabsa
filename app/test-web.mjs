@@ -177,12 +177,41 @@ if (SUBJECT.picks) {
 const sizeRadio = $(`#dmSizesList input[value="${SUB_SIZE.id}"]`);
 sizeRadio.checked = true;
 sizeRadio.dispatchEvent(new window.Event('change', { bubbles: true }));
-const addonBox = $(`#dmAddonsList input[value="${SUB_ADDON.id}"]`);
-addonBox.checked = true;
-addonBox.dispatchEvent(new window.Event('change', { bubbles: true }));
+/* الإضافة لها عدّادها: واحدة أولاً، ثم اثنتان — والثمن يتضاعف
+   للإضافة وحدها لا للطبق كلّه، وهذا لبّ ما كان معطوباً */
+const addonRow  = $(`#dmAddonsList [data-addon="${SUB_ADDON.id}"]`);
+const addonPlus = $('[data-addon-step="1"]', addonRow);
+const SIZE_ONLY = sizeFull(SUBJECT, SUB_SIZE);
+
+click(addonPlus);
+check('عدّاد الإضافة يبدأ من صفر ويرتفع بالضغط',
+  $('.addon-count', addonRow).textContent === '١');
+check(`إضافة واحدة تزيد ثمنها وحده = ${ar(SIZE_ONLY + SUB_ADDON.price)}`,
+  $('#dmTotal').textContent === qr(SIZE_ONLY + SUB_ADDON.price), `(${$('#dmTotal').textContent})`);
+
+click(addonPlus);
+check(`إضافتان تزيدان ثمن الإضافة مرّتين لا ثمن الطبق = ${ar(SIZE_ONLY + SUB_ADDON.price * 2)}`,
+  $('#dmTotal').textContent === qr(SIZE_ONLY + SUB_ADDON.price * 2), `(${$('#dmTotal').textContent})`);
+
+click($('[data-addon-step="-1"]', addonRow));
+check('الإنقاص يرجع العدد واحدة', $('.addon-count', addonRow).textContent === '١');
+check('ولا ينزل العدد تحت الصفر',
+  (click($('[data-addon-step="-1"]', addonRow)),
+   click($('[data-addon-step="-1"]', addonRow)),
+   $('.addon-count', addonRow).textContent === '٠'));
+check('صفر إضافات يعيد سعر الطبق وحده',
+  $('#dmTotal').textContent === qr(SIZE_ONLY), `(${$('#dmTotal').textContent})`);
+
+click(addonPlus);
+check('الملخّص يقول ماذا اختار الزبون',
+  $('#dmSummary').textContent.includes(SUBJECT.name) &&
+  $('#dmSummary').textContent.includes(SUB_ADDON.label));
+
 click($('#dmPlus'));
 check(`حساب السعر مع الحجم والإضافة والكمية = ${ar(SUB_FULL * 2)}`,
   $('#dmTotal').textContent === qr(SUB_FULL * 2), `(${$('#dmTotal').textContent})`);
+check('الملخّص يذكر عدد الأطباق حين يزيد عن واحد',
+  $('#dmSummary').textContent.includes('×٢'));
 
 $('#dmNote').value = 'بدون بصل';
 /* الضغطة على السعر داخل الزر — لا على الزر نفسه — هي ما يفعله الزبون
@@ -201,6 +230,15 @@ check('انفتحت السلة', $('#cartDrawer').hidden === false);
 check('السلة غير فارغة', $('#cartEmpty').hidden === true);
 check(`المجموع الفرعي ${ar(SUB_FULL * 2)}`, $('#sumSubtotal').textContent === qr(SUB_FULL * 2), `(${$('#sumSubtotal').textContent})`);
 check('الملاحظة ظهرت في السطر', $('#cartItems').textContent.includes('بدون بصل'));
+
+/* الزبون يرى في سلته اسم كل إضافة وعددها وثمن عددها */
+check('الإضافة مكتوبة في السلة باسمها',
+  $('#cartItems .ci-add-name').textContent === SUB_ADDON.label);
+check('عدد الإضافة مكتوب بجانبها', $('#cartItems .ci-add-qty').textContent === '×١');
+check('ثمن الإضافة مكتوب بعددها',
+  $('#cartItems .ci-add-price').textContent === qr(SUB_ADDON.price));
+check('كميّة الإضافة محفوظة مع السلة',
+  JSON.parse(window.localStorage.getItem('bak_cart'))[0].addonQty[SUB_ADDON.id] === 1);
 
 /* وضع التوصيل — التوصيل مدفوع دائماً، فالرسم يُضاف مهما بلغ المجموع */
 click($('.mode-btn[data-mode="delivery"]'));
