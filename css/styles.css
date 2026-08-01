@@ -1479,8 +1479,8 @@ html[dir="rtl"] .cart-panel { transform: translateX(100%); }
 
 .cart-head {
   position: relative;
-  padding: 1.2rem 1.4rem;
-  background: var(--brown);
+  padding: 1.15rem 1.4rem;
+  background: linear-gradient(135deg, var(--brown) 0%, var(--brown-deep) 100%);
   color: #fff;
   flex-shrink: 0;
 }
@@ -1500,43 +1500,113 @@ html[dir="rtl"] .cart-panel { transform: translateX(100%); }
 .cart-empty p { font-size: 1.1rem; font-weight: 700; margin: 0; }
 .cart-empty small { color: var(--ink-faint); margin-bottom: 1rem; }
 
+/* ===== السلة: محتوى يجري، وشريط إرسال ثابت أسفله ===== */
 .cart-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
-  padding: 1.1rem 1.2rem calc(1.2rem + env(safe-area-inset-bottom));
-  gap: 1rem;
+  min-height: 0;
 }
 
-.cart-items { display: grid; gap: .7rem; }
-.cart-item {
-  display: flex;
-  align-items: center;
-  gap: .8rem;
-  padding: .8rem .9rem;
+.cart-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1rem 1rem 1.2rem;
+  display: grid;
+  gap: .85rem;
+  align-content: start;
+}
+
+/* ===== مرحلة مرقّمة =====
+   ثلاث بطاقات: ما طلبته، أين يصل، وكم الحساب. الترقيم يجعل
+   السلة طريقاً واضحاً بدل عمود طويل من الحقول. */
+.cart-sec {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius);
+  padding: .95rem 1rem 1.05rem;
+  box-shadow: var(--shadow-sm);
 }
-.ci-emoji { font-size: 1.7rem; flex-shrink: 0; }
-.ci-body { flex: 1; display: flex; flex-direction: column; line-height: 1.5; min-width: 0; }
-.ci-body strong { font-size: .92rem; }
-.ci-sub, .ci-note { font-size: .76rem; color: var(--ink-faint); }
+.cart-sec-head {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-bottom: .8rem;
+  font-size: .95rem;
+  font-weight: 800;
+  color: var(--brown);
+}
+.cart-sec-num {
+  display: grid;
+  place-items: center;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--gold-dim);
+  color: var(--brown);
+  font-size: .8rem;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.cart-sec-note {
+  margin-inline-start: auto;
+  font-size: .76rem;
+  font-weight: 600;
+  color: var(--ink-faint);
+}
+
+/* ===== أسطر الطلب =====
+   خطّ فاصل بدل صندوق داخل صندوق — السلة كشف حساب لا معرض بطاقات */
+.cart-items { display: grid; }
+.cart-item {
+  display: flex;
+  gap: .75rem;
+  padding: .8rem 0;
+  border-block-start: 1px dashed var(--line);
+}
+.cart-items > .cart-item:first-child { border-block-start: 0; padding-block-start: .1rem; }
+
+.ci-emoji {
+  display: grid;
+  place-items: center;
+  width: 42px; height: 42px;
+  border-radius: 12px;
+  background: var(--bg-alt);
+  font-size: 1.35rem;
+  flex-shrink: 0;
+}
+.ci-body { flex: 1; display: flex; flex-direction: column; gap: .3rem; line-height: 1.5; min-width: 0; }
+
+/* الاسم والثمن في سطر واحد: العين تقرأ ما طلبت وكم كلّف معاً */
+.ci-top { display: flex; align-items: baseline; gap: .6rem; }
+.ci-top strong { flex: 1; font-size: .93rem; min-width: 0; }
+.ci-price { font-size: .92rem; font-weight: 800; color: var(--gold); white-space: nowrap; }
+
+.ci-sub {
+  align-self: flex-start;
+  padding: .16rem .5rem;
+  border-radius: 999px;
+  background: var(--bg-alt);
+  font-size: .73rem;
+  color: var(--ink-soft);
+}
+.ci-note { font-size: .75rem; color: var(--ink-faint); }
 
 /* الإضافات في السلة: سطر لكل واحدة بعددها وثمن عددها */
-.ci-adds { list-style: none; margin-top: .25rem; display: grid; gap: .15rem; }
+.ci-adds { list-style: none; display: grid; gap: .2rem; }
 .ci-add {
   display: flex;
   align-items: center;
   gap: .4rem;
   font-size: .76rem;
-  color: var(--ink-faint);
+  color: var(--ink-soft);
 }
-.ci-add-name { flex: 1; }
-.ci-add-name::before { content: '+ '; color: var(--gold); }
-.ci-add-qty { font-weight: 700; color: var(--gold); }
-.ci-price { font-size: .88rem; font-weight: 700; color: var(--gold); margin-top: .15rem; }
+.ci-add-name { flex: 1; min-width: 0; }
+.ci-add-name::before { content: '+ '; color: var(--gold); font-weight: 700; }
+.ci-add-qty { font-weight: 800; color: var(--gold); }
+.ci-add-price { color: var(--ink-faint); white-space: nowrap; }
+
+.ci-foot { display: flex; align-items: center; margin-top: .15rem; }
 
 .cart-mode { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
 .mode-btn {
@@ -1560,6 +1630,7 @@ html[dir="rtl"] .cart-panel { transform: translateX(100%); }
   font-weight: 700;
 }
 
+.cart-fields { display: grid; gap: .75rem; }
 .cart-field { display: flex; flex-direction: column; gap: .35rem; }
 .cart-field label { font-size: .85rem; font-weight: 500; }
 .cart-field select, .cart-field textarea, .cart-field input {
@@ -1610,50 +1681,90 @@ html[dir="rtl"] .cart-panel { transform: translateX(100%); }
 .cart-field textarea.has-error { border-color: var(--red); }
 
 .cart-pay {
-  font-size: .76rem;
+  font-size: .74rem;
   color: var(--ink-faint);
   text-align: center;
   line-height: 1.6;
   margin: .5rem 0 0;
 }
 
-.cart-summary {
-  padding: 1rem 1.1rem;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-}
+/* ===== الحساب ===== */
+.cart-summary { display: grid; gap: .1rem; }
 .cart-summary .row {
   display: flex;
   justify-content: space-between;
-  font-size: .89rem;
+  font-size: .88rem;
   color: var(--ink-soft);
-  padding: .25rem 0;
+  padding: .28rem 0;
 }
 .cart-summary .row.total {
-  margin-top: .5rem;
-  padding-top: .7rem;
-  border-block-start: 1px dashed var(--line);
-  font-size: 1.05rem;
-  color: var(--ink);
+  margin-top: .45rem;
+  padding: .7rem .85rem;
+  border-radius: var(--radius-sm);
+  background: var(--gold-dim);
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--brown);
 }
-.cart-summary .row.total strong { color: var(--gold); font-size: 1.15rem; }
-.vat-note { font-size: .73rem; color: var(--ink-faint); text-align: center; margin: .6rem 0 0; }
+.cart-summary .row.total strong { color: var(--brown); font-size: 1.2rem; }
+.vat-note { font-size: .72rem; color: var(--ink-faint); text-align: center; margin: .55rem 0 0; }
+
+/* ===== شريط الإرسال الثابت =====
+   يبقى تحت العين مهما طال الحقول، وفيه الإجمالي حتى لا يرجع
+   الزبون للأعلى ليتأكّد قبل الضغط. */
+.cart-foot {
+  flex-shrink: 0;
+  display: grid;
+  gap: .55rem;
+  padding: .8rem 1rem calc(.85rem + env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-block-start: 1px solid var(--line);
+  box-shadow: 0 -8px 24px rgba(59, 36, 21, .07);
+}
+
+/* الزرّ يحمل ثلاثة أشياء في عرض ضيّق: علامة واتساب، والنصّ،
+   والإجمالي — فتُقلَّص الحاشية الجانبية ليتّسع لها بلا التفاف */
+.cart-send {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding-inline: 1.1rem;
+}
+.cart-send .cs-icon { display: grid; place-items: center; flex-shrink: 0; }
+.cart-send .cs-label {
+  flex: 1;
+  min-width: 0;
+  text-align: start;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.cart-send .cs-total {
+  padding: .18rem .55rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .18);
+  font-size: .88rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.cart-send .cs-total:empty { display: none; }
 
 .cart-warn {
   margin: 0;
-  padding: .7rem .9rem;
+  padding: .65rem .85rem;
   border-radius: var(--radius-sm);
   background: #fdf3e3;
   border: 1px solid #f0dcb4;
   color: #8a6613;
-  font-size: .83rem;
+  font-size: .82rem;
   line-height: 1.7;
 }
 
 .cart-clear {
+  display: block;
+  width: 100%;
+  margin-top: .8rem;
   padding: .5rem;
-  font-size: .84rem;
+  font-size: .82rem;
   color: var(--ink-faint);
   text-decoration: underline;
   text-underline-offset: 4px;

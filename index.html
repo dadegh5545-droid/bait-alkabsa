@@ -486,81 +486,122 @@
         <button class="btn btn-outline" data-cart-close>تصفّح القائمة</button>
       </div>
 
+      <!-- السلة ثلاث مراحل مرقّمة: ما طلبته، ثم أين يصل، ثم الحساب.
+           والزرّ في شريط ثابت أسفلها حتى لا يبحث عنه الزبون. -->
       <div class="cart-content" id="cartContent" hidden>
-        <ul class="cart-items" id="cartItems"></ul>
+        <div class="cart-scroll">
 
-        <!-- بيانات الزبون: تُملأ مرة وتُحفظ على جهازه للطلبات القادمة -->
-        <p class="cart-step">بيانات التوصيل</p>
+          <!-- ١. ما طلبته -->
+          <section class="cart-sec">
+            <h4 class="cart-sec-head">
+              <span class="cart-sec-num" aria-hidden="true">١</span>
+              طلبك
+              <span class="cart-sec-note" id="cartCountNote"></span>
+            </h4>
+            <ul class="cart-items" id="cartItems"></ul>
+          </section>
 
-        <div class="cart-field">
-          <label for="cartName">الاسم</label>
-          <input type="text" id="cartName" placeholder="مثال: محمد علي" autocomplete="name" />
-          <span class="cart-err" data-for="cartName"></span>
+          <!-- ٢. بيانات الزبون: تُملأ مرة وتُحفظ على جهازه للطلبات القادمة -->
+          <section class="cart-sec">
+            <h4 class="cart-sec-head">
+              <span class="cart-sec-num" aria-hidden="true">٢</span>
+              بيانات التوصيل
+            </h4>
+
+            <div class="cart-fields">
+              <div class="cart-field">
+                <label for="cartName">الاسم</label>
+                <input type="text" id="cartName" placeholder="مثال: محمد علي" autocomplete="name" />
+                <span class="cart-err" data-for="cartName"></span>
+              </div>
+
+              <div class="cart-field">
+                <label for="cartPhone">رقم الجوال</label>
+                <input type="tel" id="cartPhone" inputmode="numeric" placeholder="٥٥٩٢١٥٥٤"
+                       autocomplete="tel" dir="ltr" />
+                <span class="cart-err" data-for="cartPhone"></span>
+              </div>
+
+              <div class="cart-field" id="zoneField" hidden>
+                <label for="cartZone">منطقة التوصيل</label>
+                <select id="cartZone"></select>
+              </div>
+
+              <div class="cart-field" id="addressField" hidden>
+                <label for="cartAddress">موقع البيت</label>
+                <textarea id="cartAddress" rows="2"
+                          placeholder="المنطقة، الشارع، وأي علامة مميزة"></textarea>
+                <span class="cart-err" data-for="cartAddress"></span>
+              </div>
+
+              <div class="cart-field" id="unitField" hidden>
+                <label for="cartUnit">رقم الفيلا أو الشقة</label>
+                <input type="text" id="cartUnit" placeholder="مثال: فيلا ١٢ — أو شقة ٤، الدور ٢" />
+                <span class="cart-err" data-for="cartUnit"></span>
+              </div>
+
+              <!-- وقت التسليم: يُفضّل الطلب قبل يوم، والحدّ الأدنى تحسبه الواجهة -->
+              <div class="cart-field">
+                <label for="cartWhen">وقت التسليم</label>
+                <div class="cart-when">
+                  <input type="date" id="cartDate" aria-label="تاريخ التسليم" />
+                  <input type="time" id="cartWhen" aria-label="ساعة التسليم" value="20:00" />
+                </div>
+                <span class="cart-err" data-for="cartWhen"></span>
+                <p class="cart-hint" id="cartWhenHint"></p>
+              </div>
+
+              <!-- شريط طريقة الاستلام يظهر وحده إن فُتح فرع يوماً ما -->
+              <div class="cart-mode" role="radiogroup" aria-label="طريقة الاستلام" hidden>
+                <button type="button" class="mode-btn" data-mode="pickup">
+                  <span aria-hidden="true">🏠</span>استلام من الفرع
+                </button>
+                <button type="button" class="mode-btn is-active" data-mode="delivery">
+                  <span aria-hidden="true">🛵</span>توصيل
+                </button>
+              </div>
+
+              <div class="cart-field" id="branchField" hidden>
+                <label for="cartBranch">اختر الفرع</label>
+                <select id="cartBranch"></select>
+              </div>
+            </div>
+          </section>
+
+          <!-- ٣. الحساب -->
+          <section class="cart-sec">
+            <h4 class="cart-sec-head">
+              <span class="cart-sec-num" aria-hidden="true">٣</span>
+              الحساب
+            </h4>
+
+            <div class="cart-summary">
+              <div class="row"><span>المجموع الفرعي</span><strong id="sumSubtotal"></strong></div>
+              <div class="row" id="deliveryRow" hidden><span>رسوم التوصيل</span><strong id="sumDelivery"></strong></div>
+              <div class="row total"><span>الإجمالي</span><strong id="sumTotal"></strong></div>
+              <p class="vat-note">جميع الأسعار بالريال القطري</p>
+            </div>
+
+            <button class="cart-clear" id="cartClear">تفريغ السلة</button>
+          </section>
         </div>
 
-        <div class="cart-field">
-          <label for="cartPhone">رقم الجوال</label>
-          <input type="tel" id="cartPhone" inputmode="numeric" placeholder="٥٥٩٢١٥٥٤"
-                 autocomplete="tel" dir="ltr" />
-          <span class="cart-err" data-for="cartPhone"></span>
-        </div>
+        <!-- شريط الإرسال — ثابت أسفل السلة مهما طال المحتوى -->
+        <div class="cart-foot">
+          <p class="cart-warn" id="cartWarn" hidden></p>
 
-        <div class="cart-field" id="zoneField" hidden>
-          <label for="cartZone">منطقة التوصيل</label>
-          <select id="cartZone"></select>
-        </div>
-
-        <div class="cart-field" id="addressField" hidden>
-          <label for="cartAddress">موقع البيت</label>
-          <textarea id="cartAddress" rows="2"
-                    placeholder="المنطقة، الشارع، وأي علامة مميزة"></textarea>
-          <span class="cart-err" data-for="cartAddress"></span>
-        </div>
-
-        <div class="cart-field" id="unitField" hidden>
-          <label for="cartUnit">رقم الفيلا أو الشقة</label>
-          <input type="text" id="cartUnit" placeholder="مثال: فيلا ١٢ — أو شقة ٤، الدور ٢" />
-          <span class="cart-err" data-for="cartUnit"></span>
-        </div>
-
-        <!-- وقت التسليم: يُفضّل الطلب قبل يوم، والحدّ الأدنى تحسبه الواجهة -->
-        <div class="cart-field">
-          <label for="cartWhen">وقت التسليم</label>
-          <div class="cart-when">
-            <input type="date" id="cartDate" aria-label="تاريخ التسليم" />
-            <input type="time" id="cartWhen" aria-label="ساعة التسليم" value="20:00" />
-          </div>
-          <span class="cart-err" data-for="cartWhen"></span>
-          <p class="cart-hint" id="cartWhenHint"></p>
-        </div>
-
-        <!-- شريط طريقة الاستلام يظهر وحده إن فُتح فرع يوماً ما -->
-        <div class="cart-mode" role="radiogroup" aria-label="طريقة الاستلام" hidden>
-          <button type="button" class="mode-btn" data-mode="pickup">
-            <span aria-hidden="true">🏠</span>استلام من الفرع
+          <button class="btn btn-primary btn-block btn-lg cart-send" id="cartSubmit">
+            <span class="cs-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" aria-hidden="true">
+                <path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5.1-1.3A10 10 0 1 0 12 2zm5.5 14.2c-.2.6-1.2 1.2-1.7 1.2-.4 0-1 .1-3.2-.8-2.7-1.2-4.4-4-4.5-4.2-.1-.2-1-1.4-1-2.6s.6-1.8.9-2.1c.2-.2.5-.3.7-.3h.5c.2 0 .4 0 .6.5l.8 2c.1.2.1.3 0 .5l-.3.5-.4.4c-.1.1-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.4 2.4 1.5.2.1.4.1.6-.1l.8-1c.2-.2.3-.2.5-.1l2 .9c.2.1.4.2.4.3.1.2.1.7-.1 1.2z"/>
+              </svg>
+            </span>
+            <span class="cs-label">إرسال الطلب عبر واتساب</span>
+            <b class="cs-total" id="cartFootTotal"></b>
           </button>
-          <button type="button" class="mode-btn is-active" data-mode="delivery">
-            <span aria-hidden="true">🛵</span>توصيل
-          </button>
+
+          <p class="cart-pay">الدفع بعد تأكيد الطلب — نتواصل معك على واتساب لتأكيد الموعد.</p>
         </div>
-
-        <div class="cart-field" id="branchField" hidden>
-          <label for="cartBranch">اختر الفرع</label>
-          <select id="cartBranch"></select>
-        </div>
-
-        <div class="cart-summary">
-          <div class="row"><span>المجموع الفرعي</span><strong id="sumSubtotal"></strong></div>
-          <div class="row" id="deliveryRow" hidden><span>رسوم التوصيل</span><strong id="sumDelivery"></strong></div>
-          <div class="row total"><span>الإجمالي</span><strong id="sumTotal"></strong></div>
-          <p class="vat-note">جميع الأسعار بالريال القطري</p>
-        </div>
-
-        <p class="cart-warn" id="cartWarn" hidden></p>
-
-        <button class="btn btn-primary btn-block btn-lg" id="cartSubmit">إرسال الطلب عبر واتساب</button>
-        <p class="cart-pay">الدفع بعد تأكيد الطلب — نتواصل معك على واتساب لتأكيد الموعد.</p>
-        <button class="cart-clear" id="cartClear">تفريغ السلة</button>
       </div>
     </div>
   </aside>

@@ -231,6 +231,20 @@ check('السلة غير فارغة', $('#cartEmpty').hidden === true);
 check(`المجموع الفرعي ${ar(SUB_FULL * 2)}`, $('#sumSubtotal').textContent === qr(SUB_FULL * 2), `(${$('#sumSubtotal').textContent})`);
 check('الملاحظة ظهرت في السطر', $('#cartItems').textContent.includes('بدون بصل'));
 
+/* السلة ثلاث مراحل مرقّمة وشريط إرسال ثابت أسفلها */
+check('السلة ثلاث مراحل مرقّمة', $$('#cartContent .cart-sec').length === 3);
+check('لكل مرحلة رقمها', $$('#cartContent .cart-sec-num').map(n => n.textContent).join('') === '١٢٣');
+check('المحتوى يجري والشريط ثابت',
+  !!$('#cartContent .cart-scroll') && !!$('#cartContent .cart-foot'));
+check('زرّ الإرسال داخل الشريط الثابت', !!$('.cart-foot #cartSubmit'));
+check('الإجمالي مكتوب على زرّ الإرسال',
+  $('#cartFootTotal').textContent === $('#sumTotal').textContent,
+  `(${$('#cartFootTotal').textContent} مقابل ${$('#sumTotal').textContent})`);
+check('عدد الأطباق مكتوب بالعربية لا برقمٍ وجمع',
+  $('#cartCountNote').textContent === 'طبقان', `(${$('#cartCountNote').textContent})`);
+check('اسم الطبق وثمنه في سطر واحد',
+  !!$('#cartItems .ci-top strong') && !!$('#cartItems .ci-top .ci-price'));
+
 /* الزبون يرى في سلته اسم كل إضافة وعددها وثمن عددها */
 check('الإضافة مكتوبة في السلة باسمها',
   $('#cartItems .ci-add-name').textContent === SUB_ADDON.label);

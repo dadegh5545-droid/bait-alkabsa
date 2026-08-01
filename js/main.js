@@ -33,6 +33,15 @@
     return toArabicDigits(text) + ' ' + (CFG.currency || 'ر.ق');
   }
 
+  /* عدٌّ عربي سليم: طبق واحد، طبقان، ثلاثة أطباق، أحد عشر طبقاً.
+     العربية لا تقول «١ طبق» ولا «٢ أطباق»، والسلة يقرأها الزبون. */
+  function countLabel(n, one, two, few, many) {
+    if (n === 1) return one + ' واحد';
+    if (n === 2) return two;
+    if (n <= 10) return toArabicDigits(n) + ' ' + few;
+    return toArabicDigits(n) + ' ' + many;
+  }
+
   function escapeHtml(str) {
     return String(str).replace(/[&<>"']/g, function (ch) {
       return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch];
@@ -884,16 +893,22 @@
         '<li class="cart-item">' +
           '<span class="ci-emoji" aria-hidden="true">' + (dish.emoji || '🍽️') + '</span>' +
           '<div class="ci-body">' +
-            '<strong>' + escapeHtml(dish.name) + '</strong>' +
+            '<div class="ci-top">' +
+              '<strong>' + escapeHtml(dish.name) + '</strong>' +
+              '<span class="ci-price">' + formatPrice(linePrice(item)) + '</span>' +
+            '</div>' +
             (opts ? '<span class="ci-sub">' + escapeHtml(opts) + '</span>' : '') +
             (adds ? '<ul class="ci-adds">' + adds + '</ul>' : '') +
             note +
-            '<span class="ci-price">' + formatPrice(linePrice(item)) + '</span>' +
-          '</div>' +
-          '<div class="qty qty-sm">' +
-            '<button type="button" data-qty="' + i + '" data-delta="-1" aria-label="إنقاص">−</button>' +
-            '<span>' + toArabicDigits(item.qty) + '</span>' +
-            '<button type="button" data-qty="' + i + '" data-delta="1" aria-label="زيادة">+</button>' +
+            '<div class="ci-foot">' +
+              '<div class="qty qty-sm">' +
+                '<button type="button" data-qty="' + i + '" data-delta="-1"' +
+                  ' aria-label="إنقاص ' + escapeHtml(dish.name) + '">−</button>' +
+                '<span>' + toArabicDigits(item.qty) + '</span>' +
+                '<button type="button" data-qty="' + i + '" data-delta="1"' +
+                  ' aria-label="زيادة ' + escapeHtml(dish.name) + '">+</button>' +
+              '</div>' +
+            '</div>' +
           '</div>' +
         '</li>';
     }).join('');
@@ -903,6 +918,15 @@
 
     $('#sumSubtotal').textContent = formatPrice(subtotal);
     $('#sumTotal').textContent    = formatPrice(subtotal + fee);
+
+    /* الإجمالي على زرّ الإرسال كذلك — الشريط ثابت أسفل السلة،
+       فيراه الزبون بلا أن يرجع للأعلى */
+    var footTotal = $('#cartFootTotal');
+    if (footTotal) footTotal.textContent = formatPrice(subtotal + fee);
+
+    /* «طبقان» و«٣ أطباق» و«١١ طبقاً» — العربية تعدّ هكذا لا برقمٍ وجمع */
+    var note = $('#cartCountNote');
+    if (note) note.textContent = countLabel(cartCount(), 'طبق', 'طبقان', 'أطباق', 'طبقاً');
 
     var deliveryRow = $('#deliveryRow');
     if (deliveryRow) {
