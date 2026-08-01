@@ -4,7 +4,7 @@
    ملاحظة: عند أي تعديل على ملفات الموقع، ارفع رقم CACHE_VERSION.
    ========================================================================== */
 
-var CACHE_VERSION = 'bak-v26';
+var CACHE_VERSION = 'bak-v27';
 var PRECACHE = [
   './',
   './index.html',
@@ -66,6 +66,25 @@ self.addEventListener('fetch', function (event) {
      حتى تظهر الصور والأسعار المنشورة من لوحة التحكّم فوراً */
   if (url.pathname.indexOf('images/manifest.json') !== -1 ||
       url.pathname.indexOf('data/site.json') !== -1) {
+    event.respondWith(
+      fetch(req)
+        .then(function (res) {
+          if (res && res.status === 200) {
+            var copy = res.clone();
+            caches.open(CACHE_VERSION).then(function (c) { c.put(req, copy); });
+          }
+          return res;
+        })
+        .catch(function () { return caches.match(req); })
+    );
+    return;
+  }
+
+  /* الأنماط والسكربتات: الشبكة أولاً كذلك.
+     في js/menu-data.js الأسعار والأطباق، ونسخة مخزّنة قديمة تعني
+     سعراً قديماً على شاشة الزبون وطبقاً جديداً لا يراه — وهذا أسوأ
+     من انتظار جزء من الثانية. الكاش يبقى احتياطاً حين ينقطع الاتصال. */
+  if (/\.(js|css)$/i.test(url.pathname)) {
     event.respondWith(
       fetch(req)
         .then(function (res) {

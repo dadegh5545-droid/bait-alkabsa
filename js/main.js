@@ -1516,6 +1516,19 @@
      التطبيق يعمل بعد ذلك بدون اتصال. ولا يُسجَّل للنسخة المضمّنة أصلاً.
      ====================================================================== */
   if (!isBundled && 'serviceWorker' in navigator && location.protocol !== 'file:') {
+    /* نسخة جديدة من العامل تعني ملفات جديدة — أسعاراً أو أطباقاً.
+       الصفحة المفتوحة تكون قد حمّلت القديم، فنعيد تحميلها مرّة
+       واحدة عند تسلّم النسخة الجديدة. أوّل زيارة بلا مراقب سابق
+       لا تُعاد، وإلّا دار المتصفّح في حلقة تحميل. */
+    var hadController = !!navigator.serviceWorker.controller;
+    var swReloaded = false;
+
+    navigator.serviceWorker.addEventListener('controllerchange', function () {
+      if (!hadController || swReloaded) return;
+      swReloaded = true;
+      window.location.reload();
+    });
+
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('sw.js').catch(function (err) {
         console.warn('تعذّر تسجيل عامل الخدمة:', err);
