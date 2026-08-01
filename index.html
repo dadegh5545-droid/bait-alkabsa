@@ -442,8 +442,11 @@
           <span id="dmQty">١</span>
           <button type="button" id="dmPlus" aria-label="زيادة عدد الأطباق">+</button>
         </div>
+        <!-- الزرّ يقول ما ينقص: طبقٌ اختياره إلزامي (نوع الأرز مثلاً)
+             لا يُضاف، وكان التنبيه يمرّ سريعاً فيظنّ الزبون أنه أضاف -->
         <button class="btn btn-primary btn-lg" id="dmAdd">
-          أضف للسلة · <span id="dmTotal"></span>
+          <span class="dm-add-label" id="dmAddLabel">أضف للسلة</span>
+          <span class="dm-add-total" id="dmTotal"></span>
         </button>
       </div>
     </div>

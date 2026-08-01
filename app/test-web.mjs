@@ -142,7 +142,9 @@ if (SUBJECT.picks) {
   const PICKS = SUBJECT.picks;
   check('ظهرت مجموعة الاختيارات', $('#dmPicks').hidden === false);
   check(`رُسم ${PICKS.options.length} خياراً`, $$('#dmPicksList input').length === PICKS.options.length);
-  check('عنوان المجموعة من البيانات', $('#dmPicksLabel').textContent === PICKS.label);
+  check('عنوان المجموعة من البيانات', $('#dmPicksLabel').textContent.includes(PICKS.label));
+  check('الاختيار موسوم مطلوباً أو اختيارياً',
+    !!$(PICKS.optional ? '#dmPicksLabel .optional' : '#dmPicksLabel .opt-req'));
   check('التنبيه يذكر الحدّ الأقصى', $('#dmPicksNote').textContent.includes(ar(PICKS.max)));
 
   /* الاختبار يتكيّف مع أي حدّ: أرز اللقن نوعان، وأرز اللحم نوع واحد */
@@ -388,6 +390,47 @@ if (SIDE && MAIN) {
 }
 
 /* واجهة المجلس: نقش السدو وإطار السفرة */
+/* طبق لا يُضاف قبل اختيار إلزامي — اللقن ونوع أرزه.
+   كان الزرّ يبدو جاهزاً ثم لا يفعل شيئاً، فيفتح الزبون السلة
+   فيجدها فارغة ويظنّ الموقع معطوباً. */
+const REQ_DISH = VISIBLE.find((d) => d.picks && !d.picks.optional);
+if (REQ_DISH) {
+  console.log('\n— اختيار إلزامي ناقص —');
+  const cartBefore = JSON.parse(window.localStorage.getItem('bak_cart') || '[]').length;
+
+  click($(`#menuGrid [data-add="${REQ_DISH.id}"]`));
+  check('الزرّ يكتب المطلوب بدل «أضف للسلة»',
+    $('#dmAdd').classList.contains('is-blocked') &&
+    $('#dmAddLabel').textContent !== 'أضف للسلة', `(${$('#dmAddLabel').textContent})`);
+  check('الاختيار موسوم «مطلوب»', !!$('#dmPicksLabel .opt-req'));
+
+  click($('#dmAddLabel'));
+  check('الضغط قبل الاختيار لا يضيف شيئاً',
+    JSON.parse(window.localStorage.getItem('bak_cart') || '[]').length === cartBefore);
+  check('النافذة تبقى مفتوحة ليكمل الزبون', $('#dishModal').hidden === false);
+  check('المجموعة الناقصة تُنادى بالأحمر',
+    $('#dmPicksNote').classList.contains('is-error') &&
+    $('#dmPicks').classList.contains('is-flash'));
+
+  const pick = $$('#dmPicksList input')[0];
+  pick.checked = true;
+  pick.dispatchEvent(new window.Event('change', { bubbles: true }));
+  check('بعد الاختيار يعود الزرّ «أضف للسلة»',
+    !$('#dmAdd').classList.contains('is-blocked') &&
+    $('#dmAddLabel').textContent === 'أضف للسلة');
+  check('ونداء الأحمر ينطفئ', !$('#dmPicksNote').classList.contains('is-error'));
+
+  click($('#dmTotal'));
+  check('والإضافة تنجح',
+    JSON.parse(window.localStorage.getItem('bak_cart') || '[]').length === cartBefore + 1);
+
+  /* نعيد السلة لحالها حتى لا تتأثّر بقيّة الاختبارات */
+  click($('#cartBtn'));
+  const rows = $$('#cartItems [data-qty][data-delta="-1"]');
+  click(rows[rows.length - 1]);
+  click($('#cartDrawer [data-cart-close]'));
+}
+
 console.log('\n— واجهة المجلس —');
 check('شريطا السدو مرسومان', $$('.hero .sadu-band').length === 2);
 check('إطار السفرة موجود', !!$('#heroPhoto'));

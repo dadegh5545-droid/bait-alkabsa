@@ -1209,6 +1209,13 @@
     return $$('#dmPicksList input:checked').map(function (i) { return i.value; });
   }
 
+  /* اختيار إلزامي لم يُحدَّد بعد — أرز اللقن مثلاً.
+     كان هذا يمنع الإضافة بتنبيه عابر: يضغط الزبون «أضف» فلا يرى
+     شيئاً يحدث، ثم يفتح السلة فيجدها فارغة ويظنّ الموقع معطوباً. */
+  function missingPick() {
+    return !!(dmDish && dmDish.picks && !dmDish.picks.optional && !selectedPickIds().length);
+  }
+
   /* الاختيارات محدودة العدد: عند بلوغ الحدّ تُقفل غير المختارة،
      فلا يستطيع الزبون تجاوز ما يقبله المطبخ */
   function enforcePickLimit() {
@@ -1223,6 +1230,8 @@
 
     var note = $('#dmPicksNote');
     if (note) {
+      /* أي تغيير يمحو نداء «مطلوب» الأحمر — الزبون استجاب له */
+      note.classList.remove('is-error');
       note.hidden = !max;
       if (max) {
         note.textContent = atLimit
@@ -1230,6 +1239,9 @@
           : 'يمكنك اختيار ' + toArabicDigits(max) + ' على الأكثر.';
       }
     }
+
+    var box = $('#dmPicks');
+    if (box) box.classList.remove('is-flash');
   }
 
   function dmUnitPrice() {
@@ -1292,7 +1304,39 @@
     if (total) total.textContent = formatPrice(dmUnitPrice() * dmQty);
     var qtyEl = $('#dmQty');
     if (qtyEl) qtyEl.textContent = toArabicDigits(dmQty);
+
+    /* الزرّ يكتب ما ينقص بدل أن يبدو جاهزاً ثم لا يفعل شيئاً */
+    var addBtn = $('#dmAdd');
+    var label  = $('#dmAddLabel');
+    if (addBtn && label) {
+      var blocked = missingPick();
+      addBtn.classList.toggle('is-blocked', blocked);
+      label.textContent = blocked
+        ? (dmDish.picks.need || 'اختر نوع الأرز أولاً')
+        : 'أضف للسلة';
+    }
+
     refreshModalSummary();
+  }
+
+  /* الاختيار الناقص يُنادى عليه في مكانه: نعلّم المجموعة بالأحمر
+     ونجرّها أمام عين الزبون بدل تنبيهٍ يمرّ في أسفل الشاشة */
+  function callOutPicks() {
+    var box  = $('#dmPicks');
+    var note = $('#dmPicksNote');
+    if (!box) return;
+
+    box.classList.remove('is-flash');
+    /* إعادة تشغيل الحركة تحتاج قراءة تُجبر المتصفّح على إعادة الحساب */
+    void box.offsetWidth;
+    box.classList.add('is-flash');
+
+    if (note) {
+      note.hidden = false;
+      note.classList.add('is-error');
+      note.textContent = (dmDish.picks.label || 'الاختيار') + ' — مطلوب قبل الإضافة';
+    }
+    if (box.scrollIntoView) box.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }
 
   function openDish(id) {
@@ -1367,7 +1411,13 @@
     var picksList = $('#dmPicksList');
     if (picksBox && dish.picks && dish.picks.options && dish.picks.options.length) {
       picksBox.hidden = false;
-      $('#dmPicksLabel').textContent = dish.picks.label || 'اختر';
+
+      /* شارة «مطلوب» على الإلزامي، و«اختياري» على غيره — يعرف
+         الزبون قبل أن يضغط أن هذا الاختيار يوقف طلبه */
+      $('#dmPicksLabel').innerHTML = escapeHtml(dish.picks.label || 'اختر') +
+        (dish.picks.optional
+          ? ' <span class="optional">(اختياري)</span>'
+          : ' <span class="opt-req">مطلوب</span>');
       picksList.innerHTML = dish.picks.options.map(function (o) {
         return '<label class="opt">' +
                  '<input type="checkbox" value="' + o.id + '" />' +
@@ -1477,7 +1527,8 @@
         }
 
         /* اختيار إلزامي لم يُحدَّد ⇒ لا نُرسل طلباً ناقصاً للمطبخ */
-        if (dmDish.picks && !dmDish.picks.optional && !selectedPickIds().length) {
+        if (missingPick()) {
+          callOutPicks();
           toast(dmDish.picks.label || 'اختر أولاً', 'error');
           return;
         }
