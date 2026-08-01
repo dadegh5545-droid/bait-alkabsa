@@ -1903,11 +1903,14 @@
       });
     }
 
-    /* من طلب تقليل الحركة، ومن فتح وضع توفير البيانات: لا نحمّل شيئاً */
+    /* الفيديو ميغابايتات تُحمَّل مع كل زيارة، فلا نفرضها على أحد:
+       من طلب تقليل الحركة، ومن فتح وضع توفير البيانات، ومن كان
+       اتصاله بطيئاً — يرى الخلفية المتدرّجة وحدها ولا ينقص طلبه شيء. */
     var reduce = window.matchMedia &&
                  window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var saver  = navigator.connection && navigator.connection.saveData;
-    if (reduce || saver) { drop(); return; }
+    var conn   = navigator.connection || {};
+    var slow   = conn.effectiveType && /^(slow-)?2g$|^3g$/.test(conn.effectiveType);
+    if (reduce || conn.saveData || slow) { drop(); return; }
 
     video.addEventListener('error', drop);
     video.addEventListener('loadeddata', function () {
