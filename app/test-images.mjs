@@ -544,9 +544,12 @@ check('كل طبق بطاقة لا صفّ مزدحم',
   pdoc.querySelectorAll('#adDishes .ad-card').length === owner.MENU.length);
 check('حالة كل طبق مكتوبة',
   pdoc.querySelectorAll('#adDishes .ad-state').length === owner.MENU.length);
-check('الطبق بلا سعر مُعلَّم «بلا سعر»',
+/* عدداً بعدد لا «واحد على الأقل»: القائمة تُسعَّر يوماً بعد يوم،
+   فاختبارٌ يشترط وجود طبق بلا سعر ينكسر يوم تكتمل الأسعار */
+check('علامة «بلا سعر» بعدد الأطباق غير المسعَّرة',
   Array.from(pdoc.querySelectorAll('#adDishes .ad-state'))
-    .some((s) => s.textContent === 'بلا سعر'));
+    .filter((s) => s.textContent === 'بلا سعر').length ===
+  owner.MENU.filter((d) => !d.price).length);
 check('الطبق المنشور مُعلَّم «منشور»',
   Array.from(pdoc.querySelectorAll('#adDishes .ad-state.is-live')).length ===
   owner.MENU.filter((d) => d.price > 0 && !d.hidden).length);

@@ -210,12 +210,12 @@ var MENU = [
 
   /* ---------------- نصف الخروف ----------------
      صحن واحد فقط، فسعر واحد */
-  lambHalf('half-badawi',        'نص خروف على بداوي',       0),
-  lambHalf('half-biryani',       'نص خروف على برياني',      0),
-  lambHalf('half-malakiya',      'نص خروف على كيسة ملكية',  0),
-  lambHalf('half-barriya',       'نص خروف على كيسة برية',   0),
-  lambHalf('half-biryani-arabi', 'نص خروف على برياني عربي', 0),
-  lambHalf('half-mashwi',        'نص خروف مشوي (محمر)',     0, '🔥'),
+  lambHalf('half-badawi',        'نص خروف على بداوي',       1200),
+  lambHalf('half-biryani',       'نص خروف على برياني',      1200),
+  lambHalf('half-malakiya',      'نص خروف على كيسة ملكية',  1200),
+  lambHalf('half-barriya',       'نص خروف على كيسة برية',   1200),
+  lambHalf('half-biryani-arabi', 'نص خروف على برياني عربي', 1200),
+  lambHalf('half-mashwi',        'نص خروف مشوي (محمر)',     1200, '🔥'),
 
   /* ---------------- الدجاج ----------------
                                           صحن    صحنين */
