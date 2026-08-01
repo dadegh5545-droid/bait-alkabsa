@@ -1803,9 +1803,12 @@
   function renderLogo() {
     if (!brandMark) return;
 
-    var known = !!IMAGE_INDEX && IMAGE_INDEX.indexOf(LOGO_IMG) !== -1;
-    if (!known) {
+    /* بلا فهرس نطلب الشعار كما هو ونتّكل على onerror — الفهرس لا
+       يُكتب إلا حين يرفع المالك صورة من اللوحة، والشعار قد يوضع
+       في المستودع مباشرة */
+    if (!imageExists(LOGO_IMG)) {
       if (!$('svg', brandMark)) brandMark.innerHTML = brandSvg;
+      brandMark.classList.remove('has-logo');
       return;
     }
     if ($('img', brandMark)) return;
@@ -1814,7 +1817,12 @@
     img.className = 'brand-logo';
     img.src = LOGO_IMG;
     img.alt = '';
-    img.onerror = function () { brandMark.innerHTML = brandSvg; };
+    /* الشعار الحقيقي يحمل خلفيته، فتُرفع خلفية الإطار الذهبية عنه */
+    img.onload = function () { brandMark.classList.add('has-logo'); };
+    img.onerror = function () {
+      brandMark.innerHTML = brandSvg;
+      brandMark.classList.remove('has-logo');
+    };
 
     brandMark.innerHTML = '';
     brandMark.appendChild(img);
@@ -1870,6 +1878,7 @@
 
   renderAbout();
   renderStaticPhotos();
+  renderLogo();
   loadImageIndex();
 
   /* صور ثابتة في الصفحة */

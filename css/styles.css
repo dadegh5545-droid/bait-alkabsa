@@ -203,6 +203,13 @@ p  { margin: 0 0 1rem; }
 }
 .brand-mark svg { width: 26px; height: 26px; }
 
+/* الشعار الحقيقي يحمل دائرته وخلفيته، فيُترك وحده بلا مربّع ذهبي تحته */
+.brand-mark.has-logo {
+  background: none;
+  box-shadow: none;
+  border-radius: 50%;
+}
+
 .brand-text { display: flex; flex-direction: column; line-height: 1.25; }
 .brand-text strong { font-family: var(--font-display); font-size: 1.3rem; }
 .brand-text small { font-size: .68rem; opacity: .75; letter-spacing: .5px; }
