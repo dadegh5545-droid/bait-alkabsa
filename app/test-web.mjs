@@ -724,6 +724,50 @@ check('قاعدة [hidden] العامة موجودة في الأنماط',
 check('القاعدة في أوّل الملف قبل بقيّة الأنماط',
   CSS.indexOf('[hidden]') < CSS.indexOf('.cart-empty'));
 
+/* ===== ترحيب فتح التطبيق ===== */
+console.log('\n— ترحيب فتح التطبيق —');
+const wc = $('#welcome');
+check('عنصر الترحيب موجود', !!wc && !!$('#wcTitle') && !!$('#wcSub'));
+
+/* هذه النافذة فُتحت بلا زبونٍ محفوظ، فالتحيّة عامّة */
+check('الزائر الجديد يُحيّا باسم المطبخ',
+  $('#wcTitle').textContent.includes('حيّاك الله') &&
+  $('#wcTitle').textContent.includes('بيت الكبسة'),
+  `(${$('#wcTitle').textContent})`);
+
+await tick(900);
+check('الترحيب يظهر بعد ثانية من الفتح', wc.classList.contains('is-open'));
+
+/* العلامة تمنع تكراره مع كلّ تنقّل داخل الجلسة الواحدة */
+check('الترحيب يُعلَّم فلا يتكرّر في الجلسة',
+  window.sessionStorage.getItem('bak_welcomed') === '1');
+
+check('الترحيب ينزلق ولا يحجب الصفحة',
+  /\.welcome\b[^}]*position:\s*fixed/s.test(CSS) && CSS.includes('.welcome.is-open'));
+
+/* ===== الترحيب باسم الزبون العائد =====
+   نافذة ثانية بزبونٍ محفوظ من طلبٍ سابق: هذه ألطف ما في الميزة،
+   وبلا حارسٍ تنكسر صامتةً فتُحيّي العائدَ تحيّة الغريب. */
+const back = new JSDOM(html, { runScripts: 'outside-only', pretendToBeVisual: true, url: 'http://localhost/' });
+const bw = back.window;
+bw.IntersectionObserver = class { constructor(cb) { this.cb = cb; } observe(el) { el.classList.add('is-in'); } unobserve() {} disconnect() {} };
+bw.matchMedia = () => ({ matches: false, addListener() {}, removeListener() {} });
+bw.requestAnimationFrame = (cb) => setTimeout(() => cb(0), 0);
+bw.scrollTo = () => {};
+bw.open = () => null;
+bw.localStorage.setItem('bak_customer', JSON.stringify({ name: 'سعد العنزي', phone: '55921554' }));
+
+bw.eval(readFileSync(`${ROOT}/js/menu-data.js`, 'utf8'));
+bw.eval(readFileSync(`${ROOT}/js/menu-en.js`, 'utf8'));
+bw.eval(readFileSync(`${ROOT}/js/gallery-data.js`, 'utf8'));
+bw.eval(readFileSync(`${ROOT}/js/main.js`, 'utf8'));
+
+const bTitle = bw.document.querySelector('#wcTitle').textContent;
+const bSub   = bw.document.querySelector('#wcSub').textContent;
+check('العائد يُنادى باسمه الأوّل', bTitle === 'حيّاك الله يا سعد', `(${bTitle})`);
+check('ولا يُنادى باسمه كاملاً', !bTitle.includes('العنزي'));
+check('وتتغيّر تحته العبارة', bSub.includes('نوّرت'), `(${bSub})`);
+
 console.log(`\n${'='.repeat(46)}`);
 console.log(`النتيجة:  ✓ ${pass} ناجح   ✗ ${fail} فاشل`);
 console.log('='.repeat(46));

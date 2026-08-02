@@ -1096,6 +1096,36 @@ body.has-preview-bar { padding-bottom: 4.5rem; }
 .to-top:hover { background: var(--gold); }
 
 /* ---------- 18. لافتة تثبيت التطبيق ---------- */
+/* ---------- ترحيب فتح التطبيق ----------
+   ينزل من أعلى الشاشة ويرتفع بعد ثوانٍ. لا يحجب زرّاً ولا ينتظر
+   ضغطةً — تحيّةٌ تمرّ، فلا يُغلقها الزبون ليصل إلى القائمة. */
+.welcome {
+  position: fixed;
+  inset-block-start: 14px;
+  inset-inline: 16px;
+  z-index: 130;
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  max-width: 400px;
+  margin-inline: auto;
+  padding: .7rem .95rem;
+  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-140%);
+  opacity: 0;
+  visibility: hidden;
+  transition: transform .5s var(--ease), opacity .4s, visibility .4s;
+}
+.welcome.is-open { transform: translateY(0); opacity: 1; visibility: visible; }
+
+.welcome img { width: 42px; height: 42px; border-radius: 11px; flex-shrink: 0; }
+.wc-text { display: flex; flex-direction: column; line-height: 1.45; min-width: 0; }
+.wc-text strong { font-family: var(--font-display); font-size: 1rem; color: var(--brown); }
+.wc-text small  { font-size: .78rem; color: var(--ink-faint); }
+
 .install-banner {
   position: fixed;
   inset-inline: 16px;

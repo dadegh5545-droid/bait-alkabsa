@@ -1773,6 +1773,38 @@
   if (isStandalone) document.body.classList.add('is-app');
 
   /* ======================================================================
+     ترحيب عند فتح التطبيق
+     مرّة في كلّ فتحة لا مع كلّ تنقّل داخل الصفحة — sessionStorage
+     ينتهي بإغلاق التطبيق، فيعود الترحيب في الفتحة القادمة ولا
+     يتكرّر في الواحدة. ومن سبق أن طلب يُنادى باسمه الأوّل: اسمه
+     محفوظ من طلبه الماضي، ومناداته به أدفأ من تحيّة لا تعرف أحداً.
+     ====================================================================== */
+  (function welcome() {
+    var el = $('#welcome');
+    if (!el) return;
+
+    /* المتصفّح في وضعٍ خاصّ قد يمنع التخزين — الترحيب لا يستحقّ
+       أن يُسقط الصفحة، فيُعرض مرّة ويمضي */
+    try {
+      if (window.sessionStorage.getItem('bak_welcomed')) return;
+      window.sessionStorage.setItem('bak_welcomed', '1');
+    } catch (e) { /* بلا تخزين: يُعرض ولا يُمنع */ }
+
+    var saved = store.get(INFO_KEY, null);
+    var first = saved && saved.name
+      ? String(saved.name).trim().split(/\s+/)[0]
+      : '';
+
+    if (first) {
+      $('#wcTitle').textContent = 'حيّاك الله يا ' + first;
+      $('#wcSub').textContent   = 'نوّرت مطابخ بيت الكبسة';
+    }
+
+    setTimeout(function () { el.classList.add('is-open'); }, 700);
+    setTimeout(function () { el.classList.remove('is-open'); }, 5200);
+  })();
+
+  /* ======================================================================
      15. عامل الخدمة
      يُسجَّل حتى داخل التطبيق حين يحمّل الموقع من الإنترنت — فهو ما يجعل
      التطبيق يعمل بعد ذلك بدون اتصال. ولا يُسجَّل للنسخة المضمّنة أصلاً.

@@ -384,6 +384,18 @@
   </nav>
 
   <!-- ===== لافتة تثبيت التطبيق ===== -->
+  <!-- ===== ترحيب عند فتح التطبيق =====
+       في الأعلى وحده: لافتة التثبيت والتنبيهات كلّها أسفل الشاشة،
+       فلا يزاحم أحدها الآخر. ويحمل اسم الزبون إن سبق أن طلب. -->
+  <div class="welcome" id="welcome" role="status" aria-live="polite">
+    <img src="icons/icon-192.png" alt="" aria-hidden="true"
+         width="42" height="42" decoding="async" />
+    <span class="wc-text">
+      <strong id="wcTitle">حيّاك الله في مطابخ بيت الكبسة</strong>
+      <small id="wcSub">المطبخ القطري الأصيل</small>
+    </span>
+  </div>
+
   <div class="install-banner" id="installBanner" role="dialog" aria-label="تثبيت التطبيق">
     <!-- الشعار نفسه لا إيموجي طبقٍ عام: هذا ما سيراه الزبون أيقونةً
          على شاشته بعد التثبيت، فليره قبلها. -->
