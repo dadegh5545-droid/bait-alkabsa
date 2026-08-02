@@ -19,33 +19,18 @@ $GOLD_A  = [System.Drawing.Color]::FromArgb(227, 196, 119)
 $GOLD_B  = [System.Drawing.Color]::FromArgb(181, 133, 31)
 
 # ---------------------------------------------------------------- رسم الشعار
-# يرسم شعار بيت الكبسة (صحن + حبة أرز) داخل مربع بمقاس $box عند الإزاحة المعطاة
+# الشعار الحقيقي من images/logo.png — دائرةٌ بيضاء فيها البيت والشجرتان
+# واسم المطبخ. كان هنا رسمٌ برمجيّ لصحنٍ وحبّة أرز لا وجود لهما في شعار
+# المطبخ، فكانت أيقونة التطبيق تخالف ما يراه الزبون في رأس الموقع.
+$logoFile = Join-Path (Split-Path -Parent $here) "images\logo.png"
+if (-not (Test-Path $logoFile)) {
+  Write-Error "الشعار غير موجود: $logoFile"
+  exit 1
+}
+$LOGO = [System.Drawing.Image]::FromFile($logoFile)
+
 function Draw-Logo($g, [double]$box, [double]$ox, [double]$oy) {
-  $u = $box / 512.0
-  $rect = New-Object System.Drawing.Rectangle([int]$ox, [int]$oy, [int]$box, [int]$box)
-  $gold = New-Object System.Drawing.Drawing2D.LinearGradientBrush($rect, $GOLD_A, $GOLD_B, 45.0)
-
-  # الصحن
-  $g.FillPie($gold, [single]($ox + 118 * $u), [single]($oy + 220 * $u), [single](276 * $u), [single](190 * $u), 0, 180)
-
-  # القاعدة
-  $pen = New-Object System.Drawing.Pen($gold, [single](20 * $u))
-  $pen.StartCap = 'Round'; $pen.EndCap = 'Round'
-  $g.DrawLine($pen, [single]($ox + 96 * $u), [single]($oy + 420 * $u), [single]($ox + 416 * $u), [single]($oy + 420 * $u))
-
-  # حبة الأرز
-  $p = New-Object System.Drawing.Drawing2D.GraphicsPath
-  $p.AddBezier(
-    (New-Object System.Drawing.PointF([single]($ox + 256 * $u), [single]($oy + 108 * $u))),
-    (New-Object System.Drawing.PointF([single]($ox + 308 * $u), [single]($oy + 160 * $u))),
-    (New-Object System.Drawing.PointF([single]($ox + 308 * $u), [single]($oy + 216 * $u))),
-    (New-Object System.Drawing.PointF([single]($ox + 256 * $u), [single]($oy + 254 * $u))))
-  $p.AddBezier(
-    (New-Object System.Drawing.PointF([single]($ox + 256 * $u), [single]($oy + 254 * $u))),
-    (New-Object System.Drawing.PointF([single]($ox + 204 * $u), [single]($oy + 216 * $u))),
-    (New-Object System.Drawing.PointF([single]($ox + 204 * $u), [single]($oy + 160 * $u))),
-    (New-Object System.Drawing.PointF([single]($ox + 256 * $u), [single]($oy + 108 * $u))))
-  $g.FillPath($gold, $p)
+  $g.DrawImage($LOGO, [single]$ox, [single]$oy, [single]$box, [single]$box)
 }
 
 function New-Canvas([int]$w, [int]$h) {
@@ -150,4 +135,40 @@ foreach ($d in $splashes.Keys) {
   Write-Host "  ✓ $d"
 }
 
-Write-Host "`nاكتمل توليد أيقونات وشاشات البداية." -ForegroundColor Green
+# ------------------------------------------------- أيقونات الموقع والمتجر
+# كانت تُصنع بيدٍ منفصلة فتخالف أيقونة التطبيق. صارت من الشعار نفسه
+# ومن هذا السكربت، فلا تفترق نسختان لعلامةٍ واحدة.
+$web = Join-Path (Split-Path -Parent $here) "icons"
+if (-not (Test-Path $web)) { New-Item -ItemType Directory -Path $web | Out-Null }
+
+New-Launcher 192 (Join-Path $web "icon-192.png") 'square'
+New-Launcher 512 (Join-Path $web "icon-512.png") 'square'
+Write-Host "  ✓ icons/icon-192.png، icon-512.png"
+
+# القاذف يقصّ الأيقونة القابلة للقصّ دائرةً أو مربّعاً مستديراً، فيبقى
+# المضمون داخل ٨٠٪ الوسطى: الخلفية تملأ المربّع كلّه والشعار أصغر.
+function New-Maskable([int]$size, [string]$path) {
+  $c = New-Canvas $size $size
+  $bmp = $c[0]; $g = $c[1]
+  Fill-Brown $g $size $size
+  $inner = $size * 0.58
+  Draw-Logo $g $inner (($size - $inner) / 2) (($size - $inner) / 2)
+  $g.Dispose()
+  $bmp.Save($path, [System.Drawing.Imaging.ImageFormat]::Png)
+  $bmp.Dispose()
+}
+New-Maskable 512 (Join-Path $web "icon-maskable-512.png")
+Write-Host "  ✓ icons/icon-maskable-512.png"
+
+# أيقونة جوجل بلاي: ٥١٢×٥١٢ مربّعة بلا زوايا مستديرة — المتجر يقصّها بنفسه
+$store = New-Canvas 512 512
+$sb = $store[0]; $sg = $store[1]
+Fill-Brown $sg 512 512
+Draw-Logo $sg (512 * 0.72) (512 * 0.14) (512 * 0.14)
+$sg.Dispose()
+$sb.Save((Join-Path $web "play-store-512.png"), [System.Drawing.Imaging.ImageFormat]::Png)
+$sb.Dispose()
+Write-Host "  ✓ icons/play-store-512.png (لرفعها في جوجل بلاي)"
+
+$LOGO.Dispose()
+Write-Host "`nاكتمل توليد أيقونات التطبيق والموقع وشاشات البداية." -ForegroundColor Green

@@ -4,7 +4,7 @@
    ملاحظة: عند أي تعديل على ملفات الموقع، ارفع رقم CACHE_VERSION.
    ========================================================================== */
 
-var CACHE_VERSION = 'bak-v43';
+var CACHE_VERSION = 'bak-v44';
 var PRECACHE = [
   './',
   './index.html',
@@ -15,7 +15,6 @@ var PRECACHE = [
   './js/gallery-data.js',
   './js/main.js',
   './manifest.webmanifest',
-  './icons/icon.svg',
   './icons/icon-192.png',
   './icons/icon-512.png'
 ];

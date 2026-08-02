@@ -667,6 +667,46 @@ check('رقم واتساب يُنظّف من المسافات', contactData.conf
 check('أقل مبلغ للطلب محفوظ رقماً', contactData.config.minOrder === 55);
 check('تعديل التواصل يحفظ القائمة كما هي', contactData.dishes.length === owner.MENU.length);
 
+/* ===== أيقونات التطبيق =====
+   أيقونةٌ مذكورة ولا موجودة لا تُسقط شيئاً في الاختبارات: تظهر
+   فراغاً على شاشة الزبون ويرفضها جوجل بلاي عند الرفع. */
+console.log('\n— أيقونات التطبيق —');
+const { existsSync, statSync } = await import('node:fs');
+const manifest = JSON.parse(readFileSync(`${ROOT}/manifest.webmanifest`, 'utf8'));
+const swSrc = readFileSync(`${ROOT}/sw.js`, 'utf8');
+const pageSrc = readFileSync(`${ROOT}/index.html`, 'utf8');
+
+const missing = manifest.icons.filter((i) => !existsSync(`${ROOT}/${i.src}`));
+check('كل أيقونة في البيان موجودة على القرص', missing.length === 0,
+  `(ناقص: ${missing.map((i) => i.src).join('، ')})`);
+
+check('البيان فيه أيقونة قابلة للقصّ',
+  manifest.icons.some((i) => i.purpose === 'maskable'));
+
+const swIcons = [...swSrc.matchAll(/'\.\/(icons\/[^']+)'/g)].map((m) => m[1]);
+const swMissing = swIcons.filter((p) => !existsSync(`${ROOT}/${p}`));
+check('كل أيقونة يخزّنها عامل الخدمة موجودة', swMissing.length === 0,
+  `(ناقص: ${swMissing.join('، ')})`);
+
+const pageIcons = [...pageSrc.matchAll(/href="(icons\/[^"]+)"/g)].map((m) => m[1]);
+const pageMissing = pageIcons.filter((p) => !existsSync(`${ROOT}/${p}`));
+check('كل أيقونة تشير إليها الصفحة موجودة', pageMissing.length === 0,
+  `(ناقص: ${pageMissing.join('، ')})`);
+
+/* أيقونة جوجل بلاي شرطُ رفعٍ لا تحسين: ٥١٢×٥١٢ بالضبط */
+const playIcon = `${ROOT}/icons/play-store-512.png`;
+check('أيقونة جوجل بلاي مُولَّدة', existsSync(playIcon));
+if (existsSync(playIcon)) {
+  const buf = readFileSync(playIcon);
+  check('أيقونة المتجر ٥١٢×٥١٢ بالضبط',
+    buf.readUInt32BE(16) === 512 && buf.readUInt32BE(20) === 512,
+    `(${buf.readUInt32BE(16)}×${buf.readUInt32BE(20)})`);
+}
+
+/* الشعار مصدر الأيقونات كلّها — فقدُه يجعل توليدها مستحيلاً */
+check('شعار المطبخ موجود مصدراً للأيقونات',
+  existsSync(`${ROOT}/images/logo.png`) && statSync(`${ROOT}/images/logo.png`).size > 0);
+
 console.log(`\n${'='.repeat(46)}`);
 console.log(`النتيجة:  ✓ ${pass} ناجح   ✗ ${fail} فاشل`);
 console.log('='.repeat(46));
