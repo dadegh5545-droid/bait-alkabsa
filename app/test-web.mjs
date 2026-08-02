@@ -73,8 +73,11 @@ const TEST_CAT_COUNT = VISIBLE.filter((d) => d.cat === TEST_CAT.id).length;
 /* سعر الحجم: price كامل مكتوب فيه، أو delta يُضاف للسعر الأساسي */
 const sizeFull = (d, s) => (s.price != null ? s.price : d.price + (s.delta || 0));
 
-/* طبق مرئي له أحجام وإضافات — تُختبر عليه النافذة وحساب السعر */
-const SUBJECT   = VISIBLE.find((d) => d.sizes && d.sizes.length && d.addons && d.addons.length);
+/* طبق مرئي له أحجام وإضافات — تُختبر عليه النافذة وحساب السعر.
+   ويُفضَّل ما فيه اختيار أرز، وإلّا سقطت فحوص الاختيار صامتةً يوم
+   حُذف أرز اللحم وبقي أرز السمك بلا حارس. */
+const hasOptions = (d) => d.sizes && d.sizes.length && d.addons && d.addons.length;
+const SUBJECT   = VISIBLE.find((d) => hasOptions(d) && d.picks) || VISIBLE.find(hasOptions);
 const SUB_SIZE  = SUBJECT.sizes.reduce((a, b) =>
   (sizeFull(SUBJECT, b) > sizeFull(SUBJECT, a) ? b : a));
 const SUB_ADDON = SUBJECT.addons.find((a) => a.price > 0);
