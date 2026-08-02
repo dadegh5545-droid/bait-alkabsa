@@ -795,33 +795,6 @@
     return '';
   }
 
-  /* ---------- الغداء والعشاء ----------
-     اختيارٌ نعرفه لا قيدٌ نفرضه: الزرّ لا يمسّ الساعة ولا يمنع
-     موعداً — الزبون حرٌّ في ساعته، والمطبخ يعرف أيّ وجبة يطبخها.
-     وما دام لم يضغط شيئاً تتبع الأزرارُ ساعتَه، فلا تخرج الرسالة
-     بلا وجبة لمن لم ينتبه للزرّين. */
-  var mealChoice = '';
-
-  function mealAt(hour) {
-    return hour < (leadCfg().lunchUntil || 17) ? 'lunch' : 'dinner';
-  }
-
-  function currentMeal() {
-    if (mealChoice) return mealChoice;
-    var f = customerFields();
-    if (!f.time || !f.time.value) return '';
-    return mealAt(+f.time.value.split(':')[0]);
-  }
-
-  function refreshMealButtons() {
-    var meal = currentMeal();
-    $$('.meal-btn').forEach(function (b) {
-      var on = b.getAttribute('data-meal') === meal;
-      b.classList.toggle('is-active', on);
-      b.setAttribute('aria-pressed', on ? 'true' : 'false');
-    });
-  }
-
   function setupWhen() {
     var f = customerFields();
     if (!f.date) return;
@@ -835,32 +808,18 @@
 
     var hint = $('#cartWhenHint');
     if (hint) hint.textContent = leadCfg().note || '';
-    refreshMealButtons();
-  }
-
-  /* الضغط يثبّت الاختيار فلا تنقضه ساعةٌ تُعدَّل بعده: من ضغط
-     «غداء» ثم اختار السابعة مساءً يريد غداءً في السابعة — لا
-     يُصحَّح له اختيارٌ صرّح به. وقبل أيّ ضغط تتبع الأزرارُ الساعة. */
-  $$('.meal-btn').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      mealChoice = btn.getAttribute('data-meal');
-      refreshMealButtons();
-    });
-  });
-  if ($('#cartWhen')) {
-    $('#cartWhen').addEventListener('change', refreshMealButtons);
-    $('#cartWhen').addEventListener('input', refreshMealButtons);
   }
 
   /* الموعد المختار بصيغة يقرأها المطبخ. بالإنجليزية تبقى الأرقام
-     لاتينية: من لا يقرأ العربية لا يقرأ «٢٠٢٦/٠٨/٠٢» كذلك. */
+     لاتينية: من لا يقرأ العربية لا يقرأ «٢٠٢٦/٠٨/٠٢» كذلك.
+     والوجبة تُقرأ من الساعة: من اختار الواحدة ظهراً قال غداءً
+     بساعته، فلا يُسأل عنها مرّتين. */
   function whenText(en) {
     var f = customerFields();
     if (!f.date || !f.time || !f.date.value || !f.time.value) return '';
 
-    /* الوجبة من اختيار الزبون إن ضغطه، وإلّا فمن ساعته */
     var parts = f.date.value.split('-');
-    var lunch = currentMeal() === 'lunch';
+    var lunch = +f.time.value.split(':')[0] < (leadCfg().lunchUntil || 17);
     var meal  = en ? (lunch ? 'Lunch' : 'Dinner') : (lunch ? 'غداء' : 'عشاء');
     var date  = parts[2] + '/' + parts[1] + '/' + parts[0];
 

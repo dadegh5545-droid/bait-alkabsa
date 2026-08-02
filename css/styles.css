@@ -1741,31 +1741,6 @@ html[dir="rtl"] .cart-panel { transform: translateX(100%); }
 }
 
 /* التاريخ والساعة جنباً إلى جنب */
-/* الغداء والعشاء: زرّان يضبطان الساعة تحتهما. أوسع من حقل الوقت
-   لأنّ أكثر الزبائن يريد إحدى الوجبتين لا ساعةً بعينها. */
-.meal-pick { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
-.meal-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: .4rem;
-  padding: .6rem .5rem;
-  border: 1.5px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-  font-size: .87rem;
-  font-weight: 500;
-  color: var(--ink-soft);
-  transition: all .2s var(--ease);
-}
-.meal-btn:hover { border-color: var(--gold); color: var(--brown); }
-.meal-btn.is-active {
-  border-color: var(--gold);
-  background: var(--gold-dim);
-  color: var(--brown);
-  font-weight: 700;
-}
-
 .cart-when { display: flex; gap: .5rem; }
 .cart-when input { flex: 1 1 0; min-width: 0; }
 

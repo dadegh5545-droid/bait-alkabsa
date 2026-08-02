@@ -370,66 +370,25 @@ check('الغداء والعشاء بالإنجليزية', /\((Lunch|Dinner)\)/
 check('بيانات الزبون كما كتبها لا مترجَمة',
   enPart.includes('سعد العنزي') && enPart.includes('حي النرجس'));
 
-/* ===== الغداء والعشاء: زرّ يضبط الساعة، والساعة تضيء الزرّ ===== */
-console.log('\n— اختيار الغداء أو العشاء —');
-const mealBtn = (m) => $(`.meal-btn[data-meal="${m}"]`);
-const litMeal = () => ($$('.meal-btn').find((b) => b.classList.contains('is-active')) || {})
-  .dataset?.meal;
-
-/* الزبون يعدّل الساعة من الواجهة فيُطلق حدثاً — والتعيين البرمجي
-   وحده لا يُطلقه، فنحاكيه كما يفعل */
-const setHour = (v) => {
-  $('#cartWhen').value = v;
+/* ===== الوجبة من الساعة =====
+   لا زرّ يعيد سؤال الزبون عمّا قاله بساعته: من اختار الظهر قال
+   غداءً، ومن اختار المساء قال عشاءً. */
+console.log('\n— الغداء والعشاء من الساعة —');
+const sendAt = (hhmm) => {
+  $('#cartWhen').value = hhmm;
   $('#cartWhen').dispatchEvent(new window.Event('change', { bubbles: true }));
+  opened.length = 0;
+  click($('#cartSubmit'));
+  return decodeURIComponent((opened[0] || '').split('text=')[1] || '');
 };
 
-check('زرّا الغداء والعشاء موجودان', !!mealBtn('lunch') && !!mealBtn('dinner'));
-
-/* فتح السلة يُضيء الزرّ الموافق لساعتها — لا يفتحها الزبون على
-   «غداء» مضيء وساعته مساءً */
-click($('#cartBtn'));
-const openHour = +$('#cartWhen').value.split(':')[0];
-check('فتح السلة يُضيء الزرّ الموافق لساعتها',
-  litMeal() === (openHour < 17 ? 'lunch' : 'dinner'),
-  `(الساعة ${$('#cartWhen').value} والمضيء ${litMeal()})`);
-
-/* قبل أيّ ضغط تتبع الأزرارُ الساعة، فلا تخرج الرسالة بلا وجبة
-   لمن لم ينتبه للزرّين */
-setHour('20:00');
-check('قبل الاختيار: ساعة المساء تُضيء العشاء', litMeal() === 'dinner',
-  `(المضيء ${litMeal()})`);
-setHour('12:30');
-check('قبل الاختيار: ساعة الظهر تُضيء الغداء', litMeal() === 'lunch');
-
-/* الاختيار معلومة لا قيد: لا يبدّل ساعةً ولا يمنع موعداً */
-setHour('20:00');
-click(mealBtn('lunch'));
-check('اختيار الغداء لا يمسّ ساعة الزبون', $('#cartWhen').value === '20:00',
-  `(بُدّلت إلى ${$('#cartWhen').value})`);
-check('اختيار الغداء يضيئه', litMeal() === 'lunch');
-check('لا خطأ على موعدٍ صحيح بعد الاختيار',
-  $('.cart-err[data-for="cartWhen"]').textContent === '',
-  `(${$('.cart-err[data-for="cartWhen"]').textContent})`);
-check('الزرّ المختار معلَن للقارئ الصوتي',
-  mealBtn('lunch').getAttribute('aria-pressed') === 'true' &&
-  mealBtn('dinner').getAttribute('aria-pressed') === 'false');
-
-/* ما صرّح به الزبون لا تنقضه ساعةٌ يعدّلها بعده: من ضغط «غداء»
-   ثم اختار السابعة مساءً يريد غداءً في السابعة */
-setHour('19:00');
-check('تعديل الساعة لا يلغي اختياراً صريحاً', litMeal() === 'lunch',
-  `(المضيء ${litMeal()})`);
-
-click(mealBtn('dinner'));
-check('يقدر يبدّل اختياره', litMeal() === 'dinner' && $('#cartWhen').value === '19:00');
-click(mealBtn('lunch'));
-
-/* والرسالة تتبع الاختيار لا العكس */
-opened.length = 0;
-click($('#cartSubmit'));
-const lunchMsg = decodeURIComponent((opened[0] || '').split('text=')[1] || '');
-check('الرسالة تقول غداء بعد اختياره', lunchMsg.includes('(غداء)') && lunchMsg.includes('(Lunch)'),
-  '(بقيت تقول عشاء)');
+const lunchMsg = sendAt('13:00');
+check('ساعة الظهر تُرسل غداءً', lunchMsg.includes('(غداء)') && lunchMsg.includes('(Lunch)'),
+  '(لم تقل غداء)');
+const dinnerMsg = sendAt('20:00');
+check('ساعة المساء تُرسل عشاءً', dinnerMsg.includes('(عشاء)') && dinnerMsg.includes('(Dinner)'),
+  '(لم تقل عشاء)');
+check('لا زرّ وجبة في السلة', $$('.meal-btn').length === 0);
 
 /* كل اسم يخرج للمطبخ له إنجليزية — طبقٌ بلا ترجمة يصل الموظفَ عربياً */
 const untranslated = [];
