@@ -385,10 +385,13 @@
 
   <!-- ===== لافتة تثبيت التطبيق ===== -->
   <div class="install-banner" id="installBanner" role="dialog" aria-label="تثبيت التطبيق">
-    <span class="ib-icon" aria-hidden="true">🍛</span>
+    <!-- الشعار نفسه لا إيموجي طبقٍ عام: هذا ما سيراه الزبون أيقونةً
+         على شاشته بعد التثبيت، فليره قبلها. -->
+    <img class="ib-icon" src="icons/icon-192.png" alt="" aria-hidden="true"
+         width="44" height="44" loading="lazy" decoding="async" />
     <span class="ib-text">
       <strong>ثبّت تطبيق بيت الكبسة</strong>
-      <small>اطلب أسرع — ويعمل بدون إنترنت</small>
+      <small id="ibHint">اطلب أسرع — ويعمل بدون إنترنت</small>
     </span>
     <button class="btn btn-primary" id="installBtn">تثبيت</button>
     <button class="ib-close" id="installClose" aria-label="إغلاق">×</button>

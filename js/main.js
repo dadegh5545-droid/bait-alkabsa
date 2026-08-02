@@ -1807,14 +1807,35 @@
   var installClose = $('#installClose');
   var DISMISS_KEY = 'bak_install_dismissed';
 
+  function showBanner() {
+    if (!banner || isNative || isStandalone) return;
+    if (store.get(DISMISS_KEY, null)) return;
+    setTimeout(function () { banner.classList.add('is-open'); }, 3500);
+  }
+
   window.addEventListener('beforeinstallprompt', function (e) {
     if (isNative) return;
     e.preventDefault();
     deferredPrompt = e;
-    if (banner && !store.get(DISMISS_KEY, null) && !isStandalone) {
-      setTimeout(function () { banner.classList.add('is-open'); }, 3500);
-    }
+    showBanner();
   });
+
+  /* ---------- الآيفون ----------
+     سفاري لا يطلق beforeinstallprompt أبداً ولا يملك زرّ تثبيت
+     تناديه الصفحة، فكان صاحب الآيفون لا يرى اللافتة ولا يعرف أنّ
+     الموقع يُثبّت أصلاً. ولمّا صار التثبيت هو الطريق الوحيد إلى
+     أيقونةٍ على شاشته، صار كتمانه عن نصف الزبائن نقصاً.
+     فتُعرض له اللافتة نفسها بإرشادٍ بدل الزرّ.
+     (iPadOS يعرّف نفسه ماكنتوشاً، فيُميَّز بوجود اللمس.) */
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+  if (isIOS && banner && !isNative && !navigator.standalone && !isStandalone) {
+    var hint = $('#ibHint');
+    if (hint) hint.textContent = 'اضغط زرّ المشاركة ⬆︎ ثم «إضافة إلى الشاشة الرئيسية»';
+    if (installBtn) installBtn.hidden = true;
+    showBanner();
+  }
 
   if (installBtn) {
     installBtn.addEventListener('click', function () {

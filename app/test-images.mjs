@@ -707,6 +707,19 @@ if (existsSync(playIcon)) {
 check('شعار المطبخ موجود مصدراً للأيقونات',
   existsSync(`${ROOT}/images/logo.png`) && statSync(`${ROOT}/images/logo.png`).size > 0);
 
+/* لافتة التثبيت تعرض الأيقونة نفسها التي ستستقرّ على شاشة الزبون */
+check('لافتة التثبيت تعرض الشعار لا إيموجي',
+  /<img[^>]+class="ib-icon"[^>]+src="icons\//.test(pageSrc),
+  '(ما زالت إيموجي)');
+
+/* سفاري لا يطلق beforeinstallprompt، فبلا مسارٍ خاصّ لا يعرف صاحب
+   الآيفون أنّ الموقع يُثبّت — والتثبيت هو الطريق الوحيد اليوم */
+const mainSrc = readFileSync(`${ROOT}/js/main.js`, 'utf8');
+check('للآيفون إرشاد تثبيت خاصّ',
+  /iphone\|ipad\|ipod/i.test(mainSrc) && mainSrc.includes('إضافة إلى الشاشة الرئيسية'));
+check('إرشاد الآيفون يخفي زرّ التثبيت الذي لا يعمل عنده',
+  /installBtn\.hidden = true/.test(mainSrc));
+
 console.log(`\n${'='.repeat(46)}`);
 console.log(`النتيجة:  ✓ ${pass} ناجح   ✗ ${fail} فاشل`);
 console.log('='.repeat(46));

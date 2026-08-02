@@ -1118,12 +1118,12 @@ body.has-preview-bar { padding-bottom: 4.5rem; }
   from { transform: translateY(24px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
+/* الأيقونة صارت صورة الشعار نفسها، وهي تحمل خلفيتها البنّية —
+   فلا مربّع ذهبيّ تحتها ولا حجم خطّ لإيموجي لم يعد موجوداً */
 .install-banner .ib-icon {
   width: 46px; height: 46px;
-  display: grid; place-items: center;
   border-radius: 13px;
-  background: linear-gradient(135deg, var(--gold) 0%, #a9761a 100%);
-  font-size: 1.4rem;
+  object-fit: cover;
   flex-shrink: 0;
 }
 .install-banner .ib-text { flex: 1; line-height: 1.5; }
