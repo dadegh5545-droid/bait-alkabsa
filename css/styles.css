@@ -1741,6 +1741,34 @@ html[dir="rtl"] .cart-panel { transform: translateX(100%); }
 }
 
 /* التاريخ والساعة جنباً إلى جنب */
+/* تحديد الموقع: زرٌّ بعرض الحقل فوق خانة الكتابة — يراه الزبون
+   قبل أن يبدأ الكتابة فيوفّرها على نفسه */
+.locate-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  padding: .62rem .8rem;
+  border: 1.5px dashed var(--gold);
+  border-radius: var(--radius-sm);
+  background: var(--gold-dim);
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--brown);
+  transition: background .2s, border-color .2s, opacity .2s;
+}
+.locate-btn:hover { background: var(--gold); color: #fff; border-style: solid; }
+.locate-btn:disabled { opacity: .6; cursor: default; }
+
+.locate-state {
+  font-size: .76rem;
+  line-height: 1.6;
+  margin: 0;
+  color: var(--ink-faint);
+}
+.locate-state.is-ok   { color: var(--brown); font-weight: 600; }
+.locate-state.is-warn { color: var(--red); }
+
 .cart-when { display: flex; gap: .5rem; }
 .cart-when input { flex: 1 1 0; min-width: 0; }
 

@@ -982,6 +982,15 @@
       if (orderMode === 'delivery' && free && subtotal < free) {
         messages.push('أضف ' + formatPrice(free - subtotal) + ' ليصبح التوصيل مجاناً');
       }
+
+      /* موقعه المحدَّد يخالف منطقته المختارة — يُقال ولا يُمنع:
+         قد يطلب لبيت أهله لا لمكانه، والمطبخ يرى الاثنين في الرسالة */
+      var mism = orderMode === 'delivery' ? zoneMismatch() : '';
+      if (mism) {
+        messages.push('موقعك المحدَّد يقع في «' + escapeHtml(mism) +
+                      '» — تأكّد من المنطقة قبل الإرسال');
+      }
+
       cartWarn.innerHTML = messages.join('<br>');
       cartWarn.hidden = messages.length === 0;
     }
@@ -1060,6 +1069,111 @@
     }).join('');
   }
   renderZones();
+
+  /* ======================================================================
+     تحديد الموقع
+     الزبون خارج الدوحة قد يختار «داخل الدوحة» فيصل الطلب برسمٍ
+     أقلّ من كلفته. فبدل أن نُصدّق الاختيار وحده، نقيس المسافة بين
+     موقعه ومركز الدوحة ونضبط منطقته عليها — ويبقى قادراً على
+     تغييرها لأنّه قد يطلب لعنوانٍ غير مكانه، لكنّ الرسالة تحمل
+     رابط موقعه وتقول للمطبخ إن خالف اختيارُه موقعَه.
+     ====================================================================== */
+  var geoFix = null;   /* { lat, lng, km, zone } — آخر موقع حدّده */
+
+  function geoCfg() {
+    return CFG.geo || {
+      center: { lat: 25.2854, lng: 51.5310 },
+      insideKm: 25, insideZone: 'doha', outsideZone: 'outside'
+    };
+  }
+
+  /* المسافة بين نقطتين على سطح الأرض — قانون هافرساين */
+  function distanceKm(aLat, aLng, bLat, bLng) {
+    var R = 6371;
+    var rad = Math.PI / 180;
+    var dLat = (bLat - aLat) * rad;
+    var dLng = (bLng - aLng) * rad;
+    var h = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(aLat * rad) * Math.cos(bLat * rad) *
+            Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+  }
+
+  function zoneForDistance(km) {
+    var g = geoCfg();
+    return km <= (g.insideKm || 25) ? (g.insideZone || 'doha')
+                                    : (g.outsideZone || 'outside');
+  }
+
+  function zoneLabelOf(id) {
+    var list = zones() || [];
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) return list[i].label;
+    }
+    return '';
+  }
+
+  /* موقعٌ حُدّد ومنطقةٌ تخالفه — يُقال للزبون وللمطبخ، ولا يُمنع */
+  function zoneMismatch() {
+    if (!geoFix || !zones()) return '';
+    if (geoFix.zone === zoneId) return '';
+    return zoneLabelOf(geoFix.zone);
+  }
+
+  function mapsLink(lat, lng) {
+    return 'https://maps.google.com/?q=' + lat.toFixed(6) + ',' + lng.toFixed(6);
+  }
+
+  function locateState(message, kind) {
+    var el = $('#cartLocateState');
+    if (!el) return;
+    el.textContent = message || '';
+    el.hidden = !message;
+    el.className = 'locate-state' + (kind ? ' is-' + kind : '');
+  }
+
+  var locateBtn = $('#cartLocate');
+  if (locateBtn) {
+    locateBtn.addEventListener('click', function () {
+      if (!navigator.geolocation) {
+        locateState('جهازك لا يدعم تحديد الموقع — اكتب موقعك بالأسفل', 'warn');
+        return;
+      }
+
+      locateBtn.disabled = true;
+      locateState('جارٍ تحديد موقعك…', '');
+
+      navigator.geolocation.getCurrentPosition(function (pos) {
+        locateBtn.disabled = false;
+        var g   = geoCfg();
+        var lat = pos.coords.latitude;
+        var lng = pos.coords.longitude;
+        var km  = distanceKm(g.center.lat, g.center.lng, lat, lng);
+        var z   = zoneForDistance(km);
+
+        geoFix = { lat: lat, lng: lng, km: km, zone: z };
+
+        /* الموقع يضبط المنطقة: هذا لبّ الفائدة — لا يبقى الرسم
+           على اختيارٍ يخالف المكان */
+        if (zones() && zoneId !== z) {
+          zoneId = z;
+          if (zoneSelect) zoneSelect.value = z;
+          saveCart();
+          renderCart();
+        }
+
+        var label = zoneLabelOf(z);
+        locateState('تم تحديد موقعك — ' + label +
+                    ' (' + toArabicDigits(Math.round(km)) + ' كم من مركز الدوحة)', 'ok');
+      }, function (err) {
+        locateBtn.disabled = false;
+        /* رفض الإذن ليس خطأً يُلام عليه الزبون — يكتب موقعه ويكمل */
+        locateState(err && err.code === 1
+          ? 'لم يُسمح بالوصول للموقع — اكتب موقعك بالأسفل'
+          : 'تعذّر تحديد موقعك — اكتب موقعك بالأسفل', 'warn');
+      }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 300000 });
+    });
+  }
 
   if (zoneSelect) {
     zoneSelect.addEventListener('change', function () {
@@ -1198,6 +1312,23 @@
           if (z) out.push((en ? 'Zone: ' : 'المنطقة: ') + name(z.label));
           out.push((en ? 'Location: ' : 'الموقع: ') + f.address.value.trim());
           out.push((en ? 'Villa/Flat no.: ' : 'رقم الفيلا/الشقة: ') + f.unit.value.trim());
+
+          /* الموقع المحدَّد: رابطٌ يفتحه السائق، ومسافةٌ يراجع بها
+             المطبخ الرسم. وإن خالف اختيارُ الزبون موقعَه قيلت
+             المخالفة صريحة — لا يُكتشف بعد أن ينطلق السائق. */
+          if (geoFix) {
+            out.push((en ? 'Pinned location: ' : 'الموقع على الخريطة: ') +
+                     mapsLink(geoFix.lat, geoFix.lng));
+            out.push((en ? 'Distance from Doha centre: ' : 'بعده عن مركز الدوحة: ') +
+                     (en ? Math.round(geoFix.km) : toArabicDigits(Math.round(geoFix.km))) +
+                     (en ? ' km' : ' كم'));
+            var mismatch = zoneMismatch();
+            if (mismatch) {
+              out.push(en
+                ? '⚠️ Pinned location falls in "' + tr(mismatch) + '" — please confirm the fee'
+                : '⚠️ الموقع المحدَّد يقع في «' + mismatch + '» — راجع الرسم');
+            }
+          }
         } else {
           out.push('');
           out.push(en ? 'Order type: Pickup' : 'طريقة الاستلام: من الفرع');

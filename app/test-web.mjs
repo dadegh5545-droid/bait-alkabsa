@@ -32,6 +32,20 @@ window.scrollTo = () => {};
 const opened = [];
 window.open = (url) => { opened.push(url); return null; };
 
+/* تحديد الموقع: jsdom لا يملكه، فنضع بديلاً نتحكّم بجوابه —
+   geoAt يضبط الإحداثيّات، وgeoDeny يجعله يرفض كما يرفض الزبون */
+let geoAt = { latitude: 25.2854, longitude: 51.5310 };
+let geoDeny = null;
+Object.defineProperty(window.navigator, 'geolocation', {
+  configurable: true,
+  value: {
+    getCurrentPosition(ok, fail) {
+      if (geoDeny) fail(geoDeny);
+      else ok({ coords: geoAt });
+    }
+  }
+});
+
 /* ورقة الأنماط تُقرأ نصّاً لا تُحسب:
    jsdom يجعل وسم hidden يغلب أي قاعدة display، والمتصفّح الحقيقي
    يفعل العكس — فقياس getComputedStyle هنا يمرّ دائماً ولو كان
@@ -389,6 +403,72 @@ const dinnerMsg = sendAt('20:00');
 check('ساعة المساء تُرسل عشاءً', dinnerMsg.includes('(عشاء)') && dinnerMsg.includes('(Dinner)'),
   '(لم تقل عشاء)');
 check('لا زرّ وجبة في السلة', $$('.meal-btn').length === 0);
+
+/* ===== تحديد الموقع =====
+   زبون خارج الدوحة قد يختار «داخل الدوحة» فيصل الطلب برسمٍ أقلّ
+   من كلفته. الموقع يضبط المنطقة، والرسالة تحمله. */
+console.log('\n— تحديد الموقع ورسم التوصيل —');
+const GEO = window.ORDER_CONFIG.geo;
+const locState = () => $('#cartLocateState').textContent;
+const sendNow = () => {
+  opened.length = 0;
+  click($('#cartSubmit'));
+  return decodeURIComponent((opened[0] || '').split('text=')[1] || '');
+};
+
+check('زرّ تحديد الموقع موجود', !!$('#cartLocate'));
+check('حدود الدوحة مكتوبة في الإعدادات',
+  !!(GEO && GEO.center && GEO.insideKm > 0 && GEO.insideZone && GEO.outsideZone));
+
+/* موقع في مركز الدوحة ⇒ المنطقة الداخلية ورسمها */
+geoAt = { latitude: GEO.center.lat, longitude: GEO.center.lng };
+click($('#cartLocate'));
+check('موقع داخل الدوحة يضبط المنطقة الداخلية',
+  $('#cartZone').value === GEO.insideZone, `(${$('#cartZone').value})`);
+check('الحالة تُطمئن الزبون أنّ موقعه حُدّد', locState().includes('تم تحديد موقعك'));
+
+const insideFee = ZONES.find((z) => z.id === GEO.insideZone).fee;
+check('رسم التوصيل صار رسم الداخل',
+  $('#sumDelivery').textContent === qr(insideFee), `(${$('#sumDelivery').textContent})`);
+
+/* موقع أبعد من الحدّ ⇒ المنطقة الخارجية ورسمها الأعلى — وهذا لبّ
+   الفائدة: لا يصل طلبٌ من خارج الدوحة برسم داخلها */
+geoAt = { latitude: GEO.center.lat + (GEO.insideKm + 20) / 111, longitude: GEO.center.lng };
+click($('#cartLocate'));
+check('موقع خارج الحدّ يضبط المنطقة الخارجية',
+  $('#cartZone').value === GEO.outsideZone, `(${$('#cartZone').value})`);
+
+const outsideFee = ZONES.find((z) => z.id === GEO.outsideZone).fee;
+check('رسم التوصيل ارتفع لرسم الخارج',
+  $('#sumDelivery').textContent === qr(outsideFee), `(${$('#sumDelivery').textContent})`);
+
+const farMsg = sendNow();
+check('الرسالة تحمل رابط الموقع', /https:\/\/maps\.google\.com\/\?q=-?\d+\.\d+,-?\d+\.\d+/.test(farMsg));
+check('الرسالة تذكر بعده عن مركز الدوحة', farMsg.includes('بعده عن مركز الدوحة'));
+check('النسخة الإنجليزية تحمله كذلك',
+  (farMsg.split('ENGLISH')[1] || '').includes('Pinned location:'));
+
+/* يقدر يخالف الموقع — قد يطلب لبيت أهله — لكنّ المخالفة تُقال
+   له في السلة وتصل المطبخ في الرسالة */
+$('#cartZone').value = GEO.insideZone;
+$('#cartZone').dispatchEvent(new window.Event('change', { bubbles: true }));
+check('يقدر يغيّر المنطقة رغم موقعه', $('#cartZone').value === GEO.insideZone);
+check('السلة تنبّه على مخالفة الموقع للمنطقة',
+  $('#cartWarn').hidden === false && $('#cartWarn').textContent.includes('موقعك المحدَّد'),
+  `(${$('#cartWarn').textContent})`);
+
+const mismMsg = sendNow();
+check('الرسالة تقول للمطبخ إنّ الاختيار يخالف الموقع',
+  mismMsg.includes('راجع الرسم') &&
+  (mismMsg.split('ENGLISH')[1] || '').includes('please confirm the fee'));
+
+/* رفض الإذن لا يكسر الطلب — يكتب موقعه ويكمل */
+geoDeny = { code: 1, message: 'denied' };
+click($('#cartLocate'));
+check('رفض الإذن يُقال بلا لوم', locState().includes('اكتب موقعك بالأسفل'));
+check('الزرّ يرجع قابلاً للضغط بعد الرفض', $('#cartLocate').disabled === false);
+check('الطلب يمضي رغم رفض الإذن', sendNow().includes('الاسم: سعد العنزي'));
+geoDeny = null;
 
 /* كل اسم يخرج للمطبخ له إنجليزية — طبقٌ بلا ترجمة يصل الموظفَ عربياً */
 const untranslated = [];

@@ -539,6 +539,13 @@
 
               <div class="cart-field" id="addressField" hidden>
                 <label for="cartAddress">موقع البيت</label>
+                <!-- تحديد الموقع يضبط المنطقة بنفسه ويرسل رابطها للمطبخ،
+                     فلا يصل طلبٌ من خارج الدوحة برسم داخلها. والكتابة
+                     تبقى متاحة لمن رفض الإذن أو طلب لعنوان غير مكانه. -->
+                <button type="button" class="locate-btn" id="cartLocate">
+                  <span aria-hidden="true">📍</span>حدّد موقعي على الخريطة
+                </button>
+                <p class="locate-state" id="cartLocateState" hidden></p>
                 <textarea id="cartAddress" rows="2"
                           placeholder="المنطقة، الشارع، وأي علامة مميزة"></textarea>
                 <span class="cart-err" data-for="cartAddress"></span>
