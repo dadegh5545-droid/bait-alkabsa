@@ -33,6 +33,24 @@
     return toArabicDigits(text) + ' ' + (CFG.currency || 'ر.ق');
   }
 
+  /* ---------- النسخة الإنجليزية من رسالة الطلب ----------
+     في المطبخ من لا يقرأ العربية. النصّ العربي نفسه هو مفتاح
+     القاموس في js/menu-en.js، وما لا ترجمة له يخرج عربياً كما هو:
+     اسمٌ عربي في وجه الموظف أنفع من معرّف تقنيّ أو فراغ. */
+  function tr(text) {
+    var dict = window.MENU_EN;
+    if (!text || !dict) return text || '';
+    return dict[String(text).trim()] || text;
+  }
+
+  /* الأرقام لاتينية في النسخة الإنجليزية — من لا يقرأ العربية
+     لا يقرأ «٢٠٠٠ ر.ق» كذلك */
+  function priceEn(value) {
+    var rounded = Math.round(value * 100) / 100;
+    var text = rounded % 1 === 0 ? String(rounded) : rounded.toFixed(2);
+    return text + ' ' + ((CFG.currency || 'ر.ق') === 'ر.ق' ? 'QAR' : CFG.currency);
+  }
+
   /* عدٌّ عربي سليم: طبق واحد، طبقان، ثلاثة أطباق، أحد عشر طبقاً.
      العربية لا تقول «١ طبق» ولا «٢ أطباق»، والسلة يقرأها الزبون. */
   function countLabel(n, one, two, few, many) {
@@ -792,17 +810,21 @@
     if (hint) hint.textContent = leadCfg().note || '';
   }
 
-  /* الموعد المختار بصيغة يقرأها المطبخ */
-  function whenText() {
+  /* الموعد المختار بصيغة يقرأها المطبخ. بالإنجليزية تبقى الأرقام
+     لاتينية: من لا يقرأ العربية لا يقرأ «٢٠٢٦/٠٨/٠٢» كذلك. */
+  function whenText(en) {
     var f = customerFields();
     if (!f.date || !f.time || !f.date.value || !f.time.value) return '';
 
     var parts = f.date.value.split('-');
     var hm    = +f.time.value.split(':')[0];
-    var meal  = hm < (leadCfg().lunchUntil || 17) ? 'غداء' : 'عشاء';
+    var lunch = hm < (leadCfg().lunchUntil || 17);
+    var meal  = en ? (lunch ? 'Lunch' : 'Dinner') : (lunch ? 'غداء' : 'عشاء');
+    var date  = parts[2] + '/' + parts[1] + '/' + parts[0];
 
-    return toArabicDigits(parts[2] + '/' + parts[1] + '/' + parts[0]) +
-           ' — ' + toArabicDigits(f.time.value) + ' (' + meal + ')';
+    if (en) return date + ' — ' + f.time.value + ' (' + meal + ')';
+    return toArabicDigits(date) + ' — ' + toArabicDigits(f.time.value) +
+           ' (' + meal + ')';
   }
 
   function fieldError(id, message) {
@@ -1118,56 +1140,77 @@
 
       saveCustomer();
 
-      var lines = ['السلام عليكم، أرغب بطلب من مطابخ بيت الكبسة', ''];
+      /* الطلب يُكتب مرّتين: بالعربية ثم بالإنجليزية. في المطبخ من لا
+         يقرأ العربية، وسطران متجاوران لكل بند يخلطان اللغتين فلا
+         يستقيم أيّهما — أمّا نسختان كاملتان فيقرأ كلٌّ نصفه. */
+      function orderLines(en) {
+        var money = en ? priceEn : formatPrice;
+        var num   = function (n) { return en ? String(n) : toArabicDigits(n); };
+        var name  = function (t) { return en ? tr(t) : t; };
+        var free  = en ? 'Free' : 'مجاناً';
 
-      /* الرسالة تفصّل الإضافات سطراً سطراً بعددها وثمنها، فيصل
-         المطبخ عددٌ صريح لا يحتمل التأويل، ويراجعه الزبون قبل الإرسال */
-      cart.forEach(function (item) {
-        var dish = getDish(item.dishId);
-        if (!dish) return;
-        lines.push('• ' + dish.name + ' ×' + toArabicDigits(item.qty) + ' — ' + formatPrice(linePrice(item)));
+        var out = [en
+          ? 'Hello, I would like to place an order from Bait Alkabsa Kitchens'
+          : 'السلام عليكم، أرغب بطلب من مطابخ بيت الكبسة', ''];
 
-        var opts = itemOptions(item).join(' · ');
-        if (opts) lines.push('   ' + opts);
+        /* الرسالة تفصّل الإضافات سطراً سطراً بعددها وثمنها، فيصل
+           المطبخ عددٌ صريح لا يحتمل التأويل، ويراجعه الزبون قبل الإرسال */
+        cart.forEach(function (item) {
+          var dish = getDish(item.dishId);
+          if (!dish) return;
+          out.push('• ' + name(dish.name) + ' ×' + num(item.qty) +
+                   ' — ' + money(linePrice(item)));
 
-        itemAddons(item).forEach(function (a) {
-          lines.push('   + ' + a.label + ' ×' + toArabicDigits(a.qty) +
-                     ' — ' + (a.free ? 'مجاناً' : formatPrice(a.total)));
+          var opts = itemOptions(item).map(name).join(' · ');
+          if (opts) out.push('   ' + opts);
+
+          itemAddons(item).forEach(function (a) {
+            out.push('   + ' + name(a.label) + ' ×' + num(a.qty) +
+                     ' — ' + (a.free ? free : money(a.total)));
+          });
+
+          /* ملاحظة الزبون تبقى بلغته كما كتبها: ترجمتها آلياً تخترع
+             ما لم يقله. والوسم وحده يكفي ليعرف الموظف أنّ هنا شرطاً */
+          if (item.note) out.push('   ' + (en ? 'Note: ' : 'ملاحظة: ') + item.note);
         });
 
-        if (item.note) lines.push('   ملاحظة: ' + item.note);
-      });
+        out.push('');
+        out.push((en ? 'Subtotal: ' : 'المجموع الفرعي: ') + money(subtotal));
 
-      lines.push('');
-      lines.push('المجموع الفرعي: ' + formatPrice(subtotal));
-
-      if (orderMode === 'delivery') {
-        var fee = deliveryFee();
-        lines.push('التوصيل: ' + (fee === 0 ? 'مجاناً' : formatPrice(fee)));
-        lines.push('الإجمالي: ' + formatPrice(subtotal + fee));
-      } else {
-        lines.push('الإجمالي: ' + formatPrice(subtotal));
-      }
-
-      lines.push('');
-      lines.push('الاسم: ' + f.name.value.trim());
-      lines.push('الجوال: ' + phone);
-      lines.push('وقت التسليم: ' + whenText());
-
-      if (orderMode === 'delivery') {
-        lines.push('');
-        lines.push('طريقة الاستلام: توصيل');
-        var z = currentZone();
-        if (z) lines.push('المنطقة: ' + z.label);
-        lines.push('الموقع: ' + f.address.value.trim());
-        lines.push('رقم الفيلا/الشقة: ' + f.unit.value.trim());
-      } else {
-        lines.push('');
-        lines.push('طريقة الاستلام: من الفرع');
-        if (branchSelect && branchSelect.selectedIndex >= 0) {
-          lines.push('الفرع: ' + branchSelect.options[branchSelect.selectedIndex].text);
+        if (orderMode === 'delivery') {
+          var fee = deliveryFee();
+          out.push((en ? 'Delivery: ' : 'التوصيل: ') + (fee === 0 ? free : money(fee)));
+          out.push((en ? 'Total: ' : 'الإجمالي: ') + money(subtotal + fee));
+        } else {
+          out.push((en ? 'Total: ' : 'الإجمالي: ') + money(subtotal));
         }
+
+        out.push('');
+        out.push((en ? 'Name: ' : 'الاسم: ') + f.name.value.trim());
+        out.push((en ? 'Phone: ' : 'الجوال: ') + phone);
+        out.push((en ? 'Delivery time: ' : 'وقت التسليم: ') + whenText(en));
+
+        if (orderMode === 'delivery') {
+          out.push('');
+          out.push(en ? 'Order type: Delivery' : 'طريقة الاستلام: توصيل');
+          var z = currentZone();
+          if (z) out.push((en ? 'Zone: ' : 'المنطقة: ') + name(z.label));
+          out.push((en ? 'Location: ' : 'الموقع: ') + f.address.value.trim());
+          out.push((en ? 'Villa/Flat no.: ' : 'رقم الفيلا/الشقة: ') + f.unit.value.trim());
+        } else {
+          out.push('');
+          out.push(en ? 'Order type: Pickup' : 'طريقة الاستلام: من الفرع');
+          if (branchSelect && branchSelect.selectedIndex >= 0) {
+            out.push((en ? 'Branch: ' : 'الفرع: ') +
+                     name(branchSelect.options[branchSelect.selectedIndex].text));
+          }
+        }
+        return out;
       }
+
+      var lines = orderLines(false)
+        .concat(['', '— — — — — — — — — —', 'ENGLISH', ''])
+        .concat(orderLines(true));
 
       window.open('https://wa.me/' + CFG.whatsapp + '?text=' + encodeURIComponent(lines.join('\n')), '_blank');
       toast('جارٍ فتح واتساب لإرسال طلبك…');

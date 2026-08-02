@@ -40,6 +40,7 @@ const CSS = readFileSync(`${ROOT}/css/styles.css`, 'utf8');
 
 /* تحميل السكربتات بالترتيب */
 window.eval(readFileSync(`${ROOT}/js/menu-data.js`, 'utf8'));
+window.eval(readFileSync(`${ROOT}/js/menu-en.js`, 'utf8'));
 window.eval(readFileSync(`${ROOT}/js/gallery-data.js`, 'utf8'));
 window.eval(readFileSync(`${ROOT}/js/main.js`, 'utf8'));
 
@@ -349,6 +350,39 @@ check('بيانات الزبون حُفظت لطلبه القادم',
   (JSON.parse(window.localStorage.getItem('bak_customer') || '{}')).name === 'سعد العنزي');
 check('الرسالة تحوي العنوان', msg.includes('حي النرجس'));
 check('الرسالة تحوي منطقة التوصيل', msg.includes(ZONES[0].label));
+
+/* ===== النسخة الإنجليزية — في المطبخ من لا يقرأ العربية ===== */
+console.log('\n— رسالة الطلب بالإنجليزية —');
+const EN = window.MENU_EN;
+const enPart = msg.split('ENGLISH')[1] || '';
+check('الرسالة تحمل نسخة إنجليزية تحت العربية', enPart.length > 0);
+check('العربية أوّلاً كاملة', msg.indexOf('السلام عليكم') < msg.indexOf('ENGLISH'));
+check('اسم الطبق مترجَم', enPart.includes(EN[SUBJECT.name]), `(المتوقع ${EN[SUBJECT.name]})`);
+check('الحجم مترجَم', enPart.includes(EN[SUB_SIZE.label]), `(المتوقع ${EN[SUB_SIZE.label]})`);
+check('الإضافة مترجَمة', enPart.includes(EN[SUB_ADDON.label]), `(المتوقع ${EN[SUB_ADDON.label]})`);
+check('منطقة التوصيل مترجَمة', enPart.includes(EN[ZONES[0].label]));
+check('عناوين الحقول إنجليزية',
+  ['Name:', 'Phone:', 'Total:', 'Delivery time:'].every((k) => enPart.includes(k)));
+check('الأرقام لاتينية والعملة QAR',
+  enPart.includes('QAR') && !/[٠-٩]/.test(enPart.split('Name:')[0]),
+  '(بقي رقم عربي في النسخة الإنجليزية)');
+check('الغداء والعشاء بالإنجليزية', /\((Lunch|Dinner)\)/.test(enPart));
+check('بيانات الزبون كما كتبها لا مترجَمة',
+  enPart.includes('سعد العنزي') && enPart.includes('حي النرجس'));
+
+/* كل اسم يخرج للمطبخ له إنجليزية — طبقٌ بلا ترجمة يصل الموظفَ عربياً */
+const untranslated = [];
+window.MENU.forEach((d) => {
+  if (!EN[d.name]) untranslated.push(`طبق: ${d.name}`);
+  (d.sizes || []).forEach((s) => { if (!EN[s.label]) untranslated.push(`حجم: ${s.label}`); });
+  (d.addons || []).forEach((a) => { if (!EN[a.label]) untranslated.push(`إضافة: ${a.label}`); });
+  if (d.picks) d.picks.options.forEach((o) => {
+    if (!EN[o.label]) untranslated.push(`اختيار: ${o.label}`);
+  });
+});
+ZONES.forEach((z) => { if (!EN[z.label]) untranslated.push(`منطقة: ${z.label}`); });
+check('كل اسم في القائمة له مقابل إنجليزي', untranslated.length === 0,
+  `(بلا ترجمة: ${untranslated.slice(0, 5).join('، ')})`);
 
 /* تقليل الكمية */
 click($('#cartItems [data-qty="0"][data-delta="-1"]'));
