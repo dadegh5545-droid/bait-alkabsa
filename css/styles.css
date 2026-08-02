@@ -626,10 +626,13 @@ p  { margin: 0 0 1rem; }
   color: #fff;
 }
 
+/* البطاقة عرضية: الصورة جنب النصّ لا فوقه. الطبق الواحد كان يأخذ
+   شاشةً كاملة على الجوال، فيمرّ الزبون أربع مرّات ليرى أربعة أطباق
+   ولا يقارن سعرين. عرضياً يرى ثلاثة في نظرة. */
 .menu-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-  gap: 1.6rem;
+  grid-template-columns: repeat(auto-fill, minmax(370px, 1fr));
+  gap: 1.1rem;
 }
 
 .dish {
@@ -639,22 +642,41 @@ p  { margin: 0 0 1rem; }
   box-shadow: var(--shadow-sm);
   transition: transform .35s var(--ease), box-shadow .35s var(--ease);
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  align-items: stretch;
 }
 .dish:hover { transform: translateY(-7px); box-shadow: var(--shadow); }
 .dish.is-hidden { display: none; }
 
-.dish-media { min-height: 172px; border-radius: 0; }
-.dish-body { padding: 1.15rem 1.3rem 1.4rem; flex: 1; display: flex; flex-direction: column; }
+/* الصورة عمودٌ ثابت لا يتمدّد باتّساع الشاشة، فتبقى البطاقات
+   على خطٍّ واحد مهما اختلفت أطوال الأسماء */
+.dish-media-wrap { flex: 0 0 38%; max-width: 200px; }
+.dish-media {
+  height: 100%;
+  min-height: 165px;
+  border-radius: 0;
+}
+/* تسمية الصورة النائبة تزدحم في عمودٍ ضيّق — الاسم بجانبها أصلاً */
+.dish-media::after { display: none; }
 
+.dish-body {
+  padding: .95rem 1.05rem 1rem;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* الاسم فوق والسعر تحته: في عمودٍ ضيّق يتزاحمان على سطر واحد
+   فيُقطع الاسم أو يهبط السعر تحته بلا محاذاة */
 .dish-head {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: .8rem;
-  margin-bottom: .4rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .12rem;
+  margin-bottom: .3rem;
 }
-.dish-head h3 { font-size: 1.08rem; }
+.dish-head h3 { font-size: 1rem; line-height: 1.45; }
 
 .price {
   font-weight: 800;
@@ -677,12 +699,19 @@ p  { margin: 0 0 1rem; }
   margin-inline-end: .25rem;
 }
 
+/* الوصف سطران على الأكثر: في العمود الضيّق كان وصفٌ من أربعة أسطر
+   يمطّ البطاقة حتى تخالف جارتها في الصفّ */
 .dish-body p {
-  font-size: .87rem;
+  font-size: .82rem;
   color: var(--ink-soft);
-  line-height: 1.7;
-  margin: 0 0 .8rem;
+  line-height: 1.6;
+  margin: 0 0 .6rem;
   flex: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 /* ما يأتي مع الطبق مجاناً — يجب أن يُلحظ من نظرة واحدة.
@@ -690,15 +719,15 @@ p  { margin: 0 0 1rem; }
 p.included {
   display: flex;
   align-items: center;
-  gap: .45rem;
+  gap: .4rem;
   flex: 0 0 auto;
-  margin: 0 0 .9rem;
-  padding: .5rem .7rem;
-  border-radius: 10px;
+  margin: 0 0 .6rem;
+  padding: .38rem .55rem;
+  border-radius: 9px;
   background: var(--gold-dim);
   border-inline-start: 3px solid var(--gold);
   color: var(--brown);
-  font-size: .82rem;
+  font-size: .76rem;
   font-weight: 700;
   line-height: 1.5;
 }
@@ -1712,6 +1741,31 @@ html[dir="rtl"] .cart-panel { transform: translateX(100%); }
 }
 
 /* التاريخ والساعة جنباً إلى جنب */
+/* الغداء والعشاء: زرّان يضبطان الساعة تحتهما. أوسع من حقل الوقت
+   لأنّ أكثر الزبائن يريد إحدى الوجبتين لا ساعةً بعينها. */
+.meal-pick { display: grid; grid-template-columns: 1fr 1fr; gap: .5rem; }
+.meal-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+  padding: .6rem .5rem;
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  font-size: .87rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  transition: all .2s var(--ease);
+}
+.meal-btn:hover { border-color: var(--gold); color: var(--brown); }
+.meal-btn.is-active {
+  border-color: var(--gold);
+  background: var(--gold-dim);
+  color: var(--brown);
+  font-weight: 700;
+}
+
 .cart-when { display: flex; gap: .5rem; }
 .cart-when input { flex: 1 1 0; min-width: 0; }
 
@@ -1938,6 +1992,19 @@ html[dir="rtl"] .cart-panel { transform: translateX(100%); }
 @media (max-width: 520px) {
   body { font-size: 16px; }
   .container { width: calc(100% - 2rem); }
+
+  /* على الجوال الضيّق تُشدّ البطاقة العرضية: صورة أنحف وخطّ أصغر،
+     وسطر وصف واحد — الاسم والسعر وزرّ الإضافة هي ما يقرّر به الزبون */
+  .menu-grid { grid-template-columns: 1fr; gap: .85rem; }
+  .dish-media-wrap { flex: 0 0 33%; max-width: 130px; }
+  .dish-media { min-height: 148px; }
+  .dish-body { padding: .8rem .85rem .85rem; }
+  .dish-head h3 { font-size: .95rem; }
+  .price { font-size: 1.05rem; }
+  .dish-body p { -webkit-line-clamp: 1; line-clamp: 1; margin-bottom: .5rem; }
+  p.included { font-size: .72rem; padding: .32rem .45rem; margin-bottom: .5rem; }
+  .add-btn { padding: .42rem .85rem; font-size: .8rem; }
+  .fav-btn { width: 30px; height: 30px; font-size: .95rem; inset-block-start: 7px; inset-inline-end: 7px; }
   .hero-actions .btn { flex: 1; }
   .field-row { grid-template-columns: 1fr; }
   .reserve-form { padding: 1.5rem 1.2rem; }

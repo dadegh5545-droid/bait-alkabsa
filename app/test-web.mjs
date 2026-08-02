@@ -370,6 +370,56 @@ check('الغداء والعشاء بالإنجليزية', /\((Lunch|Dinner)\)/
 check('بيانات الزبون كما كتبها لا مترجَمة',
   enPart.includes('سعد العنزي') && enPart.includes('حي النرجس'));
 
+/* ===== الغداء والعشاء: زرّ يضبط الساعة، والساعة تضيء الزرّ ===== */
+console.log('\n— اختيار الغداء أو العشاء —');
+const mealBtn = (m) => $(`.meal-btn[data-meal="${m}"]`);
+const litMeal = () => ($$('.meal-btn').find((b) => b.classList.contains('is-active')) || {})
+  .dataset?.meal;
+
+/* الزبون يعدّل الساعة من الواجهة فيُطلق حدثاً — والتعيين البرمجي
+   وحده لا يُطلقه، فنحاكيه كما يفعل */
+const setHour = (v) => {
+  $('#cartWhen').value = v;
+  $('#cartWhen').dispatchEvent(new window.Event('change', { bubbles: true }));
+};
+
+check('زرّا الغداء والعشاء موجودان', !!mealBtn('lunch') && !!mealBtn('dinner'));
+
+/* فتح السلة يُضيء الزرّ الموافق لساعتها — لا يفتحها الزبون على
+   «غداء» مضيء وساعته مساءً */
+click($('#cartBtn'));
+const openHour = +$('#cartWhen').value.split(':')[0];
+check('فتح السلة يُضيء الزرّ الموافق لساعتها',
+  litMeal() === (openHour < 17 ? 'lunch' : 'dinner'),
+  `(الساعة ${$('#cartWhen').value} والمضيء ${litMeal()})`);
+
+setHour('20:00');
+check('ساعة المساء تُضيء العشاء', litMeal() === 'dinner', `(المضيء ${litMeal()})`);
+
+click(mealBtn('lunch'));
+check('اختيار الغداء يضبط الساعة نهاراً', $('#cartWhen').value === '13:00',
+  `(${$('#cartWhen').value})`);
+check('اختيار الغداء يضيئه', litMeal() === 'lunch');
+check('الزرّ المختار معلَن للقارئ الصوتي',
+  mealBtn('lunch').getAttribute('aria-pressed') === 'true' &&
+  mealBtn('dinner').getAttribute('aria-pressed') === 'false');
+
+click(mealBtn('dinner'));
+check('اختيار العشاء يضبط الساعة مساءً', $('#cartWhen').value === '20:00');
+
+/* الساعة هي المصدر: تعديلها يدوياً يعيد إضاءة الزرّ الصحيح، فلا
+   يبقى «عشاء» مضيئاً وساعته ظهراً */
+setHour('12:30');
+check('تعديل الساعة يدوياً يصحّح الزرّ المضيء', litMeal() === 'lunch',
+  `(المضيء ${litMeal()})`);
+
+/* والرسالة تتبع الاختيار لا العكس */
+opened.length = 0;
+click($('#cartSubmit'));
+const lunchMsg = decodeURIComponent((opened[0] || '').split('text=')[1] || '');
+check('الرسالة تقول غداء بعد اختياره', lunchMsg.includes('(غداء)') && lunchMsg.includes('(Lunch)'),
+  '(بقيت تقول عشاء)');
+
 /* كل اسم يخرج للمطبخ له إنجليزية — طبقٌ بلا ترجمة يصل الموظفَ عربياً */
 const untranslated = [];
 window.MENU.forEach((d) => {

@@ -795,6 +795,41 @@
     return '';
   }
 
+  /* ---------- الغداء والعشاء ----------
+     الوجبة مشتقّة من الساعة لا حقلٌ ثانٍ بجانبها: حقلان مستقلّان
+     يتناقضان — يختار «غداء» وتبقى الساعة ٢٠:٠٠ — فيصل المطبخَ
+     طلبٌ يناقض نفسه. الزرّ يضبط الساعة، والساعة تضيء الزرّ. */
+  function mealAt(hour) {
+    return hour < (leadCfg().lunchUntil || 17) ? 'lunch' : 'dinner';
+  }
+
+  function currentMeal() {
+    var f = customerFields();
+    if (!f.time || !f.time.value) return '';
+    return mealAt(+f.time.value.split(':')[0]);
+  }
+
+  function refreshMealButtons() {
+    var meal = currentMeal();
+    $$('.meal-btn').forEach(function (b) {
+      var on = b.getAttribute('data-meal') === meal;
+      b.classList.toggle('is-active', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+  }
+
+  /* ساعة كل وجبة تُقرأ من الإعدادات إن كُتبت، وإلّا فمنتصف النهار
+     والثامنة مساءً — وهما ما يطلبه الناس فعلاً */
+  function setMeal(meal) {
+    var f = customerFields();
+    if (!f.time) return;
+    var lead = leadCfg();
+    f.time.value = meal === 'lunch' ? (lead.lunchAt || '13:00')
+                                    : (lead.dinnerAt || '20:00');
+    refreshMealButtons();
+    fieldError('cartWhen', slotProblem());
+  }
+
   function setupWhen() {
     var f = customerFields();
     if (!f.date) return;
@@ -808,6 +843,19 @@
 
     var hint = $('#cartWhenHint');
     if (hint) hint.textContent = leadCfg().note || '';
+    refreshMealButtons();
+  }
+
+  /* الأزرار تضبط الساعة، وتعديل الساعة يدوياً يعيد إضاءة الزرّ
+     الصحيح — فلا يرى الزبون «غداء» مضيئاً وساعته مساءً */
+  $$('.meal-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      setMeal(btn.getAttribute('data-meal'));
+    });
+  });
+  if ($('#cartWhen')) {
+    $('#cartWhen').addEventListener('change', refreshMealButtons);
+    $('#cartWhen').addEventListener('input', refreshMealButtons);
   }
 
   /* الموعد المختار بصيغة يقرأها المطبخ. بالإنجليزية تبقى الأرقام

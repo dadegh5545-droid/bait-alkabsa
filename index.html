@@ -550,9 +550,19 @@
                 <span class="cart-err" data-for="cartUnit"></span>
               </div>
 
-              <!-- وقت التسليم: يُفضّل الطلب قبل يوم، والحدّ الأدنى تحسبه الواجهة -->
+              <!-- وقت التسليم: يُفضّل الطلب قبل يوم، والحدّ الأدنى تحسبه الواجهة.
+                   وزرّا الغداء والعشاء يضبطان الساعة، فتبقى الوجبة مشتقّةً من
+                   الوقت لا حقلاً ثانياً يخالفه. -->
               <div class="cart-field">
                 <label for="cartWhen">وقت التسليم</label>
+                <div class="meal-pick" role="radiogroup" aria-label="الوجبة">
+                  <button type="button" class="meal-btn" data-meal="lunch" aria-pressed="false">
+                    <span aria-hidden="true">🌤️</span>غداء
+                  </button>
+                  <button type="button" class="meal-btn" data-meal="dinner" aria-pressed="false">
+                    <span aria-hidden="true">🌙</span>عشاء
+                  </button>
+                </div>
                 <div class="cart-when">
                   <input type="date" id="cartDate" aria-label="تاريخ التسليم" />
                   <input type="time" id="cartWhen" aria-label="ساعة التسليم" value="20:00" />
