@@ -393,25 +393,36 @@ check('فتح السلة يُضيء الزرّ الموافق لساعتها',
   litMeal() === (openHour < 17 ? 'lunch' : 'dinner'),
   `(الساعة ${$('#cartWhen').value} والمضيء ${litMeal()})`);
 
+/* قبل أيّ ضغط تتبع الأزرارُ الساعة، فلا تخرج الرسالة بلا وجبة
+   لمن لم ينتبه للزرّين */
 setHour('20:00');
-check('ساعة المساء تُضيء العشاء', litMeal() === 'dinner', `(المضيء ${litMeal()})`);
+check('قبل الاختيار: ساعة المساء تُضيء العشاء', litMeal() === 'dinner',
+  `(المضيء ${litMeal()})`);
+setHour('12:30');
+check('قبل الاختيار: ساعة الظهر تُضيء الغداء', litMeal() === 'lunch');
 
+/* الاختيار معلومة لا قيد: لا يبدّل ساعةً ولا يمنع موعداً */
+setHour('20:00');
 click(mealBtn('lunch'));
-check('اختيار الغداء يضبط الساعة نهاراً', $('#cartWhen').value === '13:00',
-  `(${$('#cartWhen').value})`);
+check('اختيار الغداء لا يمسّ ساعة الزبون', $('#cartWhen').value === '20:00',
+  `(بُدّلت إلى ${$('#cartWhen').value})`);
 check('اختيار الغداء يضيئه', litMeal() === 'lunch');
+check('لا خطأ على موعدٍ صحيح بعد الاختيار',
+  $('.cart-err[data-for="cartWhen"]').textContent === '',
+  `(${$('.cart-err[data-for="cartWhen"]').textContent})`);
 check('الزرّ المختار معلَن للقارئ الصوتي',
   mealBtn('lunch').getAttribute('aria-pressed') === 'true' &&
   mealBtn('dinner').getAttribute('aria-pressed') === 'false');
 
-click(mealBtn('dinner'));
-check('اختيار العشاء يضبط الساعة مساءً', $('#cartWhen').value === '20:00');
-
-/* الساعة هي المصدر: تعديلها يدوياً يعيد إضاءة الزرّ الصحيح، فلا
-   يبقى «عشاء» مضيئاً وساعته ظهراً */
-setHour('12:30');
-check('تعديل الساعة يدوياً يصحّح الزرّ المضيء', litMeal() === 'lunch',
+/* ما صرّح به الزبون لا تنقضه ساعةٌ يعدّلها بعده: من ضغط «غداء»
+   ثم اختار السابعة مساءً يريد غداءً في السابعة */
+setHour('19:00');
+check('تعديل الساعة لا يلغي اختياراً صريحاً', litMeal() === 'lunch',
   `(المضيء ${litMeal()})`);
+
+click(mealBtn('dinner'));
+check('يقدر يبدّل اختياره', litMeal() === 'dinner' && $('#cartWhen').value === '19:00');
+click(mealBtn('lunch'));
 
 /* والرسالة تتبع الاختيار لا العكس */
 opened.length = 0;

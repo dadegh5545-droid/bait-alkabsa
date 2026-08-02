@@ -796,14 +796,18 @@
   }
 
   /* ---------- الغداء والعشاء ----------
-     الوجبة مشتقّة من الساعة لا حقلٌ ثانٍ بجانبها: حقلان مستقلّان
-     يتناقضان — يختار «غداء» وتبقى الساعة ٢٠:٠٠ — فيصل المطبخَ
-     طلبٌ يناقض نفسه. الزرّ يضبط الساعة، والساعة تضيء الزرّ. */
+     اختيارٌ نعرفه لا قيدٌ نفرضه: الزرّ لا يمسّ الساعة ولا يمنع
+     موعداً — الزبون حرٌّ في ساعته، والمطبخ يعرف أيّ وجبة يطبخها.
+     وما دام لم يضغط شيئاً تتبع الأزرارُ ساعتَه، فلا تخرج الرسالة
+     بلا وجبة لمن لم ينتبه للزرّين. */
+  var mealChoice = '';
+
   function mealAt(hour) {
     return hour < (leadCfg().lunchUntil || 17) ? 'lunch' : 'dinner';
   }
 
   function currentMeal() {
+    if (mealChoice) return mealChoice;
     var f = customerFields();
     if (!f.time || !f.time.value) return '';
     return mealAt(+f.time.value.split(':')[0]);
@@ -816,18 +820,6 @@
       b.classList.toggle('is-active', on);
       b.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
-  }
-
-  /* ساعة كل وجبة تُقرأ من الإعدادات إن كُتبت، وإلّا فمنتصف النهار
-     والثامنة مساءً — وهما ما يطلبه الناس فعلاً */
-  function setMeal(meal) {
-    var f = customerFields();
-    if (!f.time) return;
-    var lead = leadCfg();
-    f.time.value = meal === 'lunch' ? (lead.lunchAt || '13:00')
-                                    : (lead.dinnerAt || '20:00');
-    refreshMealButtons();
-    fieldError('cartWhen', slotProblem());
   }
 
   function setupWhen() {
@@ -846,11 +838,13 @@
     refreshMealButtons();
   }
 
-  /* الأزرار تضبط الساعة، وتعديل الساعة يدوياً يعيد إضاءة الزرّ
-     الصحيح — فلا يرى الزبون «غداء» مضيئاً وساعته مساءً */
+  /* الضغط يثبّت الاختيار فلا تنقضه ساعةٌ تُعدَّل بعده: من ضغط
+     «غداء» ثم اختار السابعة مساءً يريد غداءً في السابعة — لا
+     يُصحَّح له اختيارٌ صرّح به. وقبل أيّ ضغط تتبع الأزرارُ الساعة. */
   $$('.meal-btn').forEach(function (btn) {
     btn.addEventListener('click', function () {
-      setMeal(btn.getAttribute('data-meal'));
+      mealChoice = btn.getAttribute('data-meal');
+      refreshMealButtons();
     });
   });
   if ($('#cartWhen')) {
@@ -864,9 +858,9 @@
     var f = customerFields();
     if (!f.date || !f.time || !f.date.value || !f.time.value) return '';
 
+    /* الوجبة من اختيار الزبون إن ضغطه، وإلّا فمن ساعته */
     var parts = f.date.value.split('-');
-    var hm    = +f.time.value.split(':')[0];
-    var lunch = hm < (leadCfg().lunchUntil || 17);
+    var lunch = currentMeal() === 'lunch';
     var meal  = en ? (lunch ? 'Lunch' : 'Dinner') : (lunch ? 'غداء' : 'عشاء');
     var date  = parts[2] + '/' + parts[1] + '/' + parts[0];
 
